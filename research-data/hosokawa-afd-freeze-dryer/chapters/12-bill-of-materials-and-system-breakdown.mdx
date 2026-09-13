@@ -1,0 +1,52 @@
+---
+title: "Bill of Materials & System Breakdown"
+chapterNumber: "12"
+slug: "12-bill-of-materials-and-system-breakdown"
+act: "Build It"
+actId: "act-3"
+readTime: "2 min read"
+simulators: []
+---
+
+# 12 — Bill of Materials & System Breakdown
+
+A full line-item BOM, organized by subsystem, is provided as a companion spreadsheet: **`bom/AFD_replica_BOM.xlsx`**. This markdown file summarizes its structure and how to use it.
+
+## Spreadsheet structure
+
+| Sheet | Contents |
+|---|---|
+| `Summary` | Subsystem-level rollup: item counts, make/buy split, and a place to total your own sourced costs (cost column left blank — component pricing is region/vendor/time dependent and this package does not invent prices) |
+| `BOM` | The full line-item list: Subsystem, Item, Function/Notes, Make or Buy, Suggested Source/Standard, Reference (which file in this package documents it), Qty (placeholder — depends on your batch-size design) |
+
+## How the BOM maps to the rest of this package
+
+Each BOM line references the file where its engineering rationale, standard, or patent citation lives — the BOM itself is deliberately kept as a structured index rather than repeating that explanation inline. Reading order:
+1. Pick your target batch size (drives vessel volume — file 11's methodology, file 03's Hosokawa size table for scale intuition).
+2. Work subsystem by subsystem through files 05–08 to firm up each line item's actual spec for your design.
+3. Use file 10's make/buy table (already reflected in the BOM's Make/Buy column) to decide sourcing.
+4. Use the BOM as your live procurement/fabrication tracking sheet as the build proceeds — add real supplier, part number, and cost columns as you source each item; the shipped template deliberately leaves these blank rather than inventing placeholder vendors or prices.
+
+## Subsystems represented in the BOM (17 groups, matching file 04's subsystem map)
+
+1. Lyophilisation Vessel & Chamber
+2. Agitator & Drive
+3. Vessel Jacket & TCU
+4. Refrigeration System
+5. Vacuum System
+6. Material Collector / Dust Filter
+7. Bottom Discharge Valve
+8. CIP System
+9. SIP System (optional)
+10. Seals, Gaskets & Insulation
+11. Instrumentation
+12. Valves & Piping
+13. Control System (PLC/HMI/SCADA)
+14. Electrical System
+15. Structural Frame
+16. Utility Management Skid / Interface
+17. Safety Systems
+
+## A note on quantities and costs
+
+This package deliberately does **not** publish per-item cost estimates or fixed quantities: real costs vary enormously by region, supplier, new-vs-surplus sourcing, and your chosen batch scale, and inventing numbers here would create false precision. The `Qty` and `Cost` columns in the spreadsheet are intentionally left for you to fill in once your own vessel size (file 11) and sourcing decisions (file 10) are fixed — use the BOM's structure and the Make/Buy/Reference columns as the durable part of this deliverable.

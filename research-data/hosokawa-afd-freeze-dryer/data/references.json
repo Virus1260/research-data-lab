@@ -1,0 +1,400 @@
+[
+  {
+    "id": 1,
+    "category": "A. Hosokawa primary sources (AFD-specific)",
+    "raw": "Hosokawa Micron B.V., \"Freeze Dryer\" (AFD product page) — https://hosokawa-micron-bv.com/technologies/drying/freeze-dryer",
+    "title": "Hosokawa Micron B.V., \"Freeze Dryer\" (AFD product page)",
+    "description": "https://hosokawa-micron-bv.com/technologies/drying/freeze-dryer",
+    "url": "https://hosokawa-micron-bv.com/technologies/drying/freeze-dryer",
+    "citedByChapters": [
+      "03",
+      "04",
+      "05"
+    ]
+  },
+  {
+    "id": 2,
+    "category": "A. Hosokawa primary sources (AFD-specific)",
+    "raw": "Hosokawa Micron B.V., \"Drying Systems\" (general drying-platform components page) — https://hosokawa-micron-bv.com/technologies/drying/drying-systems",
+    "title": "Hosokawa Micron B.V., \"Drying Systems\" (general drying-platform components page)",
+    "description": "https://hosokawa-micron-bv.com/technologies/drying/drying-systems",
+    "url": "https://hosokawa-micron-bv.com/technologies/drying/drying-systems",
+    "citedByChapters": [
+      "03",
+      "04"
+    ]
+  },
+  {
+    "id": 3,
+    "category": "A. Hosokawa primary sources (AFD-specific)",
+    "raw": "Hosokawa Micron B.V., \"Nauta® Conical Screw Mixer\" — https://hosokawa-micron-bv.com/technologies/mixing/nauta-conical-screw-mixer",
+    "title": "Hosokawa Micron B.V., \"Nauta® Conical Screw Mixer\"",
+    "description": "https://hosokawa-micron-bv.com/technologies/mixing/nauta-conical-screw-mixer",
+    "url": "https://hosokawa-micron-bv.com/technologies/mixing/nauta-conical-screw-mixer",
+    "citedByChapters": [
+      "03",
+      "05"
+    ]
+  },
+  {
+    "id": 4,
+    "category": "A. Hosokawa primary sources (AFD-specific)",
+    "raw": "Hosokawa Micron B.V., \"CIP/SIP Cleaning\" technology page — https://hosokawa-micron-bv.com/technologies/cip-sip-cleaning",
+    "title": "Hosokawa Micron B.V., \"CIP/SIP Cleaning\" technology page",
+    "description": "https://hosokawa-micron-bv.com/technologies/cip-sip-cleaning",
+    "url": "https://hosokawa-micron-bv.com/technologies/cip-sip-cleaning",
+    "citedByChapters": [
+      "07"
+    ]
+  },
+  {
+    "id": 5,
+    "category": "A. Hosokawa primary sources (AFD-specific)",
+    "raw": "Hosokawa Micron B.V., \"New Patent for Active Freeze Dryer\" (news article) — https://hosokawa-micron-bv.com/company/news-events/news/new-patent-for-active-freeze-dryer",
+    "title": "Hosokawa Micron B.V., \"New Patent for Active Freeze Dryer\" (news article)",
+    "description": "https://hosokawa-micron-bv.com/company/news-events/news/new-patent-for-active-freeze-dryer",
+    "url": "https://hosokawa-micron-bv.com/company/news-events/news/new-patent-for-active-freeze-dryer",
+    "citedByChapters": [
+      "03"
+    ]
+  },
+  {
+    "id": 6,
+    "category": "B. Patents (the core AFD engineering-detail sources — file 03)",
+    "raw": "**NL1022668C2 / EP1601919B1**, \"Stirred freeze drying,\" Hosokawa Micron B.V. (inventor: Peter Gerardus Van Der Wel), filed 2003 — https://patents.google.com/patent/NL1022668C2/en",
+    "title": "**NL1022668C2 / EP1601919B1**, \"Stirred freeze drying,\" Hosokawa Micron B.V. (inventor: Peter Gerardus Van Der Wel), filed 2003",
+    "description": "https://patents.google.com/patent/NL1022668C2/en",
+    "url": "https://patents.google.com/patent/NL1022668C2/en",
+    "citedByChapters": [
+      "03",
+      "05",
+      "06",
+      "10",
+      "11"
+    ]
+  },
+  {
+    "id": 7,
+    "category": "B. Patents (the core AFD engineering-detail sources — file 03)",
+    "raw": "**NL2026893B1 / WO2022103268A1**, \"Freeze dryer and method for freeze drying,\" Hosokawa Micron B.V., filed 2020, granted 2022 — https://patents.google.com/patent/NL2026893B1/en",
+    "title": "**NL2026893B1 / WO2022103268A1**, \"Freeze dryer and method for freeze drying,\" Hosokawa Micron B.V., filed 2020, granted 2022",
+    "description": "https://patents.google.com/patent/NL2026893B1/en",
+    "url": "https://patents.google.com/patent/NL2026893B1/en",
+    "citedByChapters": [
+      "03",
+      "05",
+      "06",
+      "08"
+    ]
+  },
+  {
+    "id": 8,
+    "category": "B. Patents (the core AFD engineering-detail sources — file 03)",
+    "raw": "WO2012018320A1 (IMA Life), \"Bulk freeze drying using spray freezing and stirred drying\" — competitor patent citing \"the stirred freeze dryer marketed by Hosokawa Micron Powder Systems\" as prior art, useful corroborating context — https://patents.google.com/patent/WO2012018320A1/en",
+    "title": "WO2012018320A1 (IMA Life), \"Bulk freeze drying using spray freezing and stirred drying\"",
+    "description": "competitor patent citing \"the stirred freeze dryer marketed by Hosokawa Micron Powder Systems\" as prior art, useful corroborating context",
+    "url": "https://patents.google.com/patent/WO2012018320A1/en",
+    "citedByChapters": [
+      "03"
+    ]
+  },
+  {
+    "id": 9,
+    "category": "C. Freeze-drying physics & process science",
+    "raw": "Tang, X. (Charlie) & Pikal, M.J., \"Design of Freeze-Drying Processes for Pharmaceuticals: Practical Advice,\" *Pharmaceutical Research* 21(2):191–200, 2004. DOI: 10.1023/B:PHAM.0000016234.73023.75 — https://link.springer.com/article/10.1023/B:PHAM.0000016234.73023.75",
+    "title": "Tang, X. (Charlie) & Pikal, M.J., \"Design of Freeze-Drying Processes for Pharmaceuticals: Practical Advice,\" *Pharmaceutical Research* 21(2):191–200, 2004. DOI: 10.1023/B:PHAM.0000016234.73023.75",
+    "description": "https://link.springer.com/article/10.1023/B:PHAM.0000016234.73023.75",
+    "url": "https://link.springer.com/article/10.1023/B:PHAM.0000016234.73023.75",
+    "citedByChapters": [
+      "02",
+      "11"
+    ]
+  },
+  {
+    "id": 10,
+    "category": "C. Freeze-drying physics & process science",
+    "raw": "Fissore et al., \"Practical Advice on Scientific Design of Freeze-Drying Process: 2023 Update,\" *Pharmaceutical Research*, PMC10661802 — https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10661802/",
+    "title": "Fissore et al., \"Practical Advice on Scientific Design of Freeze-Drying Process: 2023 Update,\" *Pharmaceutical Research*, PMC10661802",
+    "description": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10661802/",
+    "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10661802/",
+    "citedByChapters": [
+      "02",
+      "11"
+    ]
+  },
+  {
+    "id": 11,
+    "category": "C. Freeze-drying physics & process science",
+    "raw": "Patel, S.M. et al., \"Determination of End Point of Primary Drying in Freeze-Drying Process Control,\" *AAPS PharmSciTech* 11(1), March 2010 — https://link.springer.com/article/10.1208/s12249-009-9362-7",
+    "title": "Patel, S.M. et al., \"Determination of End Point of Primary Drying in Freeze-Drying Process Control,\" *AAPS PharmSciTech* 11(1), March 2010",
+    "description": "https://link.springer.com/article/10.1208/s12249-009-9362-7",
+    "url": "https://link.springer.com/article/10.1208/s12249-009-9362-7",
+    "citedByChapters": [
+      "06"
+    ]
+  },
+  {
+    "id": 12,
+    "category": "C. Freeze-drying physics & process science",
+    "raw": "\"Best Practices and Guidelines (2022) for Scale-up and Technology Transfer in Freeze Drying... Part 2,\" *AAPS PharmSciTech* — https://link.springer.com/article/10.1208/s12249-023-02553-4",
+    "title": "\"Best Practices and Guidelines (2022) for Scale-up and Technology Transfer in Freeze Drying... Part 2,\" *AAPS PharmSciTech*",
+    "description": "https://link.springer.com/article/10.1208/s12249-023-02553-4",
+    "url": "https://link.springer.com/article/10.1208/s12249-023-02553-4",
+    "citedByChapters": [
+      "06",
+      "11"
+    ]
+  },
+  {
+    "id": 13,
+    "category": "C. Freeze-drying physics & process science",
+    "raw": "\"Recent trends in pharmaceutical freeze-drying and control strategies observed in human drug applications and manufacturing inspections\" — https://link.springer.com/article/10.1186/s41120-025-00132-4",
+    "title": "\"Recent trends in pharmaceutical freeze-drying and control strategies observed in human drug applications and manufacturing inspections\"",
+    "description": "https://link.springer.com/article/10.1186/s41120-025-00132-4",
+    "url": "https://link.springer.com/article/10.1186/s41120-025-00132-4",
+    "citedByChapters": [
+      "06",
+      "14"
+    ]
+  },
+  {
+    "id": 14,
+    "category": "C. Freeze-drying physics & process science",
+    "raw": "Drug Development & Delivery, \"LYOPHILIZATION – Process Monitoring During Freeze-Drying\" (Pirani/capacitance manometer mechanism explainer) — https://drug-dev.com/lyophilization-process-monitoring-during-freeze-drying/",
+    "title": "Drug Development & Delivery, \"LYOPHILIZATION – Process Monitoring During Freeze-Drying\" (Pirani/capacitance manometer mechanism explainer)",
+    "description": "https://drug-dev.com/lyophilization-process-monitoring-during-freeze-drying/",
+    "url": "https://drug-dev.com/lyophilization-process-monitoring-during-freeze-drying/",
+    "citedByChapters": [
+      "06"
+    ]
+  },
+  {
+    "id": 15,
+    "category": "D. Refrigeration & vacuum systems",
+    "raw": "GEA, \"A Natural Gas Combination for Improved Freeze Dryer Cooling\" (ethane cascade refrigeration, indirect silicone-oil-cooled condenser) — https://www.gea.com/en/stories/natural-gas-combination-improved-freeze-dryer-cooling/",
+    "title": "GEA, \"A Natural Gas Combination for Improved Freeze Dryer Cooling\" (ethane cascade refrigeration, indirect silicone-oil-cooled condenser)",
+    "description": "https://www.gea.com/en/stories/natural-gas-combination-improved-freeze-dryer-cooling/",
+    "url": "https://www.gea.com/en/stories/natural-gas-combination-improved-freeze-dryer-cooling/",
+    "citedByChapters": [
+      "06"
+    ]
+  },
+  {
+    "id": 16,
+    "category": "D. Refrigeration & vacuum systems",
+    "raw": "GEA, \"Sustainable Cooling for Freeze-Drying Applications\" (LYOAIR® system) — https://www.gea.com/en/products/dryers-particle-processing/lyophilizers/lyoair/",
+    "title": "GEA, \"Sustainable Cooling for Freeze-Drying Applications\" (LYOAIR® system)",
+    "description": "https://www.gea.com/en/products/dryers-particle-processing/lyophilizers/lyoair/",
+    "url": "https://www.gea.com/en/products/dryers-particle-processing/lyophilizers/lyoair/",
+    "citedByChapters": [
+      "06"
+    ]
+  },
+  {
+    "id": 17,
+    "category": "D. Refrigeration & vacuum systems",
+    "raw": "Edwards Vacuum, freeze-drying vacuum pump application literature (dry/oil-free pump trains for pharma freeze-drying) — https://www.edwardsvacuum.com (general reference; consult current application notes)",
+    "title": "Edwards Vacuum, freeze-drying vacuum pump application literature (dry/oil-free pump trains for pharma freeze-drying)",
+    "description": "https://www.edwardsvacuum.com (general reference; consult current application notes)",
+    "url": "https://www.edwardsvacuum.com",
+    "citedByChapters": [
+      "06"
+    ]
+  },
+  {
+    "id": 18,
+    "category": "E. Sanitary design, materials & standards",
+    "raw": "AstroPak, \"ASME BPE Surface Finish Designations: Ensuring Purity and Smooth Surfaces\" — https://astropak.com/asme-bpe-surface-finish-designations/",
+    "title": "AstroPak, \"ASME BPE Surface Finish Designations: Ensuring Purity and Smooth Surfaces\"",
+    "description": "https://astropak.com/asme-bpe-surface-finish-designations/",
+    "url": "https://astropak.com/asme-bpe-surface-finish-designations/",
+    "citedByChapters": [
+      "05",
+      "10"
+    ]
+  },
+  {
+    "id": 19,
+    "category": "E. Sanitary design, materials & standards",
+    "raw": "Harrison Electropolishing, \"ASME BPE Guidelines for Pharmaceutical Equipment\" — https://harrisonep.com/electropolishing/asme-bpe-specifications",
+    "title": "Harrison Electropolishing, \"ASME BPE Guidelines for Pharmaceutical Equipment\"",
+    "description": "https://harrisonep.com/electropolishing/asme-bpe-specifications",
+    "url": "https://harrisonep.com/electropolishing/asme-bpe-specifications",
+    "citedByChapters": [
+      "05",
+      "10"
+    ]
+  },
+  {
+    "id": 20,
+    "category": "E. Sanitary design, materials & standards",
+    "raw": "ASME Bioprocessing Equipment Standard (BPE), current edition — ASME (standard itself is a paid publication; the two sources above summarize its Part SF surface-finish tables accurately against the standard's published Ra figures)",
+    "title": "ASME Bioprocessing Equipment Standard (BPE), current edition",
+    "description": "ASME (standard itself is a paid publication; the two sources above summarize its Part SF surface-finish tables accurately against the standard's published Ra figures)",
+    "url": "",
+    "citedByChapters": [
+      "05",
+      "10",
+      "14"
+    ]
+  },
+  {
+    "id": 21,
+    "category": "F. Pressure/vacuum vessel design",
+    "raw": "ASME Boiler & Pressure Vessel Code, Section VIII, Division 1, paragraphs UG-28 through UG-30 (external pressure design) — ASME (standard itself is a paid publication)",
+    "title": "ASME Boiler & Pressure Vessel Code, Section VIII, Division 1, paragraphs UG-28 through UG-30 (external pressure design)",
+    "description": "ASME (standard itself is a paid publication)",
+    "url": "",
+    "citedByChapters": [
+      "05",
+      "11"
+    ]
+  },
+  {
+    "id": 22,
+    "category": "F. Pressure/vacuum vessel design",
+    "raw": "Pressure Vessel Engineering Ltd., \"External Pressure\" (jacket closures as vacuum stiffening rings — practitioner discussion with worked examples) — https://www.pveng.com/home/asme-code-design/external-pressure-methods/",
+    "title": "Pressure Vessel Engineering Ltd., \"External Pressure\" (jacket closures as vacuum stiffening rings",
+    "description": "practitioner discussion with worked examples)",
+    "url": "https://www.pveng.com/home/asme-code-design/external-pressure-methods/",
+    "citedByChapters": [
+      "05",
+      "11"
+    ]
+  },
+  {
+    "id": 23,
+    "category": "F. Pressure/vacuum vessel design",
+    "raw": "Codeware, \"External Pressure Design with COMPRESS\" (UG-28 methodology overview) — https://www.codeware.com/products/compress/external-pressure-design/",
+    "title": "Codeware, \"External Pressure Design with COMPRESS\" (UG-28 methodology overview)",
+    "description": "https://www.codeware.com/products/compress/external-pressure-design/",
+    "url": "https://www.codeware.com/products/compress/external-pressure-design/",
+    "citedByChapters": [
+      "05",
+      "11"
+    ]
+  },
+  {
+    "id": 24,
+    "category": "G. Agitator drives & seals",
+    "raw": "ZETA, \"Magnetic Agitators\" (magnetically coupled agitator drives for GMP/aseptic production, up to 2,500 N·m) — https://www.zeta.com/product/magnetic-agitators/",
+    "title": "ZETA, \"Magnetic Agitators\" (magnetically coupled agitator drives for GMP/aseptic production, up to 2,500 N·m)",
+    "description": "https://www.zeta.com/product/magnetic-agitators/",
+    "url": "https://www.zeta.com/product/magnetic-agitators/",
+    "citedByChapters": [
+      "05"
+    ]
+  },
+  {
+    "id": 25,
+    "category": "G. Agitator drives & seals",
+    "raw": "Alfa Laval, \"LeviMag® UltraPure\" aseptic magnetic agitator — https://www.alfalaval.us/products/fluid-handling/mixing-equipment/tank-mixers/levimag-ultrapure/",
+    "title": "Alfa Laval, \"LeviMag® UltraPure\" aseptic magnetic agitator",
+    "description": "https://www.alfalaval.us/products/fluid-handling/mixing-equipment/tank-mixers/levimag-ultrapure/",
+    "url": "https://www.alfalaval.us/products/fluid-handling/mixing-equipment/tank-mixers/levimag-ultrapure/",
+    "citedByChapters": [
+      "05"
+    ]
+  },
+  {
+    "id": 26,
+    "category": "H. Control systems, validation & GMP compliance",
+    "raw": "ISPE, GAMP 5 (Good Automated Manufacturing Practice), 2nd edition — International Society for Pharmaceutical Engineering (standard itself is a paid publication; summarized accurately in source 27 below)",
+    "title": "ISPE, GAMP 5 (Good Automated Manufacturing Practice), 2nd edition",
+    "description": "International Society for Pharmaceutical Engineering (standard itself is a paid publication; summarized accurately in source 27 below)",
+    "url": "",
+    "citedByChapters": [
+      "14"
+    ]
+  },
+  {
+    "id": 27,
+    "category": "H. Control systems, validation & GMP compliance",
+    "raw": "IntuitionLabs, \"Understanding GAMP 5 Guidelines for System Validation\" — https://intuitionlabs.ai/articles/gamp-5-guidelines-system-validation",
+    "title": "IntuitionLabs, \"Understanding GAMP 5 Guidelines for System Validation\"",
+    "description": "https://intuitionlabs.ai/articles/gamp-5-guidelines-system-validation",
+    "url": "https://intuitionlabs.ai/articles/gamp-5-guidelines-system-validation",
+    "citedByChapters": [
+      "14"
+    ]
+  },
+  {
+    "id": 28,
+    "category": "H. Control systems, validation & GMP compliance",
+    "raw": "U.S. FDA, 21 CFR Part 11 (Electronic Records; Electronic Signatures) — https://www.ecfr.gov (eCFR, Title 21, Part 11)",
+    "title": "U.S. FDA, 21 CFR Part 11 (Electronic Records; Electronic Signatures)",
+    "description": "https://www.ecfr.gov (eCFR, Title 21, Part 11)",
+    "url": "https://www.ecfr.gov",
+    "citedByChapters": [
+      "08",
+      "14"
+    ]
+  },
+  {
+    "id": 29,
+    "category": "H. Control systems, validation & GMP compliance",
+    "raw": "TeepTrak, \"Pharma FDA 21 CFR Part 11 validation: GAMP 5, IQ/OQ/PQ, electronic records, data integrity\" — https://teeptrak.com/en/pharmaceutical-fda-21-cfr-part-11-validation-2027/",
+    "title": "TeepTrak, \"Pharma FDA 21 CFR Part 11 validation: GAMP 5, IQ/OQ/PQ, electronic records, data integrity\"",
+    "description": "https://teeptrak.com/en/pharmaceutical-fda-21-cfr-part-11-validation-2027/",
+    "url": "https://teeptrak.com/en/pharmaceutical-fda-21-cfr-part-11-validation-2027/",
+    "citedByChapters": [
+      "14"
+    ]
+  },
+  {
+    "id": 30,
+    "category": "I. Safety — combustible dust / ATEX / NFPA",
+    "raw": "NFPA 652, \"Standard on the Fundamentals of Combustible Dust,\" 2019 edition — https://www.awpa.org/wp-content/uploads/2020/06/NFPA-652-2019.pdf",
+    "title": "NFPA 652, \"Standard on the Fundamentals of Combustible Dust,\" 2019 edition",
+    "description": "https://www.awpa.org/wp-content/uploads/2020/06/NFPA-652-2019.pdf",
+    "url": "https://www.awpa.org/wp-content/uploads/2020/06/NFPA-652-2019.pdf",
+    "citedByChapters": [
+      "09"
+    ]
+  },
+  {
+    "id": 31,
+    "category": "I. Safety — combustible dust / ATEX / NFPA",
+    "raw": "OSHA Technical Manual, Section IV, Chapter 6, \"Combustible Dusts\" (Kst reference ranges, DHA framework) — https://www.osha.gov/sites/default/files/otm_secIV_chap6.pdf",
+    "title": "OSHA Technical Manual, Section IV, Chapter 6, \"Combustible Dusts\" (Kst reference ranges, DHA framework)",
+    "description": "https://www.osha.gov/sites/default/files/otm_secIV_chap6.pdf",
+    "url": "https://www.osha.gov/sites/default/files/otm_secIV_chap6.pdf",
+    "citedByChapters": [
+      "09"
+    ]
+  },
+  {
+    "id": 32,
+    "category": "I. Safety — combustible dust / ATEX / NFPA",
+    "raw": "SG Systems Global, \"Dust Explosion Hazard Assessment for Powder Handling Systems (NFPA 652, ATEX)\" — https://sgsystemsglobal.com/glossary/dust-explosion-hazard-nfpa-652-atex/",
+    "title": "SG Systems Global, \"Dust Explosion Hazard Assessment for Powder Handling Systems (NFPA 652, ATEX)\"",
+    "description": "https://sgsystemsglobal.com/glossary/dust-explosion-hazard-nfpa-652-atex/",
+    "url": "https://sgsystemsglobal.com/glossary/dust-explosion-hazard-nfpa-652-atex/",
+    "citedByChapters": [
+      "09"
+    ]
+  },
+  {
+    "id": 33,
+    "category": "I. Safety — combustible dust / ATEX / NFPA",
+    "raw": "AIChE, \"Venting the Blast — NFPA 68 Fundamentals, Design Guidance and Limitations\" (Kst hazard-class table) — https://aiche.confex.com/aiche/s26/mediafile/ExtendedAbstract/Paper725405/",
+    "title": "AIChE, \"Venting the Blast",
+    "description": "NFPA 68 Fundamentals, Design Guidance and Limitations\" (Kst hazard-class table)",
+    "url": "https://aiche.confex.com/aiche/s26/mediafile/ExtendedAbstract/Paper725405/",
+    "citedByChapters": [
+      "09"
+    ]
+  },
+  {
+    "id": 34,
+    "category": "J. Fundamental physical/thermodynamic data",
+    "raw": "Standard water thermodynamic property references (triple point 0.01 °C / 6.11 mbar; latent heats of fusion 334 kJ/kg, vaporization 2,501 kJ/kg, sublimation ≈2,838 kJ/kg; ice vapor-pressure vs. temperature table) — standard physical-chemistry/engineering reference data, consistent across NIST and standard steam-table sources.",
+    "title": "Standard water thermodynamic property references (triple point 0.01 °C / 6.11 mbar; latent heats of fusion 334 kJ/kg, vaporization 2,501 kJ/kg, sublimation ≈2,838 kJ/kg; ice vapor-pressure vs. temperature table)",
+    "description": "standard physical-chemistry/engineering reference data, consistent across NIST and standard steam-table sources.",
+    "url": "",
+    "citedByChapters": [
+      "02",
+      "11"
+    ]
+  }
+]

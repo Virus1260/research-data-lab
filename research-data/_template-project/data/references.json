@@ -1,0 +1,11 @@
+[
+  {
+    "id": 1,
+    "category": "Foundational Sources",
+    "raw": "1. Research Specification Document — https://example.com/spec",
+    "title": "Research Specification Document",
+    "description": "Primary architectural specification",
+    "url": "https://example.com/spec",
+    "citedByChapters": ["01"]
+  }
+]

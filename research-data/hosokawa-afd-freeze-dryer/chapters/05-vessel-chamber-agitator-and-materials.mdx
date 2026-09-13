@@ -1,0 +1,73 @@
+---
+title: "Vessel, Chamber, Agitator & Materials"
+chapterNumber: "05"
+slug: "05-vessel-chamber-agitator-and-materials"
+act: "The Machine"
+actId: "act-2"
+readTime: "7 min read"
+simulators: ['VesselCrossSection3D']
+---
+
+# 05 — Vessel, Chamber, Agitator & Materials
+
+## 1. Vessel geometry
+
+Per NL1022668C2 and NL2026893B1 (file 03), the vessel is:
+- **Downward-conical** (cone point at bottom), optionally with a short cylindrical section at the top near the lid to give room for the drive, seals, and top-mounted nozzles/fittings — the patent explicitly notes this is common on "classical" conical mixers.
+- A cylindrical vessel with only a conical *bottom* section is called out as an acceptable, more space-efficient variant, provided the cylindrical-to-conical proportion is chosen so mixing still works well (no numeric ratio is given in the patent — this is a design/test parameter, not a published constant).
+- **Double-jacketed wall**: two concentric compartments (per NL2026893B1's Figure 1B description) around the vessel wall, each able to carry a heat-exchange medium, so the same wall can be cooled during freezing and heated during drying without swapping fluids.
+- **Open top**, closed by a **top lid** fixed with clamping screws (a quick-release clamp/tri-clamp-style closure is the generic sanitary-industry equivalent and a very reasonable workshop substitute).
+- **Open bottom**, closed by a **releasable outlet** (ball-segment valve type per the patent drawings) for full discharge.
+
+No vessel diameter, height, wall thickness, or exact cone angle is published for the AFD. For your own build, treat the vessel geometry as a design variable you solve for in file 11 based on your target batch volume, not a number to look up.
+
+## 2. Fittings on the lid (per NL2026893B1's worked example — useful as a checklist)
+
+- Fluid outlet (vacuum) port to the material collector, with a flanged, quick-couple connection carrying a safety switch that confirms proper coupling before the cycle can run.
+- Attachment flanges for: an illumination source (sight light), a vent valve (for controlled atmosphere break), and a **sight glass** (visual inspection during the cycle — valuable for a first-time builder too).
+- One or more **blow nozzles**, plumbed to a gas source, aimed into the chamber for the end-of-cycle cleanup gas pulse.
+- Spray nozzle(s) for CIP (per the 2003 patent's "rotational washing nozzle").
+
+## 3. Agitator
+
+- **Type**: centrally-driven ribbon, centrally-driven paddle/blade, or an **orbital screw with a swing arm** — all three explicitly disclosed as viable in NL1022668C2. The orbital-screw-with-swing-arm design is the Nauta mixer's signature mechanism and the one most consistent with Hosokawa's marketing imagery.
+- **Wall clearance**: **0.5–15 mm, preferably 1–10 mm** — tight enough to continuously prevent caking without metal-to-metal rubbing. This is a genuinely demanding machining/assembly tolerance for a conical geometry and is one of the harder things to get right in a workshop build (see file 10).
+- **Speed**: the patent notes that because freeze-drying is inherently slow (10–100 h for a 50 L charge), **only gentle mixing action is required** — vigorous mixing isn't needed and would only add unwanted heat via mechanical work. For reference, the related Nauta mixer product line runs its screw at roughly 70 rpm with the orbiting arm at 1–2 rpm and a screw tip speed of 0.5–2 m/s (general Nauta figures, not AFD-specific — treat as a starting point, not a target).
+- **Drive/seal**: two options, both explicitly disclosed:
+  1. **Magnetic coupling** between an external drive motor and the internal agitator shaft — no shaft penetration through the vessel wall, essentially eliminating that vacuum leak path. This is the higher-integrity, harder-to-source-cheaply option; magnetically coupled agitator drives are a mature, commercially available product category (used widely in pressure reactors and pharma mixers) but a costed, purchased component, not something to fabricate from scratch — see file 10.
+  2. **Single rotary shaft seal** where the shaft does penetrate the wall — mechanically simpler, cheaper, and easier for a first prototype, at the cost of a wear part that is also your primary vacuum leak risk.
+- **Bearings located outside the vessel** in both cases, specifically to keep lubricant away from cryogenic wall temperatures where it could stiffen/seize.
+
+## 4. Materials of construction
+
+Hosokawa does not publish the AFD's exact material spec, but the applicable industry standard for anything touching a pharmaceutical product is unambiguous:
+
+- **316L stainless steel** (low-carbon 316, UNS S31603) is the default product-contact material across essentially the entire pharma/biotech process equipment industry, chosen for its corrosion resistance, weldability, and compatibility with CIP/SIP chemistries and cleaning validation. Non-product-contact structural members are commonly 304/304L stainless or, for the outer frame only, coated carbon steel.
+- **ASME BPE (Bioprocessing Equipment)** is the standard governing sanitary design, dimensions/tolerances, surface finish, material joining (orbital welding), and seals for this equipment class. Its surface-finish tables (Part SF) define a series of designations:
+
+| Designation | Max Ra (µm) | Max Ra (µin) | Preparation |
+|---|---|---|---|
+| SF0 | no requirement | no requirement | — |
+| SF1 | 0.51 | 20 | Mechanical polish |
+| SF2 | 0.64 | 25 | Mechanical polish |
+| SF3 | 0.76 | 30 | Mechanical polish |
+| SF4 | 0.38 | 15 | Electropolish |
+| SF5 | ~0.50 | ~20 | Electropolish |
+| SF6 | ~0.64 | ~25 | Electropolish |
+
+  **SF4 (Ra ≤ 0.38 µm, electropolished)** is the most common specification for actual pharmaceutical product-contact surfaces (WFI systems, bioreactors, product-contact vessel walls). Electropolishing is a controlled electrochemical process that removes a thin surface layer to eliminate micro-asperities, leaving a smooth, passivated, low-Ra finish; it is not mandated for every surface (e.g., steam-only surfaces may use a rougher mechanical polish), but is standard practice for anything the product itself touches.
+- **Passivation** (commonly per ASTM A967 or the equipment-specific ASTM B912 for electropolished surfaces) chemically restores/enhances the chromium-oxide passive layer after fabrication and welding, which is otherwise disrupted by heat-affected zones and mechanical work — required alongside surface-finish specification, not a substitute for it.
+- **Elastomer seals**: typically EPDM (good steam/SIP resistance) or PTFE-faced silicone for product-contact gaskets and lid seals; material selection depends on your specific SIP temperature and any product-contact chemical compatibility requirements.
+
+## 5. Pressure/vacuum vessel design (structural)
+
+The vessel operates under **external pressure** (full vacuum on the inside relative to atmosphere outside) — mechanically, this is a fundamentally different, and often more demanding, design case than the same vessel holding internal pressure, because thin cylindrical/conical shells are prone to **elastic buckling** under external pressure long before the material's yield strength is reached.
+
+- **ASME BPVC Section VIII, Division 1, UG-28 through UG-30** is the governing US code section: UG-28 gives the procedure for determining the required shell thickness under external pressure (using the vessel's L/Do and Do/t ratios against the code's material/geometry charts to find a factor used in the allowable-pressure formula); UG-29 covers when and how stiffening rings are required if a plain shell of reasonable thickness isn't enough on its own; UG-30 covers stiffening-ring attachment details. The general design margin is a **minimum 3:1 safety factor against theoretical elastic collapse**.
+- In Europe, the equivalent frameworks are **EN 13445** (unfired pressure vessels) and the **Pressure Equipment Directive (PED, 2014/68/EU)**, which sets the conformity-assessment and CE-marking regime a vessel like this would need to go through for legal sale/use in the EU above its exemption thresholds.
+- **Jacket walls themselves are also an external-pressure case** (the jacket's own outer wall sees the jacket fluid pressure pushing out, while the vessel's inner wall — shared with the process side — can see external pressure from the vacuum side and, depending on jacket fluid pressure and sequencing, from the jacket side too). Design guidance published by pressure-vessel engineering practitioners (e.g., Pressure Vessel Engineering Ltd.'s public "External Pressure" reference) specifically discusses jacket closures functioning (or not) as adequate vacuum-stiffening rings — this is a real, non-obvious failure mode worth deliberately checking rather than assuming the jacket automatically stiffens the inner wall.
+- Given Shekhar's existing ASME Section VIII Division 1/2 pressure-vessel design background (per this package's professional-context notes), the external-pressure calculation itself (UG-28's iterative thickness/stiffening-ring procedure) is directly transferable and not new territory — the freeze-dryer-specific twist is combining it with the cryogenic operating temperature range (down to roughly −55 °C at the wall) for material toughness/MDMT (minimum design metal temperature) checks per UCS-66, and with the double-jacket geometry.
+
+## 6. Bottom discharge valve
+
+Both patents describe (and Hosokawa's Nauta mixer literature independently confirms) a **ball-segment valve** at the vessel's bottom outlet for full-emptying discharge — Hosokawa's own branded version of this component is sold as an "ISEM ball segment valve," explicitly marketed for conical powder mixers/dryers. Functionally, this is a quarter-turn valve with a spherical-segment closure member sized to match the cone's outlet bore with minimal dead space when closed (the patent specifically notes the closed valve sits flush with the agitator's rotational path "to eliminate any dead space"). This class of valve is a purchased sanitary process-valve component, not something to fabricate from raw stock — see file 10.

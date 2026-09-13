@@ -1,0 +1,235 @@
+{
+  "chapterSlug": "03-hosokawa-afd-vs-generic-lyophilizers",
+  "chapterNumber": "03",
+  "title": "What Is Actually Hosokawa/AFD-Specific vs. Generic Pharma Freeze-Drying",
+  "audioUrl": "/research-data/hosokawa-afd-freeze-dryer/audio/chapter-03.mp3",
+  "voice": "en-US-ChristopherNeural",
+  "totalDuration": 328.974,
+  "cuesCount": 32,
+  "cues": [
+    {
+      "id": 1,
+      "text": "Chapter 3: 03 \u2014 What Is Actually Hosokawa/AFD-Specific vs. Generic Pharma Freeze-Drying.",
+      "start": 0.1,
+      "end": 8.04,
+      "duration": 7.94
+    },
+    {
+      "id": 2,
+      "text": "This is the chapter to read most carefully.",
+      "start": 7.99,
+      "end": 11.078,
+      "duration": 3.088
+    },
+    {
+      "id": 3,
+      "text": "Getting this distinction right determines whether the rest of your build effort is well-aimed.",
+      "start": 11.078,
+      "end": 15.992,
+      "duration": 4.914
+    },
+    {
+      "id": 4,
+      "text": "Section: 1. What Hosokawa's own page tells you (verbatim facts, paraphrased).",
+      "start": 15.993,
+      "end": 22.709,
+      "duration": 6.716
+    },
+    {
+      "id": 5,
+      "text": "From  (fetched September 2026): The AFD produces free-flowing bulk pharmaceutical powder (antibiotics, hyaluronic acid, injectables, peptides, PLGA) in a closed, one-pot process, requiring no operator intervention or post-processing.",
+      "start": 22.708,
+      "end": 39.84,
+      "duration": 17.132
+    },
+    {
+      "id": 6,
+      "text": "Principle of operation: the product is frozen while being agitated inside a purpose-built lyophilisation chamber.",
+      "start": 39.841,
+      "end": 47.01,
+      "duration": 7.169
+    },
+    {
+      "id": 7,
+      "text": "Whether the feed starts as liquid, granular solid, or paste, agitated freezing solidifies it into free-flowing, snow-like granules.",
+      "start": 47.01,
+      "end": 55.993,
+      "duration": 8.983
+    },
+    {
+      "id": 8,
+      "text": "Once fully frozen, sublimation begins; heat supplied through the vessel jacket is transferred through the agitated product for fast, uniform drying.",
+      "start": 55.993,
+      "end": 65.258,
+      "duration": 9.265
+    },
+    {
+      "id": 9,
+      "text": "As ice sublimes, the granules shrink into a fine, loose, dry powder.",
+      "start": 65.257,
+      "end": 70.735,
+      "duration": 5.478
+    },
+    {
+      "id": 10,
+      "text": "After vacuum release, the chamber opens and the powder is discharged.",
+      "start": 70.735,
+      "end": 75.563,
+      "duration": 4.828
+    },
+    {
+      "id": 11,
+      "text": "Named subsystems on an AFD system: lyophilisation chamber (product chamber); a dust filter to retain product in the chamber; a vacuum pump skid; a Temperature Control Unit (TCU); CIP facilities; optional SIP facilities; a 21 CFR Part 11\u2013compliant control system; a Utility Management Skid (interface to factory utilities); optional customized support/lift; optional contained-operation features; a cGMP documentation package.",
+      "start": 75.564,
+      "end": 106.679,
+      "duration": 31.115
+    },
+    {
+      "id": 12,
+      "text": "Available sizes: models from 1 L to 1,500 L nominal vessel volume, with max. batch volumes from 0.5 L to 750 L and indicative sublimation capacities from 0.1 kg/h (1 L model) to 13.7 kg/h (1,500 L model) \u2014 Hosokawa's own published table, explicitly labeled \"indicative values; performance depends on product properties and process parameters.",
+      "start": 106.679,
+      "end": 135.27,
+      "duration": 28.591
+    },
+    {
+      "id": 13,
+      "text": "Detailed specifications available on request.",
+      "start": 135.27,
+      "end": 138.787,
+      "duration": 3.517
+    },
+    {
+      "id": 14,
+      "text": "Models \u2264~20 L are positioned as R&D scale; \u226560 L as GMP manufacturing scale.",
+      "start": 138.787,
+      "end": 147.562,
+      "duration": 8.775
+    },
+    {
+      "id": 15,
+      "text": "Hosokawa markets a physically separate but related family of pages for the general vacuum/paddle/conical drying platform these systems are built from (Conical Screw Dryer, Conical Paddle Dryer, Vacuum Dryers, and the Nauta\u00ae conical screw mixer).",
+      "start": 147.561,
+      "end": 162.684,
+      "duration": 15.123
+    },
+    {
+      "id": 16,
+      "text": "Nothing on the public page states: exact vessel dimensions, exact wall thickness, exact materials of construction beyond implied stainless steel, exact motor power, exact agitator geometry, exact vacuum pump model/capacity, exact refrigeration capacity or refrigerant, or exact condenser surface area.",
+      "start": 162.684,
+      "end": 182.868,
+      "duration": 20.184
+    },
+    {
+      "id": 17,
+      "text": "These are legitimately not public, and this package does not invent them.",
+      "start": 182.868,
+      "end": 187.513,
+      "duration": 4.645
+    },
+    {
+      "id": 18,
+      "text": "Section: 2. What Hosokawa's own patents tell you (this is where the real engineering detail is).",
+      "start": 187.512,
+      "end": 194.546,
+      "duration": 7.034
+    },
+    {
+      "id": 19,
+      "text": "Patents are the single best public source of engineering detail on a proprietary machine, because a patent must disclose enough for \"a person skilled in the art\" to actually build the invention.",
+      "start": 194.547,
+      "end": 205.478,
+      "duration": 10.931
+    },
+    {
+      "id": 20,
+      "text": "Two Hosokawa Micron B.V. patents are directly on point.",
+      "start": 205.478,
+      "end": 209.828,
+      "duration": 4.35
+    },
+    {
+      "id": 21,
+      "text": "2a. NL1022668C2 / EP1601919B1, \"Stirred freeze drying\" (filed 2003, granted 2004/2012).",
+      "start": 209.828,
+      "end": 224.362,
+      "duration": 14.534
+    },
+    {
+      "id": 22,
+      "text": "This is the foundational patent for the whole \"stirred freeze dryer\" concept as commercialized by Hosokawa.",
+      "start": 224.363,
+      "end": 231.25,
+      "duration": 6.887
+    },
+    {
+      "id": 23,
+      "text": "Key disclosed engineering facts: Vessel geometry: a vessel with a downward-conical shape, with an internal mixing member that rotates with a small clearance (0.5\u201315 mm, preferably 1\u201310 mm) along the inner wall \u2014 close enough to continuously scrape/prevent product from caking onto the wall, without metal-to-metal contact.",
+      "start": 231.25,
+      "end": 253.002,
+      "duration": 21.752
+    },
+    {
+      "id": 24,
+      "text": "This conical vessel is explicitly stated to often be part of a conical mixer \u2014 i.e., the same mechanical family as Hosokawa's Nauta\u00ae conical screw mixer (see \u00a73 below).",
+      "start": 253.002,
+      "end": 264.338,
+      "duration": 11.336
+    },
+    {
+      "id": 25,
+      "text": "The patent also allows a cylindrical vessel with a conical bottom section as an equivalent, space-saving alternative.",
+      "start": 264.338,
+      "end": 271.372,
+      "duration": 7.034
+    },
+    {
+      "id": 26,
+      "text": "Freezing method, two options both disclosed: Indirect: circulate a low-temperature coolant through the vessel's jacket.",
+      "start": 271.373,
+      "end": 278.848,
+      "duration": 7.475
+    },
+    {
+      "id": 27,
+      "text": "Direct: inject liquid nitrogen or solid CO\u2082 (dry ice) straight into the vessel and mix it with the charge.",
+      "start": 278.848,
+      "end": 286.544,
+      "duration": 7.696
+    },
+    {
+      "id": 28,
+      "text": "Disclosed process parameters (Hosokawa's own numbers, from the patent claims): Optimum freezing",
+      "start": 286.544,
+      "end": 292.929,
+      "duration": 6.385
+    },
+    {
+      "id": 29,
+      "text": "rate: 0.1\u201310 \u00b0C/min. Frozen-charge temperature after freezing: 0 \u00b0C to \u221260 \u00b0C, preferably \u221255 \u00b0C to \u221215 \u00b0C.",
+      "start": 293.044,
+      "end": 307.43,
+      "duration": 14.386
+    },
+    {
+      "id": 30,
+      "text": "Sublimation vacuum: 5 mbar down to 0.01 mbar, preferably <0.1 mbar.",
+      "start": 307.38,
+      "end": 315.174,
+      "duration": 7.794
+    },
+    {
+      "id": 31,
+      "text": "For a 50 L charge, a two-or-more-stage vacuum pump system is specifically called out as well-suited.",
+      "start": 315.174,
+      "end": 321.914,
+      "duration": 6.74
+    },
+    {
+      "id": 32,
+      "text": "Typical drying time cited: 10\u2013100 hours for a 50 L charge (illustrative, not a spec).",
+      "start": 321.915,
+      "end": 328.974,
+      "duration": 7.059
+    }
+  ]
+}

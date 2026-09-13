@@ -1,0 +1,13 @@
+[
+  {
+    "id": 1,
+    "subsystem": "1. Core Subsystem",
+    "item": "Primary Reactor / Vessel Component",
+    "notes": "Specifies boundary conditions and mechanical tolerances",
+    "makeOrBuy": "Contract out",
+    "source": "ASME BPVC Standard",
+    "packageRef": "01",
+    "qty": "1",
+    "unitCost": "$10,000"
+  }
+]

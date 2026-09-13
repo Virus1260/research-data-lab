@@ -1,0 +1,44 @@
+# 16 — Build Roadmap: Prototype → Pharma-Capable System
+
+A realistic, staged path — each stage should be substantially complete and tested (file 15) before committing significant resources to the next.
+
+## Stage 0 — Study & design (this package's files 01–13)
+**Goal:** understand the physics, the AFD-specific mechanical architecture, and produce your own design calculations and drawing package before spending money on fabrication.
+- Work through files 01–03 until the AFD-vs-generic distinction (file 03) is second nature.
+- Pick a target batch size and run file 11's sizing methodology for *your* chosen scale.
+- Produce drawings 1–3 from file 13 (GA, vessel, agitator) at minimum before proceeding.
+- **Exit criterion:** you can explain, from memory, why the vessel is conical, why it's agitated, why the drying happens in that order, and roughly what heat/refrigeration/vacuum duty your chosen batch size needs — plus a first-pass vessel and agitator drawing.
+
+## Stage 1 — Non-vacuum mechanical mockup
+**Goal:** de-risk the hardest dimensional problem (agitator-to-wall clearance, file 05 §3 / file 10 §3) cheaply, before committing to an expensive vacuum-rated vessel.
+- Fabricate a cheap-material (mild steel or 304 stainless), atmospheric-pressure-only vessel + agitator + drive, exactly to your Stage-0 geometry.
+- Confirm the agitator clears the wall consistently around a full rotation, at every height, including after simulating thermal contraction if practical.
+- Confirm drive alignment, seal/coupling fit, and basic assembly/disassembly practicality.
+- **Exit criterion:** the mockup assembles, the agitator spins freely through its full range with the intended clearance, and you've identified and fixed any interference or alignment problems.
+
+## Stage 2 — Bench-scale cold/vacuum prototype (small batch, no CIP/SIP, atmospheric-adjacent instrumentation)
+**Goal:** a genuinely working small-scale freeze dryer — the point where you first sublime real ice under real vacuum in your own machine.
+- Commission (or, if within your fabrication capability and risk tolerance, build) a small, properly designed vacuum-rated vessel per Stage-0's now-validated geometry (file 10's make/buy guidance strongly favors *contracting out* this specific component, even at small scale).
+- Add a minimal TCU (even a simple mechanical chiller + heater arrangement is fine at this stage — a full cascade refrigeration system, file 06 §2, can wait until you need temperatures colder than a single-stage system provides), a basic vacuum pump train, and the two pressure gauge types (file 06 §3b).
+- Add basic instrumentation and either manual or simple relay/PLC control — full GAMP5/Part-11-oriented control architecture (file 08 §3) is not a Stage-2 priority.
+- Run file 15's Stages 1–6 commissioning tests.
+- Run your first real batches (plain water ice is a good, safe, cheap first test product) and validate your file-11 calculations against reality.
+- **Exit criterion:** you can reliably freeze, evacuate, sublime, and discharge a small batch, with your instrumentation confirming the process actually followed the physics in file 02.
+
+## Stage 3 — Pilot-scale system with full subsystem set
+**Goal:** a machine with every subsystem from file 04's map present, at a scale meaningful for real process development (roughly Hosokawa's own "R&D scale," ≤~20 L, per file 03 §1).
+- Add the material collector/valve-bypass arrangement (file 06 §5, per NL2026893B1) if your Stage-2 prototype used a simpler straight-through vacuum path.
+- Add a proper cascade refrigeration system if your target product needs colder than a single-stage system reaches (file 06 §2).
+- Add CIP capability (file 07 §1) — this is also where cleaning-validation thinking (even informally) starts paying off.
+- Move to a real PLC/HMI control architecture (file 08 §3), even if not yet pursuing formal GAMP5/Part 11 compliance.
+- Run file 15's full commissioning plan, Stages 1–8.
+- **Exit criterion:** a machine you could comfortably use for real process-development work — testing different products, freezing rates, and drying schedules — with good data logging to support that development.
+
+## Stage 4 — GMP-capable system (only if the goal is genuinely regulated manufacturing)
+**Goal:** the point where file 14's qualification framework actually applies.
+- This stage is organizationally, not just technically, different: it requires operating inside (or building) a licensed quality system, with the URS→DQ→IQ→OQ→PQ lifecycle (file 14 §2) run by or with qualified validation professionals, SIP capability if aseptic processing is required (file 07 §2), full ATEX/DHA-driven explosion protection sized by a process-safety engineer (file 09 §4), and 21 CFR Part 11-compliant electronic records (file 08 §3).
+- **Realistic framing:** most individuals or small teams reach Stage 3 as an excellent, legitimate engineering achievement and personal/professional credential. Stage 4 is a different kind of undertaking — organizational, regulatory, and capital-intensive — not simply "Stage 3 built to tighter tolerances." Treat reaching Stage 3 as the natural endpoint of a self-directed build, and Stage 4 as something pursued through employment, partnership, or a formally licensed manufacturing venture rather than as a solo workshop project.
+
+## Suggested overall sequencing logic
+
+Notice that Stages 1–3 deliberately front-load the **hardest and most failure-prone mechanical problem** (agitator clearance) into the cheapest possible stage (Stage 1, non-vacuum mockup), and defer the **most expensive and safety-critical subsystems** (cascade refrigeration, full ATEX explosion protection, SIP) until Stage 3, once you've already validated the core mechanical and process concept at smaller scale and lower stakes. This ordering is the single biggest practical risk-reduction decision in this whole roadmap.
