@@ -52,9 +52,9 @@ export function AfdComparisonFlip() {
   ];
 
   return (
-    <div className="instrument-card rounded-2xl p-5 my-6 border border-white/10 bg-[#0D0F12]/90 backdrop-blur-sm">
+    <div className="instrument-card rounded-2xl p-5 my-6 border border-hairline bg-bg-panel backdrop-blur-sm">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-4 border-b border-white/10 gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-4 border-b border-hairline gap-3">
         <div>
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-amber-signal animate-pulse" />
@@ -68,7 +68,7 @@ export function AfdComparisonFlip() {
         </div>
 
         {/* View Switcher */}
-        <div className="flex items-center gap-1 bg-white/5 p-1 rounded-xl border border-white/5 text-xs">
+        <div className="flex items-center gap-1 bg-bg-hover p-1 rounded-xl border border-hairline text-xs">
           <button
             onClick={() => setActiveView("sideBySide")}
             className={`px-3 py-1 rounded-lg transition font-mono ${
@@ -107,7 +107,7 @@ export function AfdComparisonFlip() {
         {comparisonData.map((row, idx) => (
           <div
             key={idx}
-            className="grid grid-cols-1 md:grid-cols-12 gap-3 p-3 rounded-xl bg-[#08090A] border border-white/5 hover:border-white/10 transition"
+            className="grid grid-cols-1 md:grid-cols-12 gap-3 p-3 rounded-xl bg-bg-inset border border-hairline hover:border-hairline transition"
           >
             {/* Feature Name */}
             <div className="md:col-span-4 flex items-center gap-2">
@@ -121,7 +121,7 @@ export function AfdComparisonFlip() {
               <div
                 className={`${
                   activeView === "sideBySide" ? "md:col-span-4" : "md:col-span-8"
-                } p-2.5 rounded-lg bg-white/[0.02] border border-white/5 text-xs text-ink-muted flex items-start gap-2`}
+                } p-2.5 rounded-lg bg-bg-inset border border-hairline text-xs text-ink-muted flex items-start gap-2`}
               >
                 <X className="w-4 h-4 text-rose-500/70 shrink-0 mt-0.5" />
                 <div>

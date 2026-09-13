@@ -122,7 +122,7 @@ export function ChapterReader({
         const headingText = trimmed.replace("## ", "").trim();
         const id = headingText.toLowerCase().replace(/[^\w\s-]/g, "").replace(/\s+/g, "-");
         elements.push(
-          <div key={`h2-${lineIdx}`} id={id} className="pt-8 pb-3 border-b border-white/10 mb-4 scroll-mt-20">
+          <div key={`h2-${lineIdx}`} id={id} className="pt-8 pb-3 border-b border-hairline mb-4 scroll-mt-20">
             <h2 className="text-xl sm:text-2xl font-bold text-ink-primary flex items-center gap-2">
               <span className="text-amber-signal font-mono text-sm">§</span>
               <span>{headingText}</span>
@@ -201,7 +201,7 @@ export function ChapterReader({
       </div>
 
       {/* Chapter Hero Banner */}
-      <div className="rounded-3xl bg-[#0D0F12] border border-white/10 p-6 sm:p-8 mb-8 relative overflow-hidden shadow-xl">
+      <div className="rounded-3xl bg-bg-panel border border-hairline p-6 sm:p-8 mb-8 relative overflow-hidden shadow-xl">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
@@ -222,16 +222,16 @@ export function ChapterReader({
           {manifest && (
             <button
               onClick={handleStartNarration}
-              className="self-start md:self-center px-4 py-2.5 rounded-xl bg-amber-signal text-obsidian font-bold text-xs uppercase tracking-wider flex items-center gap-2 hover:bg-amber-bright transition shadow-lg shadow-amber-signal/20 hover:scale-105 active:scale-95 shrink-0"
+              className="self-start md:self-center px-4 py-2.5 rounded-xl bg-amber-signal text-on-amber font-bold text-xs uppercase tracking-wider flex items-center gap-2 hover:bg-amber-bright transition shadow-lg shadow-amber-signal/20 hover:scale-105 active:scale-95 shrink-0"
             >
               {isCurrentChapterPlaying ? (
                 <>
-                  <Pause className="w-4 h-4 fill-obsidian" />
+                  <Pause className="w-4 h-4 fill-on-amber" />
                   <span>Pause Lab Assistant</span>
                 </>
               ) : (
                 <>
-                  <Play className="w-4 h-4 fill-obsidian ml-0.5" />
+                  <Play className="w-4 h-4 fill-on-amber ml-0.5" />
                   <span>Listen to Chapter Narration</span>
                 </>
               )}
@@ -244,8 +244,8 @@ export function ChapterReader({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Collapsible TOC Mini-Map */}
         <aside className="lg:col-span-3 hidden lg:block">
-          <div className="sticky top-20 rounded-2xl bg-[#0D0F12] border border-white/10 p-4 space-y-3">
-            <div className="flex items-center gap-2 pb-2 border-b border-white/5">
+          <div className="sticky top-20 rounded-2xl bg-bg-panel border border-hairline p-4 space-y-3">
+            <div className="flex items-center gap-2 pb-2 border-b border-hairline">
               <List className="w-3.5 h-3.5 text-amber-signal" />
               <span className="text-xs font-mono uppercase tracking-wider text-ink-primary font-bold">
                 Chapter Mini-Map
@@ -262,7 +262,7 @@ export function ChapterReader({
                     className={`block py-1 px-2 rounded transition truncate ${
                       isActive
                         ? "text-amber-bright bg-amber-signal/15 font-semibold border-l-2 border-amber-signal"
-                        : "text-ink-muted hover:text-ink-primary hover:bg-white/5"
+                        : "text-ink-muted hover:text-ink-primary hover:bg-bg-hover"
                     } ${h.level === 3 ? "pl-4 text-[11px]" : ""}`}
                   >
                     {h.text}
@@ -273,7 +273,7 @@ export function ChapterReader({
 
             {/* Simulators in this chapter */}
             {chapter.simulators.length > 0 && (
-              <div className="pt-3 border-t border-white/5">
+              <div className="pt-3 border-t border-hairline">
                 <div className="text-[10px] font-mono text-cryo uppercase mb-2 flex items-center gap-1">
                   <Cpu className="w-3 h-3" /> Active Simulators ({chapter.simulators.length})
                 </div>
@@ -281,7 +281,7 @@ export function ChapterReader({
                   {chapter.simulators.map((simName) => (
                     <div
                       key={simName}
-                      className="text-[11px] font-mono text-ink-secondary bg-white/[0.02] p-1.5 rounded border border-white/5 truncate"
+                      className="text-[11px] font-mono text-ink-secondary bg-bg-inset p-1.5 rounded border border-hairline truncate"
                     >
                       {simName}
                     </div>
@@ -304,16 +304,16 @@ export function ChapterReader({
           )}
 
           {/* Chapter Content Body */}
-          <article className="rounded-2xl bg-[#0D0F12] border border-white/10 p-6 sm:p-10 shadow-lg leading-relaxed">
+          <article className="rounded-2xl bg-bg-panel border border-hairline p-6 sm:p-10 shadow-lg leading-relaxed">
             {renderContentLines()}
           </article>
 
           {/* Next / Previous Chapter Navigation */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6 border-t border-white/10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6 border-t border-hairline">
             {prevChapter ? (
               <Link
                 href={`/${projectSlug}/${prevChapter.slug}`}
-                className="p-4 rounded-xl bg-[#0D0F12] border border-white/10 hover:border-amber-signal/30 transition flex items-center gap-3 group"
+                className="p-4 rounded-xl bg-bg-panel border border-hairline hover:border-amber-signal/30 transition flex items-center gap-3 group"
               >
                 <ArrowLeft className="w-4 h-4 text-ink-dim group-hover:text-amber-signal group-hover:-translate-x-1 transition" />
                 <div className="truncate">
@@ -330,7 +330,7 @@ export function ChapterReader({
             {nextChapter && (
               <Link
                 href={`/${projectSlug}/${nextChapter.slug}`}
-                className="p-4 rounded-xl bg-[#0D0F12] border border-white/10 hover:border-amber-signal/30 transition flex items-center justify-end text-right gap-3 group"
+                className="p-4 rounded-xl bg-bg-panel border border-hairline hover:border-amber-signal/30 transition flex items-center justify-end text-right gap-3 group"
               >
                 <div className="truncate">
                   <div className="text-[10px] font-mono text-ink-dim uppercase">Next Chapter</div>

@@ -16,9 +16,9 @@ export function RefrigerationLoadCalculator() {
   });
 
   return (
-    <div className="instrument-card rounded-2xl p-5 my-6 border border-white/10 bg-[#0D0F12]/90 backdrop-blur-sm">
+    <div className="instrument-card rounded-2xl p-5 my-6 border border-hairline bg-bg-panel backdrop-blur-sm">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-4 border-b border-white/10 gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-4 border-b border-hairline gap-2">
         <div>
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-cryo animate-pulse" />
@@ -47,7 +47,7 @@ export function RefrigerationLoadCalculator() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Sliders (6 cols) */}
         <div className="lg:col-span-6 space-y-4">
-          <div className="bg-[#08090A] p-3.5 rounded-xl border border-white/5">
+          <div className="bg-bg-inset p-3.5 rounded-xl border border-hairline">
             <div className="flex justify-between text-xs mb-1.5">
               <span className="text-ink-secondary">Total Batch Mass</span>
               <span className="font-mono text-cryo font-bold">{batchMass} kg</span>
@@ -63,7 +63,7 @@ export function RefrigerationLoadCalculator() {
             />
           </div>
 
-          <div className="bg-[#08090A] p-3.5 rounded-xl border border-white/5">
+          <div className="bg-bg-inset p-3.5 rounded-xl border border-hairline">
             <div className="flex justify-between text-xs mb-1.5">
               <span className="text-ink-secondary">Water Content Fraction</span>
               <span className="font-mono text-amber-bright font-bold">
@@ -81,7 +81,7 @@ export function RefrigerationLoadCalculator() {
             />
           </div>
 
-          <div className="bg-[#08090A] p-3.5 rounded-xl border border-white/5">
+          <div className="bg-bg-inset p-3.5 rounded-xl border border-hairline">
             <div className="flex justify-between text-xs mb-1.5">
               <span className="text-ink-secondary">Target Freezing Time</span>
               <span className="font-mono text-ink-primary font-bold">
@@ -103,7 +103,7 @@ export function RefrigerationLoadCalculator() {
         {/* Readouts (6 cols) */}
         <div className="lg:col-span-6 flex flex-col justify-between gap-3">
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-[#08090A] p-3.5 rounded-xl border border-white/5">
+            <div className="bg-bg-inset p-3.5 rounded-xl border border-hairline">
               <div className="flex items-center gap-1.5 text-xs text-ink-muted mb-1">
                 <Zap className="w-3.5 h-3.5 text-amber-signal" /> Average Refrig Power
               </div>
@@ -114,7 +114,7 @@ export function RefrigerationLoadCalculator() {
               <div className="text-[10px] text-ink-dim font-mono">Heat removal rate</div>
             </div>
 
-            <div className="bg-[#08090A] p-3.5 rounded-xl border border-white/5">
+            <div className="bg-bg-inset p-3.5 rounded-xl border border-hairline">
               <div className="flex items-center gap-1.5 text-xs text-ink-muted mb-1">
                 <Snowflake className="w-3.5 h-3.5 text-cryo" /> Cooling Rate
               </div>
@@ -130,7 +130,7 @@ export function RefrigerationLoadCalculator() {
             </div>
           </div>
 
-          <div className="bg-[#08090A] p-3.5 rounded-xl border border-white/5">
+          <div className="bg-bg-inset p-3.5 rounded-xl border border-hairline">
             <div className="text-xs text-ink-muted mb-2 font-mono uppercase tracking-wider">
               Enthalpy Breakdown (Total: {(results.totalHeatRemovedKJ / 1000).toFixed(2)} MJ)
             </div>

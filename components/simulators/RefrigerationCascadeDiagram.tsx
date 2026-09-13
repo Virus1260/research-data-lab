@@ -50,9 +50,9 @@ export function RefrigerationCascadeDiagram() {
   ];
 
   return (
-    <div className="instrument-card rounded-2xl p-5 my-6 border border-white/10 bg-[#0D0F12]/90 backdrop-blur-sm">
+    <div className="instrument-card rounded-2xl p-5 my-6 border border-hairline bg-bg-panel backdrop-blur-sm">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-4 border-b border-white/10 gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-4 border-b border-hairline gap-2">
         <div>
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-cryo animate-pulse" />
@@ -64,13 +64,13 @@ export function RefrigerationCascadeDiagram() {
             Two-Stage Cascade Cryogenic Refrigeration Schematic
           </h3>
         </div>
-        <div className="text-xs font-mono text-ink-muted bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
+        <div className="text-xs font-mono text-ink-muted bg-bg-hover px-3 py-1.5 rounded-lg border border-hairline">
           Dual Refrigerant Loops (-65°C Cryogenic Duty)
         </div>
       </div>
 
       {/* SVG Diagram Canvas */}
-      <div className="bg-[#08090A] p-4 rounded-xl border border-white/5 relative">
+      <div className="bg-bg-inset p-4 rounded-xl border border-hairline relative">
         <svg viewBox="0 0 600 240" className="w-full h-auto select-none">
           {/* High Stage Loop Rect */}
           <rect
@@ -83,7 +83,7 @@ export function RefrigerationCascadeDiagram() {
             stroke="rgba(245, 166, 35, 0.2)"
             strokeDasharray="4 2"
           />
-          <text x="45" y="52" fill="#E5A93C" fontSize="10" fontFamily="monospace" fontWeight="bold">
+          <text x="45" y="52" fill="var(--amber)" fontSize="10" fontFamily="monospace" fontWeight="bold">
             HIGH STAGE (-40°C)
           </text>
 
@@ -98,7 +98,7 @@ export function RefrigerationCascadeDiagram() {
             stroke="rgba(127, 212, 255, 0.2)"
             strokeDasharray="4 2"
           />
-          <text x="335" y="52" fill="#7FD4FF" fontSize="10" fontFamily="monospace" fontWeight="bold">
+          <text x="335" y="52" fill="var(--cryo)" fontSize="10" fontFamily="monospace" fontWeight="bold">
             LOW STAGE (-65°C)
           </text>
 
@@ -106,7 +106,7 @@ export function RefrigerationCascadeDiagram() {
           <path
             d="M 120 90 L 220 90 L 220 150 L 120 150 Z"
             fill="none"
-            stroke="#E5A93C"
+            stroke="var(--amber)"
             strokeWidth="2"
             strokeDasharray="6 4"
             className="animate-pulse"
@@ -114,7 +114,7 @@ export function RefrigerationCascadeDiagram() {
           <path
             d="M 380 90 L 480 90 L 480 150 L 380 150 Z"
             fill="none"
-            stroke="#7FD4FF"
+            stroke="var(--cryo)"
             strokeWidth="2"
             strokeDasharray="6 4"
             className="animate-pulse"
@@ -130,14 +130,14 @@ export function RefrigerationCascadeDiagram() {
               cx="120"
               cy="90"
               r="22"
-              fill={selectedNode.id === "high-comp" ? "#E5A93C" : "#1A1D26"}
-              stroke="#E5A93C"
+              fill={selectedNode.id === "high-comp" ? "var(--amber)" : "var(--bg-surface)"}
+              stroke="var(--amber)"
               strokeWidth="2"
             />
             <text
               x="120"
               y="94"
-              fill={selectedNode.id === "high-comp" ? "#08090A" : "#FFF"}
+              fill={selectedNode.id === "high-comp" ? "var(--on-amber)" : "var(--ink-primary)"}
               fontSize="10"
               fontFamily="monospace"
               fontWeight="bold"
@@ -158,14 +158,14 @@ export function RefrigerationCascadeDiagram() {
               width="80"
               height="100"
               rx="8"
-              fill={selectedNode.id === "cascade-exchanger" ? "#FFF" : "#1A1D26"}
-              stroke="#7FD4FF"
+              fill={selectedNode.id === "cascade-exchanger" ? "var(--bg-elevated)" : "var(--bg-surface)"}
+              stroke="var(--cryo)"
               strokeWidth="2"
             />
             <text
               x="300"
               y="115"
-              fill={selectedNode.id === "cascade-exchanger" ? "#08090A" : "#7FD4FF"}
+              fill={selectedNode.id === "cascade-exchanger" ? "var(--on-amber)" : "var(--cryo)"}
               fontSize="9"
               fontFamily="monospace"
               fontWeight="bold"
@@ -176,7 +176,7 @@ export function RefrigerationCascadeDiagram() {
             <text
               x="300"
               y="130"
-              fill={selectedNode.id === "cascade-exchanger" ? "#08090A" : "#8A91A0"}
+              fill={selectedNode.id === "cascade-exchanger" ? "var(--on-amber)" : "var(--ink-muted)"}
               fontSize="8"
               fontFamily="monospace"
               textAnchor="middle"
@@ -194,14 +194,14 @@ export function RefrigerationCascadeDiagram() {
               cx="380"
               cy="90"
               r="22"
-              fill={selectedNode.id === "low-comp" ? "#7FD4FF" : "#1A1D26"}
-              stroke="#7FD4FF"
+              fill={selectedNode.id === "low-comp" ? "var(--cryo)" : "var(--bg-surface)"}
+              stroke="var(--cryo)"
               strokeWidth="2"
             />
             <text
               x="380"
               y="94"
-              fill={selectedNode.id === "low-comp" ? "#08090A" : "#FFF"}
+              fill={selectedNode.id === "low-comp" ? "var(--on-amber)" : "var(--ink-primary)"}
               fontSize="10"
               fontFamily="monospace"
               fontWeight="bold"
@@ -222,14 +222,14 @@ export function RefrigerationCascadeDiagram() {
               width="65"
               height="100"
               rx="6"
-              fill={selectedNode.id === "vessel-jacket" ? "#7FD4FF" : "#1A1D26"}
-              stroke="#7FD4FF"
+              fill={selectedNode.id === "vessel-jacket" ? "var(--cryo)" : "var(--bg-surface)"}
+              stroke="var(--cryo)"
               strokeWidth="2"
             />
             <text
               x="482"
               y="115"
-              fill={selectedNode.id === "vessel-jacket" ? "#08090A" : "#7FD4FF"}
+              fill={selectedNode.id === "vessel-jacket" ? "var(--on-amber)" : "var(--cryo)"}
               fontSize="8"
               fontFamily="monospace"
               fontWeight="bold"
@@ -240,7 +240,7 @@ export function RefrigerationCascadeDiagram() {
             <text
               x="482"
               y="130"
-              fill={selectedNode.id === "vessel-jacket" ? "#08090A" : "#FFF"}
+              fill={selectedNode.id === "vessel-jacket" ? "var(--on-amber)" : "var(--ink-primary)"}
               fontSize="8"
               fontFamily="monospace"
               fontWeight="bold"
@@ -257,7 +257,7 @@ export function RefrigerationCascadeDiagram() {
       </div>
 
       {/* Selected Node Spec Inspector */}
-      <div className="mt-4 p-4 rounded-xl bg-[#08090A] border border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="mt-4 p-4 rounded-xl bg-bg-inset border border-hairline flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="text-xs font-mono uppercase text-amber-signal font-bold">

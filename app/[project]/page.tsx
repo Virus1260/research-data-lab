@@ -41,12 +41,12 @@ export default async function LabPage({ params }: { params: Promise<{ project: s
       </div>
 
       {/* Hero Finding Console Banner */}
-      <div className="relative rounded-3xl bg-[#0D0F12] border border-white/10 p-6 sm:p-10 mb-12 shadow-2xl overflow-hidden">
+      <div className="relative rounded-3xl bg-bg-panel border border-hairline p-6 sm:p-10 mb-12 shadow-2xl overflow-hidden">
         {/* Glow backdrop */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-amber-signal/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="max-w-4xl relative z-10 space-y-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-ink-secondary">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-bg-hover border border-hairline text-xs font-mono text-ink-secondary">
             <Sparkles className="w-3.5 h-3.5 text-amber-signal" />
             <span>Load-Bearing Engineering Thesis</span>
           </div>
@@ -62,7 +62,7 @@ export default async function LabPage({ params }: { params: Promise<{ project: s
           <div className="flex flex-wrap items-center gap-4 pt-2">
             <Link
               href={`/${project.slug}/03-hosokawa-afd-vs-generic-lyophilizers`}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-signal text-obsidian font-semibold text-xs uppercase tracking-wider hover:bg-amber-bright transition shadow-lg shadow-amber-signal/20 hover:scale-105 active:scale-95"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-signal text-on-amber font-semibold text-xs uppercase tracking-wider hover:bg-amber-bright transition shadow-lg shadow-amber-signal/20 hover:scale-105 active:scale-95"
             >
               <span>Explore Chapter 03 (Hero Finding)</span>
               <ArrowRight className="w-4 h-4" />
@@ -70,7 +70,7 @@ export default async function LabPage({ params }: { params: Promise<{ project: s
 
             <Link
               href={`/${project.slug}/bom`}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-ink-primary font-mono text-xs hover:bg-white/10 transition"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-bg-hover border border-hairline text-ink-primary font-mono text-xs hover:bg-bg-hover transition"
             >
               <Table className="w-3.5 h-3.5 text-cryo" />
               <span>Explore 74-Part BOM</span>
@@ -78,7 +78,7 @@ export default async function LabPage({ params }: { params: Promise<{ project: s
 
             <Link
               href={`/${project.slug}/references`}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-ink-primary font-mono text-xs hover:bg-white/10 transition"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-bg-hover border border-hairline text-ink-primary font-mono text-xs hover:bg-bg-hover transition"
             >
               <Library className="w-3.5 h-3.5 text-amber-signal" />
               <span>34 Primary Sources</span>
@@ -91,7 +91,7 @@ export default async function LabPage({ params }: { params: Promise<{ project: s
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Act Stations Console (8 cols) */}
         <div className="lg:col-span-8 space-y-8">
-          <div className="flex items-center justify-between border-b border-white/10 pb-3">
+          <div className="flex items-center justify-between border-b border-hairline pb-3">
             <h2 className="text-xs font-mono uppercase tracking-widest text-ink-primary font-bold flex items-center gap-2">
               <Compass className="w-4 h-4 text-amber-signal" />
               <span>The Four Act Stations</span>
@@ -103,7 +103,7 @@ export default async function LabPage({ params }: { params: Promise<{ project: s
             {project.acts.map((act) => (
               <div
                 key={act.id}
-                className="rounded-2xl bg-[#0D0F12] border border-white/10 p-6 shadow-lg hover:border-white/20 transition space-y-4"
+                className="rounded-2xl bg-bg-panel border border-hairline p-6 shadow-lg hover:border-hairline-strong transition space-y-4"
               >
                 {/* Act Header */}
                 <div className="flex items-start justify-between">
@@ -118,7 +118,7 @@ export default async function LabPage({ params }: { params: Promise<{ project: s
                     </div>
                     <p className="text-xs text-ink-muted">{act.description}</p>
                   </div>
-                  <span className="text-[11px] font-mono text-ink-dim bg-white/5 px-2.5 py-1 rounded-md">
+                  <span className="text-[11px] font-mono text-ink-dim bg-bg-hover px-2.5 py-1 rounded-md">
                     {act.chapters.length} Chapters
                   </span>
                 </div>
@@ -134,7 +134,7 @@ export default async function LabPage({ params }: { params: Promise<{ project: s
                       <Link
                         key={ch.slug}
                         href={`/${project.slug}/${ch.slug}`}
-                        className="group/item p-3 rounded-xl bg-[#08090A] border border-white/5 hover:border-amber-signal/40 transition flex flex-col justify-between"
+                        className="group/item p-3 rounded-xl bg-bg-inset border border-hairline hover:border-amber-signal/40 transition flex flex-col justify-between"
                       >
                         <div>
                           <div className="flex items-center justify-between text-[10px] font-mono text-ink-dim mb-1">
@@ -148,7 +148,7 @@ export default async function LabPage({ params }: { params: Promise<{ project: s
 
                         {/* Simulator indicator badge */}
                         {hasSims && (
-                          <div className="mt-3 pt-2 border-t border-white/5 flex items-center gap-1.5 text-[10px] font-mono text-cryo">
+                          <div className="mt-3 pt-2 border-t border-hairline flex items-center gap-1.5 text-[10px] font-mono text-cryo">
                             <Cpu className="w-3 h-3" />
                             <span>{ch.simulators.length} Interactive Simulator{ch.simulators.length > 1 ? "s" : ""}</span>
                           </div>
@@ -164,8 +164,8 @@ export default async function LabPage({ params }: { params: Promise<{ project: s
 
         {/* Persistent Right-Edge Instrument Rail (4 cols) */}
         <div className="lg:col-span-4 space-y-6">
-          <div className="sticky top-20 rounded-2xl bg-[#0D0F12] border border-white/10 p-5 space-y-6 shadow-xl">
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+          <div className="sticky top-20 rounded-2xl bg-bg-panel border border-hairline p-5 space-y-6 shadow-xl">
+            <div className="flex items-center justify-between border-b border-hairline pb-3">
               <div className="flex items-center gap-2">
                 <Activity className="w-4 h-4 text-cryo animate-pulse" />
                 <h3 className="text-xs font-mono uppercase tracking-widest text-ink-primary font-bold">
@@ -184,7 +184,7 @@ export default async function LabPage({ params }: { params: Promise<{ project: s
                   <span className="text-ink-secondary">Research Coverage</span>
                   <span className="text-amber-bright font-bold">19 / 19 Chapters (100%)</span>
                 </div>
-                <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+                <div className="h-1.5 w-full bg-bg-hover rounded-full overflow-hidden">
                   <div className="h-full bg-gradient-to-r from-amber-signal to-amber-bright w-full" />
                 </div>
               </div>
@@ -194,17 +194,17 @@ export default async function LabPage({ params }: { params: Promise<{ project: s
                   <span className="text-ink-secondary">Physics Simulators</span>
                   <span className="text-cryo font-bold">8 Operational</span>
                 </div>
-                <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+                <div className="h-1.5 w-full bg-bg-hover rounded-full overflow-hidden">
                   <div className="h-full bg-gradient-to-r from-cyan-500 to-cryo w-full" />
                 </div>
               </div>
             </div>
 
             {/* Quick Feature Jump Boxes */}
-            <div className="space-y-2.5 pt-2 border-t border-white/10">
+            <div className="space-y-2.5 pt-2 border-t border-hairline">
               <Link
                 href={`/${project.slug}/03-hosokawa-afd-vs-generic-lyophilizers`}
-                className="p-3 rounded-xl bg-[#08090A] border border-white/5 hover:border-amber-signal/30 transition flex items-center justify-between group"
+                className="p-3 rounded-xl bg-bg-inset border border-hairline hover:border-amber-signal/30 transition flex items-center justify-between group"
               >
                 <div>
                   <div className="text-xs font-bold text-ink-primary group-hover:text-amber-bright transition">
@@ -217,7 +217,7 @@ export default async function LabPage({ params }: { params: Promise<{ project: s
 
               <Link
                 href={`/${project.slug}/02-physics-and-thermodynamics`}
-                className="p-3 rounded-xl bg-[#08090A] border border-white/5 hover:border-cryo/30 transition flex items-center justify-between group"
+                className="p-3 rounded-xl bg-bg-inset border border-hairline hover:border-cryo/30 transition flex items-center justify-between group"
               >
                 <div>
                   <div className="text-xs font-bold text-ink-primary group-hover:text-cryo transition">
@@ -230,7 +230,7 @@ export default async function LabPage({ params }: { params: Promise<{ project: s
 
               <Link
                 href={`/${project.slug}/bom`}
-                className="p-3 rounded-xl bg-[#08090A] border border-white/5 hover:border-white/20 transition flex items-center justify-between group"
+                className="p-3 rounded-xl bg-bg-inset border border-hairline hover:border-hairline-strong transition flex items-center justify-between group"
               >
                 <div>
                   <div className="text-xs font-bold text-ink-primary">The Bench (BOM)</div>

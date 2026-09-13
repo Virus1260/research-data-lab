@@ -52,7 +52,7 @@ export function ReferencesExplorer({ projectSlug, references }: ReferencesExplor
   return (
     <div className="space-y-6">
       {/* Search & Category Filter Bar */}
-      <div className="bg-[#0D0F12] border border-white/10 p-4 rounded-2xl flex flex-col md:flex-row gap-3 items-center justify-between">
+      <div className="bg-bg-panel border border-hairline p-4 rounded-2xl flex flex-col md:flex-row gap-3 items-center justify-between">
         {/* Search Input */}
         <div className="relative w-full md:w-80">
           <Search className="w-4 h-4 text-ink-dim absolute left-3 top-1/2 -translate-y-1/2" />
@@ -61,7 +61,7 @@ export function ReferencesExplorer({ projectSlug, references }: ReferencesExplor
             placeholder="Search patents, standards, papers..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#08090A] border border-white/10 rounded-xl pl-9 pr-3 py-2 text-xs text-ink-primary placeholder:text-ink-dim font-mono outline-none focus:border-amber-signal/50 transition"
+            className="w-full bg-bg-inset border border-hairline rounded-xl pl-9 pr-3 py-2 text-xs text-ink-primary placeholder:text-ink-dim font-mono outline-none focus:border-amber-signal/50 transition"
           />
         </div>
 
@@ -70,7 +70,7 @@ export function ReferencesExplorer({ projectSlug, references }: ReferencesExplor
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="bg-[#08090A] border border-white/10 text-xs text-ink-secondary rounded-xl px-3 py-2 font-mono outline-none cursor-pointer max-w-xs truncate"
+            className="bg-bg-inset border border-hairline text-xs text-ink-secondary rounded-xl px-3 py-2 font-mono outline-none cursor-pointer max-w-xs truncate"
           >
             <option value="all">All Categories ({categories.length})</option>
             {categories.map((cat) => (
@@ -84,7 +84,7 @@ export function ReferencesExplorer({ projectSlug, references }: ReferencesExplor
           <select
             value={selectedChapter}
             onChange={(e) => setSelectedChapter(e.target.value)}
-            className="bg-[#08090A] border border-white/10 text-xs text-ink-secondary rounded-xl px-3 py-2 font-mono outline-none cursor-pointer"
+            className="bg-bg-inset border border-hairline text-xs text-ink-secondary rounded-xl px-3 py-2 font-mono outline-none cursor-pointer"
           >
             <option value="all">Cited by Any Chapter</option>
             {chapters.map((ch) => (
@@ -101,7 +101,7 @@ export function ReferencesExplorer({ projectSlug, references }: ReferencesExplor
         {filtered.map((ref) => (
           <div
             key={ref.id}
-            className="p-5 rounded-2xl bg-[#0D0F12] border border-white/10 hover:border-white/20 transition flex flex-col justify-between space-y-4 shadow-lg group"
+            className="p-5 rounded-2xl bg-bg-panel border border-hairline hover:border-hairline-strong transition flex flex-col justify-between space-y-4 shadow-lg group"
           >
             <div className="space-y-2">
               <div className="flex items-center justify-between">
@@ -114,7 +114,7 @@ export function ReferencesExplorer({ projectSlug, references }: ReferencesExplor
                     {ref.citedByChapters.map((ch) => (
                       <span
                         key={ch}
-                        className="bg-white/5 px-1.5 py-0.5 rounded text-amber-bright font-bold"
+                        className="bg-bg-hover px-1.5 py-0.5 rounded text-amber-bright font-bold"
                       >
                         Ch {ch}
                       </span>
@@ -123,7 +123,7 @@ export function ReferencesExplorer({ projectSlug, references }: ReferencesExplor
                 )}
               </div>
 
-              <h3 className="text-sm font-bold text-ink-primary group-hover:text-white transition leading-snug">
+              <h3 className="text-sm font-bold text-ink-primary group-hover:text-ink-primary transition leading-snug">
                 {ref.title}
               </h3>
 
@@ -135,7 +135,7 @@ export function ReferencesExplorer({ projectSlug, references }: ReferencesExplor
             </div>
 
             {/* Outbound link footer */}
-            <div className="pt-3 border-t border-white/5 flex items-center justify-between text-xs">
+            <div className="pt-3 border-t border-hairline flex items-center justify-between text-xs">
               <span className="text-[10px] font-mono text-ink-dim truncate max-w-[240px]">
                 {ref.category}
               </span>
@@ -158,7 +158,7 @@ export function ReferencesExplorer({ projectSlug, references }: ReferencesExplor
       </div>
 
       {filtered.length === 0 && (
-        <div className="p-12 text-center text-xs text-ink-dim font-mono rounded-2xl bg-[#0D0F12] border border-white/5">
+        <div className="p-12 text-center text-xs text-ink-dim font-mono rounded-2xl bg-bg-panel border border-hairline">
           No references match your selected filters.
         </div>
       )}

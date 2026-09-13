@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Search, BookOpen, Cpu, Table, Bookmark, X, ArrowRight } from "lucide-react";
+import { Search, BookOpen, Cpu, Table, Bookmark, X, ArrowRight, Sun, Moon } from "lucide-react";
+import { useTheme } from "@/components/layout/ThemeProvider";
 
 interface PaletteItem {
   id: string;
@@ -16,6 +17,7 @@ export function CommandPalette({ projectSlug = "hosokawa-afd-freeze-dryer" }: { 
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const router = useRouter();
+  const { theme, toggleTheme } = useTheme();
 
   const items: PaletteItem[] = [
     // Nav
@@ -219,10 +221,10 @@ export function CommandPalette({ projectSlug = "hosokawa-afd-freeze-dryer" }: { 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-start justify-center pt-24 px-4">
-      <div className="bg-[#0D0F12] border border-white/15 rounded-2xl w-full max-w-xl shadow-2xl overflow-hidden flex flex-col max-h-[70vh]">
+    <div className="fixed inset-0 z-50 bg-overlay backdrop-blur-sm flex items-start justify-center pt-24 px-4">
+      <div className="bg-bg-panel border border-hairline-strong rounded-2xl w-full max-w-xl shadow-2xl overflow-hidden flex flex-col max-h-[70vh]">
         {/* Search input bar */}
-        <div className="flex items-center px-4 py-3 border-b border-white/10 gap-3">
+        <div className="flex items-center px-4 py-3 border-b border-hairline gap-3">
           <Search className="w-5 h-5 text-amber-signal" />
           <input
             type="text"
@@ -251,10 +253,10 @@ export function CommandPalette({ projectSlug = "hosokawa-afd-freeze-dryer" }: { 
               <button
                 key={item.id}
                 onClick={() => navigateTo(item.href)}
-                className="w-full text-left p-3 rounded-xl hover:bg-white/5 transition flex items-center justify-between group"
+                className="w-full text-left p-3 rounded-xl hover:bg-bg-hover transition flex items-center justify-between group"
               >
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-white/5 text-ink-muted group-hover:text-amber-signal group-hover:bg-amber-signal/10 transition">
+                  <div className="p-2 rounded-lg bg-bg-hover text-ink-muted group-hover:text-amber-signal group-hover:bg-amber-signal/10 transition">
                     {item.category === "Chapters" && <BookOpen className="w-4 h-4" />}
                     {item.category === "Simulators" && <Cpu className="w-4 h-4" />}
                     {item.category === "Data" && <Table className="w-4 h-4" />}
@@ -269,7 +271,7 @@ export function CommandPalette({ projectSlug = "hosokawa-afd-freeze-dryer" }: { 
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-mono text-ink-dim uppercase border border-white/5 px-2 py-0.5 rounded">
+                  <span className="text-[10px] font-mono text-ink-dim uppercase border border-hairline px-2 py-0.5 rounded">
                     {item.category}
                   </span>
                   <ArrowRight className="w-3.5 h-3.5 text-ink-dim group-hover:text-amber-signal opacity-0 group-hover:opacity-100 transition" />
@@ -280,8 +282,15 @@ export function CommandPalette({ projectSlug = "hosokawa-afd-freeze-dryer" }: { 
         </div>
 
         {/* Footer shortcuts info */}
-        <div className="px-4 py-2 bg-white/[0.02] border-t border-white/5 flex items-center justify-between text-[11px] text-ink-dim font-mono">
-          <span>Navigation Quick-Jump</span>
+        <div className="px-4 py-2 bg-bg-inset border-t border-hairline flex items-center justify-between text-[11px] text-ink-dim font-mono">
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="inline-flex items-center gap-1.5 h-9 px-2 rounded-lg border border-hairline text-ink-secondary hover:text-ink-primary hover:bg-bg-hover"
+          >
+            {theme === "dark" ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+            {theme === "dark" ? "Light lab" : "Dark lab"}
+          </button>
           <span>ESC to close • ⌘K anywhere</span>
         </div>
       </div>

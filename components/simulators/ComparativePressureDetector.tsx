@@ -37,9 +37,9 @@ export function ComparativePressureDetector() {
   const currX = margin.left + progress * plotWidth;
 
   return (
-    <div className="instrument-card rounded-2xl p-5 my-6 border border-white/10 bg-[#0D0F12]/90 backdrop-blur-sm">
+    <div className="instrument-card rounded-2xl p-5 my-6 border border-hairline bg-bg-panel backdrop-blur-sm">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-4 border-b border-white/10 gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-4 border-b border-hairline gap-2">
         <div>
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-cryo animate-pulse" />
@@ -66,7 +66,7 @@ export function ComparativePressureDetector() {
       </div>
 
       {/* Interactive Plot */}
-      <div className="bg-[#08090A] p-3 rounded-xl border border-white/5 relative">
+      <div className="bg-bg-inset p-3 rounded-xl border border-hairline relative">
         <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} className="w-full h-auto">
           {/* Grid lines */}
           {[0, 0.25, 0.5, 0.75, 1.0].map((p) => (
@@ -93,7 +93,7 @@ export function ComparativePressureDetector() {
             y1={margin.top}
             x2={currX}
             y2={margin.top + plotHeight}
-            stroke="#FFF"
+            stroke="var(--bg-panel)"
             strokeWidth="1.5"
             strokeDasharray="3 3"
           />
@@ -122,7 +122,7 @@ export function ComparativePressureDetector() {
         </svg>
 
         {/* Scrubber slider */}
-        <div className="mt-3 pt-3 border-t border-white/5">
+        <div className="mt-3 pt-3 border-t border-hairline">
           <div className="flex justify-between text-xs mb-1.5">
             <span className="text-ink-muted">Drying Cycle Progress:</span>
             <span className="font-mono text-amber-bright font-bold">
@@ -143,7 +143,7 @@ export function ComparativePressureDetector() {
 
       {/* Telemetry Numbers */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
-        <div className="bg-[#08090A] p-3 rounded-xl border border-white/5">
+        <div className="bg-bg-inset p-3 rounded-xl border border-hairline">
           <div className="text-[11px] text-ink-muted">Pirani Gauge Output</div>
           <div className="text-xl font-bold font-mono text-amber-bright">
             {state.piraniMbar} <span className="text-xs font-normal text-ink-muted">mbar</span>
@@ -151,7 +151,7 @@ export function ComparativePressureDetector() {
           <div className="text-[10px] text-ink-dim font-mono">Thermal conductivity mode</div>
         </div>
 
-        <div className="bg-[#08090A] p-3 rounded-xl border border-white/5">
+        <div className="bg-bg-inset p-3 rounded-xl border border-hairline">
           <div className="text-[11px] text-ink-muted">Capacitance Manometer</div>
           <div className="text-xl font-bold font-mono text-cryo">
             {state.capacitanceMbar} <span className="text-xs font-normal text-ink-muted">mbar</span>
@@ -159,7 +159,7 @@ export function ComparativePressureDetector() {
           <div className="text-[10px] text-ink-dim font-mono">Mechanical diaphragm deflection</div>
         </div>
 
-        <div className="bg-[#08090A] p-3 rounded-xl border border-white/5">
+        <div className="bg-bg-inset p-3 rounded-xl border border-hairline">
           <div className="text-[11px] text-ink-muted">Gauge Delta Convergence</div>
           <div
             className={`text-xl font-bold font-mono ${
@@ -175,7 +175,7 @@ export function ComparativePressureDetector() {
       </div>
 
       {/* Key AHA takeaway callout */}
-      <div className="mt-3 p-3 rounded-xl bg-white/5 text-xs text-ink-secondary flex items-start gap-2">
+      <div className="mt-3 p-3 rounded-xl bg-bg-hover text-xs text-ink-secondary flex items-start gap-2">
         <Sparkles className="w-4 h-4 text-amber-signal shrink-0 mt-0.5" />
         <div>
           <span className="font-semibold text-ink-primary">Why This Matters: </span>

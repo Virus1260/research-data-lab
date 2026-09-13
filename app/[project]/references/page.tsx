@@ -35,7 +35,7 @@ export default async function ReferencesPage({
       </div>
 
       {/* Header Banner */}
-      <div className="rounded-3xl bg-[#0D0F12] border border-white/10 p-6 sm:p-8 mb-8 relative overflow-hidden shadow-xl">
+      <div className="rounded-3xl bg-bg-panel border border-hairline p-6 sm:p-8 mb-8 relative overflow-hidden shadow-xl">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-signal/10 border border-amber-signal/25 text-amber-bright text-xs font-mono">

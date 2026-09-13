@@ -76,9 +76,9 @@ export function PhaseDiagramExplorer() {
   const fdBoxY2 = pToY(0.01);
 
   return (
-    <div className="instrument-card rounded-2xl p-5 my-6 border border-white/10 bg-[#0D0F12]/90 backdrop-blur-sm">
+    <div className="instrument-card rounded-2xl p-5 my-6 border border-hairline bg-bg-panel backdrop-blur-sm">
       {/* Simulator Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-4 border-b border-white/10 gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-4 border-b border-hairline gap-3">
         <div>
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-cryo animate-pulse" />
@@ -110,7 +110,7 @@ export function PhaseDiagramExplorer() {
             className={`text-[11px] font-mono px-2.5 py-1.5 rounded-lg border transition ${
               showWindow
                 ? "bg-amber-signal/15 border-amber-signal text-amber-signal"
-                : "bg-white/5 border-white/10 text-ink-muted hover:text-ink-secondary"
+                : "bg-bg-hover border-hairline text-ink-muted hover:text-ink-secondary"
             }`}
           >
             Freeze-Dry Zone
@@ -119,7 +119,7 @@ export function PhaseDiagramExplorer() {
       </div>
 
       {/* SVG Interactive Canvas */}
-      <div className="relative bg-[#08090A] rounded-xl border border-white/5 p-2 overflow-hidden select-none">
+      <div className="relative bg-bg-inset rounded-xl border border-hairline p-2 overflow-hidden select-none">
         <svg
           ref={svgRef}
           viewBox={`0 0 ${svgWidth} ${svgHeight}`}
@@ -188,7 +188,7 @@ export function PhaseDiagramExplorer() {
           </text>
 
           {/* Triple Point Marker */}
-          <circle cx={tpX} cy={tpY} r="4.5" fill="#E5A93C" stroke="#FFF" strokeWidth="1.5" />
+          <circle cx={tpX} cy={tpY} r="4.5" fill="#E5A93C" stroke="var(--bg-panel)" strokeWidth="1.5" />
           <text x={tpX + 8} y={tpY - 4} fill="#E5A93C" fontSize="10" fontFamily="monospace" fontWeight="bold">
             Triple Point (0.01°C, 6.11 mbar)
           </text>
@@ -199,7 +199,7 @@ export function PhaseDiagramExplorer() {
             cy={pToY(pressMbar)}
             r="7"
             fill={phase.color}
-            stroke="#FFFFFF"
+            stroke="var(--bg-panel)"
             strokeWidth="2"
             className="animate-pulse"
           />
@@ -254,7 +254,7 @@ export function PhaseDiagramExplorer() {
         </svg>
 
         {/* Legend / Overlay Note */}
-        <div className="mt-2 pt-2 border-t border-white/5 flex flex-wrap items-center justify-between text-xs text-ink-muted px-1 gap-2">
+        <div className="mt-2 pt-2 border-t border-hairline flex flex-wrap items-center justify-between text-xs text-ink-muted px-1 gap-2">
           <span>Click / drag on plot to explore state transitions.</span>
           {phase.isFreezeDryingWindow && (
             <div className="flex items-center gap-1 text-amber-signal font-mono text-[11px]">
@@ -266,8 +266,8 @@ export function PhaseDiagramExplorer() {
       </div>
 
       {/* Manual Precision Controls */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 pt-3 border-t border-white/10">
-        <div className="bg-[#08090A] p-3 rounded-xl border border-white/5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 pt-3 border-t border-hairline">
+        <div className="bg-bg-inset p-3 rounded-xl border border-hairline">
           <div className="flex justify-between text-xs mb-1.5">
             <span className="text-ink-secondary flex items-center gap-1.5">
               <Thermometer className="w-3.5 h-3.5 text-cryo" /> Temperature
@@ -285,7 +285,7 @@ export function PhaseDiagramExplorer() {
           />
         </div>
 
-        <div className="bg-[#08090A] p-3 rounded-xl border border-white/5">
+        <div className="bg-bg-inset p-3 rounded-xl border border-hairline">
           <div className="flex justify-between text-xs mb-1.5">
             <span className="text-ink-secondary flex items-center gap-1.5">
               <Gauge className="w-3.5 h-3.5 text-amber-signal" /> Pressure (mbar)
@@ -307,7 +307,7 @@ export function PhaseDiagramExplorer() {
       </div>
 
       {/* Physics explanation readout */}
-      <div className="mt-3 p-3 rounded-xl bg-white/5 text-xs text-ink-secondary flex items-start gap-2">
+      <div className="mt-3 p-3 rounded-xl bg-bg-hover text-xs text-ink-secondary flex items-start gap-2">
         <Sparkles className="w-4 h-4 text-amber-signal shrink-0 mt-0.5" />
         <div>
           <span className="font-semibold text-ink-primary">Thermodynamic Readout: </span>

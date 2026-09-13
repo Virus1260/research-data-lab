@@ -5,76 +5,91 @@
 
 /* ──────────────────────────────────────────────
    DESIGN TOKENS  –  Light (default)
+   Cream / milk / parchment — never blunt #FFF
    ────────────────────────────────────────────── */
 :root,
 .light {
-  /* canvas */
-  --bg: #F5F6F8;
-  --bg-panel: #FFFFFF;
-  --bg-surface: #F0F1F5;
-  --bg-elevated: #FFFFFF;
-  --bg-hover: #ECEEF3;
+  color-scheme: light;
 
-  /* borders */
-  --border: rgba(0, 0, 0, 0.09);
-  --border-active: rgba(229, 169, 60, 0.7);
+  --bg: #f3ede3;
+  --bg-panel: #faf6ef;
+  --bg-surface: #ece3d4;
+  --bg-elevated: #fff9f0;
+  --bg-hover: #e6dccb;
+  --bg-inset: #e8dece;
 
-  /* accents – identical in both themes */
-  --cryo: #2B8DC8;
-  --cryo-subtle: rgba(43, 141, 200, 0.12);
-  --cryo-glow: rgba(43, 141, 200, 0.3);
+  --border: rgba(72, 52, 28, 0.14);
+  --border-strong: rgba(72, 52, 28, 0.22);
+  --border-active: rgba(184, 122, 18, 0.7);
 
-  --amber: #C8830A;
-  --amber-bright: #E09400;
-  --amber-subtle: rgba(200, 131, 10, 0.12);
-  --amber-glow: rgba(200, 131, 10, 0.25);
+  --cryo: #0d6d8c;
+  --cryo-subtle: rgba(13, 109, 140, 0.12);
+  --cryo-glow: rgba(13, 109, 140, 0.28);
 
-  /* ink */
-  --ink-primary: #0F1117;
-  --ink-secondary: #2D3240;
-  --ink-muted: #5A6070;
-  --ink-dim: #9BA3B0;
+  --amber: #b47a12;
+  --amber-bright: #c88814;
+  --amber-subtle: rgba(180, 122, 18, 0.14);
+  --amber-glow: rgba(180, 122, 18, 0.28);
+  --on-amber: #1a1408;
 
-  /* special */
-  --scrollbar-track: #E8EAF0;
-  --scrollbar-thumb: #C4C9D4;
-  --code-bg: #EEF0F5;
-  --table-stripe: rgba(0, 0, 0, 0.025);
-  --table-header-bg: #EFF1F6;
+  --ink-primary: #1a1612;
+  --ink-secondary: #3d372e;
+  --ink-muted: #5c554a;
+  --ink-dim: #8a7f70;
+
+  --overlay: rgba(42, 32, 20, 0.45);
+  --scrollbar-track: #e8dece;
+  --scrollbar-thumb: #c9bba6;
+  --code-bg: #efe6d7;
+  --table-stripe: rgba(72, 52, 28, 0.04);
+  --table-header-bg: #efe6d7;
+  --shadow-panel: 0 1px 2px rgba(58, 42, 20, 0.06), 0 10px 28px -16px rgba(58, 42, 20, 0.28);
+  --grain: rgba(58, 42, 20, 0.035);
+  --chart-grid: rgba(72, 52, 28, 0.12);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* ──────────────────────────────────────────────
-   DESIGN TOKENS  –  Dark
+   DESIGN TOKENS  –  Dark (obsidian cleanroom)
    ────────────────────────────────────────────── */
 .dark {
-  --bg: #08090A;
-  --bg-panel: #0D0F12;
-  --bg-surface: #12141A;
-  --bg-elevated: #181B24;
-  --bg-hover: #202430;
+  color-scheme: dark;
 
-  --border: rgba(255, 255, 255, 0.07);
-  --border-active: rgba(229, 169, 60, 0.4);
+  --bg: #0a0b0d;
+  --bg-panel: #12141a;
+  --bg-surface: #181b22;
+  --bg-elevated: #1e222c;
+  --bg-hover: #262b38;
+  --bg-inset: #0c0d10;
 
-  --cryo: #7FD4FF;
+  --border: rgba(247, 236, 214, 0.1);
+  --border-strong: rgba(247, 236, 214, 0.18);
+  --border-active: rgba(229, 169, 60, 0.5);
+
+  --cryo: #7fd4ff;
   --cryo-subtle: rgba(127, 212, 255, 0.12);
-  --cryo-glow: rgba(127, 212, 255, 0.3);
+  --cryo-glow: rgba(127, 212, 255, 0.32);
 
-  --amber: #E5A93C;
-  --amber-bright: #F5A623;
-  --amber-subtle: rgba(229, 169, 60, 0.12);
-  --amber-glow: rgba(229, 169, 60, 0.25);
+  --amber: #e5a93c;
+  --amber-bright: #f3c56a;
+  --amber-subtle: rgba(229, 169, 60, 0.14);
+  --amber-glow: rgba(229, 169, 60, 0.28);
+  --on-amber: #1a1408;
 
-  --ink-primary: #F7F8F9;
-  --ink-secondary: #CBD2DC;
-  --ink-muted: #8A91A0;
-  --ink-dim: #505663;
+  --ink-primary: #f6f1e8;
+  --ink-secondary: #cfc6b8;
+  --ink-muted: #9a9184;
+  --ink-dim: #6d665c;
 
-  --scrollbar-track: #0D0F12;
-  --scrollbar-thumb: #1E222D;
-  --code-bg: #0A0B0E;
-  --table-stripe: rgba(255, 255, 255, 0.025);
-  --table-header-bg: #0F1116;
+  --overlay: rgba(4, 5, 6, 0.72);
+  --scrollbar-track: #0c0d10;
+  --scrollbar-thumb: #2a2f3a;
+  --code-bg: #0e1014;
+  --table-stripe: rgba(247, 236, 214, 0.03);
+  --table-header-bg: #161922;
+  --shadow-panel: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 18px 40px -24px rgba(0, 0, 0, 0.7);
+  --grain: rgba(255, 248, 236, 0.03);
+  --chart-grid: rgba(247, 236, 214, 0.1);
 }
 
 /* ──────────────────────────────────────────────
@@ -91,7 +106,6 @@ html {
   color: var(--ink-secondary);
   scroll-behavior: smooth;
   font-feature-settings: "cv01", "ss03";
-  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 body {
@@ -100,79 +114,86 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   position: relative;
-  font-family: var(--font-geist-sans), Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  transition: background-color 0.25s ease, color 0.25s ease;
+  font-family: var(--font-geist-sans), Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-/* ──────────────────────────────────────────────
-   CUSTOM SCROLLBAR
-   ────────────────────────────────────────────── */
-::-webkit-scrollbar { width: 6px; height: 6px; }
+html, body {
+  transition: background-color 220ms var(--ease-out), color 220ms var(--ease-out);
+}
+
+body::before {
+  content: "";
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  opacity: 0.45;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+}
+
+.dark body::before {
+  mix-blend-mode: overlay;
+  opacity: 0.28;
+}
+
+::selection {
+  background: var(--amber-subtle);
+  color: var(--ink-primary);
+}
+
+:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
+}
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: var(--scrollbar-track); }
-::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--ink-dim); }
 
-/* ──────────────────────────────────────────────
-   LAB GRID BACKGROUND
-   ────────────────────────────────────────────── */
 .lab-grid-bg {
   background-image:
-    radial-gradient(circle at 50% 0%, var(--cryo-subtle) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% -10%, var(--cryo-subtle) 0%, transparent 52%),
     linear-gradient(to right, var(--border) 1px, transparent 1px),
     linear-gradient(to bottom, var(--border) 1px, transparent 1px);
-  background-size: 100% 100%, 48px 48px, 48px 48px;
+  background-size: 100% 100%, 56px 56px, 56px 56px;
 }
 
-/* ──────────────────────────────────────────────
-   INSTRUMENT CARD
-   ────────────────────────────────────────────── */
 .instrument-card {
   background: var(--bg-panel);
   border: 1px solid var(--border);
-  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.04);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, background 0.25s ease;
+  box-shadow: var(--shadow-panel);
+  transition: border-color 180ms var(--ease-out), box-shadow 180ms var(--ease-out), transform 180ms var(--ease-out);
 }
-.light .instrument-card {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
-}
+
 .instrument-card:hover {
   border-color: var(--border-active);
 }
 
-/* ──────────────────────────────────────────────
-   AMBIENT GLOWS
-   ────────────────────────────────────────────── */
-.glow-cryo  { box-shadow: 0 0 35px -5px var(--cryo-glow); }
-.glow-amber { box-shadow: 0 0 35px -5px var(--amber-glow); }
+.glow-cryo  { box-shadow: 0 12px 32px -12px var(--cryo-glow); }
+.glow-amber { box-shadow: 0 12px 32px -12px var(--amber-glow); }
 
-/* ──────────────────────────────────────────────
-   FONTS
-   ────────────────────────────────────────────── */
 .font-mono-data {
   font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
 }
 
-/* ──────────────────────────────────────────────
-   NARRATOR HIGHLIGHT
-   ────────────────────────────────────────────── */
 .narrator-active-sentence {
   border-bottom: 2px solid var(--amber);
   background: linear-gradient(180deg, transparent 60%, var(--amber-subtle) 100%);
   color: var(--ink-primary);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background 280ms var(--ease-out);
   border-radius: 2px;
   padding: 1px 2px;
 }
 
-/* ──────────────────────────────────────────────
-   EXHIBIT – CHAPTER READER
-   ────────────────────────────────────────────── */
 .chapter-body {
   color: var(--ink-secondary);
-  font-size: 1rem;
+  font-size: 1.05rem;
   line-height: 1.8;
+  max-width: 72ch;
 }
 
 .chapter-body h1,
@@ -183,26 +204,28 @@ body {
   font-weight: 700;
   letter-spacing: -0.02em;
   margin-top: 2.25em;
-  margin-bottom: 0.75em;
-  scroll-margin-top: 80px;
+  margin-bottom: 0.65em;
+  scroll-margin-top: 88px;
 }
 
 .chapter-body h1 { font-size: 1.75rem; }
 .chapter-body h2 { font-size: 1.35rem; border-bottom: 1px solid var(--border); padding-bottom: 0.4em; }
 .chapter-body h3 { font-size: 1.1rem; color: var(--cryo); }
-.chapter-body h4 { font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-muted); font-size: 0.8rem; }
-
-.chapter-body p {
-  margin-bottom: 1.25em;
+.chapter-body h4 {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-muted);
 }
+
+.chapter-body p { margin-bottom: 1.25em; }
 
 .chapter-body a {
   color: var(--cryo);
   text-decoration: underline;
   text-underline-offset: 3px;
-  transition: opacity 0.15s;
 }
-.chapter-body a:hover { opacity: 0.8; }
+.chapter-body a:hover { color: var(--amber); }
 
 .chapter-body code {
   font-family: var(--font-geist-mono), ui-monospace, monospace;
@@ -217,7 +240,7 @@ body {
 .chapter-body pre {
   background: var(--code-bg);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 1.25em;
   overflow-x: auto;
   margin-bottom: 1.5em;
@@ -226,23 +249,18 @@ body {
   background: none;
   border: none;
   padding: 0;
-  font-size: 0.875rem;
   color: var(--ink-secondary);
 }
 
-/* ──────────────────────────────────────────────
-   TABLES  –  Full-width, professional, readable
-   ────────────────────────────────────────────── */
 .chapter-body table,
 .data-table {
   width: 100%;
   border-collapse: collapse;
-  border-radius: 8px;
+  border-radius: 10px;
   overflow: hidden;
   border: 1px solid var(--border);
   margin: 1.5em 0;
   font-size: 0.875rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
 .chapter-body thead th,
@@ -262,7 +280,6 @@ body {
 .chapter-body tbody tr,
 .data-table tbody tr {
   border-bottom: 1px solid var(--border);
-  transition: background 0.12s;
 }
 
 .chapter-body tbody tr:nth-child(even),
@@ -283,51 +300,38 @@ body {
   line-height: 1.45;
 }
 
-/* ──────────────────────────────────────────────
-   KATEX / EQUATIONS  –  Beautiful display
-   ────────────────────────────────────────────── */
 .equation-block {
   overflow-x: auto;
   padding: 1.25em 1.5em;
   margin: 1.5em 0;
-  background: var(--bg-surface);
+  background: var(--bg-inset);
   border: 1px solid var(--border);
-  border-left: 3px solid var(--cryo);
-  border-radius: 0 8px 8px 0;
+  border-radius: 10px;
   text-align: center;
-}
-
-.equation-inline {
-  font-size: 1.05em;
-  vertical-align: middle;
 }
 
 .katex { font-size: 1.1em; color: var(--ink-primary); }
 .katex-display { overflow-x: auto; padding: 0.5em 0; }
-.katex-display > .katex { display: inline-block; text-align: left; }
 
-/* ──────────────────────────────────────────────
-   SIMULATOR PANEL
-   ────────────────────────────────────────────── */
 .simulator-panel {
   background: var(--bg-panel);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 1.5rem;
   margin: 2rem 0;
   position: relative;
   overflow: hidden;
+  box-shadow: var(--shadow-panel);
 }
 
 .simulator-panel::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  height: 3px;
+  height: 2px;
   background: linear-gradient(90deg, var(--cryo), var(--amber));
-  border-radius: 12px 12px 0 0;
 }
 
 .sim-label {
@@ -336,7 +340,6 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--ink-muted);
-  margin-bottom: 0.25em;
 }
 
 .sim-value {
@@ -345,7 +348,6 @@ body {
   font-weight: 700;
   color: var(--ink-primary);
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.03em;
 }
 
 .sim-unit {
@@ -354,17 +356,15 @@ body {
   margin-left: 0.25em;
 }
 
-/* Range input – custom styled */
 input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
   height: 6px;
-  background: var(--border);
+  background: var(--bg-hover);
   border-radius: 3px;
   outline: none;
   cursor: pointer;
-  transition: background 0.2s;
 }
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
@@ -372,33 +372,19 @@ input[type="range"]::-webkit-slider-thumb {
   height: 18px;
   border-radius: 50%;
   background: var(--cryo);
-  box-shadow: 0 0 0 3px var(--cryo-subtle), 0 2px 6px rgba(0,0,0,0.25);
+  box-shadow: 0 0 0 3px var(--cryo-subtle), 0 2px 6px rgba(0, 0, 0, 0.2);
   cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.15s;
-}
-input[type="range"]::-webkit-slider-thumb:hover {
-  transform: scale(1.2);
-  box-shadow: 0 0 0 5px var(--cryo-subtle), 0 2px 8px rgba(0,0,0,0.3);
 }
 input[type="range"]::-moz-range-thumb {
   width: 18px;
   height: 18px;
   border-radius: 50%;
   background: var(--cryo);
-  cursor: pointer;
   border: none;
 }
 
-/* ──────────────────────────────────────────────
-   TRANSITIONS (theme switch)
-   ────────────────────────────────────────────── */
-*, *::before, *::after {
-  transition-property: background-color, border-color, color, box-shadow;
-  transition-duration: 0.2s;
-  transition-timing-function: ease;
-}
-
-/* Disable transition on scroll/interaction elements */
-input[type="range"], button, a, svg, path {
-  transition-property: transform, opacity, color, background-color, border-color, box-shadow, fill, stroke;
+@media (prefers-reduced-motion: reduce) {
+  html, body, .instrument-card {
+    transition: none !important;
+  }
 }

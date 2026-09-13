@@ -17,9 +17,7 @@ export default function ArchivePage() {
 
         <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-ink-primary">
           Dense engineering dossiers,{" "}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-signal via-amber-bright to-cryo">
-            made interactive.
-          </span>
+          <span className="text-amber-signal">made interactive.</span>
         </h1>
 
         <p className="text-sm sm:text-base text-ink-muted leading-relaxed">
@@ -30,7 +28,7 @@ export default function ArchivePage() {
 
       {/* Capsule Gallery */}
       <div className="space-y-6">
-        <div className="flex items-center justify-between border-b border-white/10 pb-3">
+        <div className="flex items-center justify-between border-b border-hairline pb-3">
           <div className="flex items-center gap-2">
             <Atom className="w-4 h-4 text-cryo" />
             <h2 className="text-xs font-mono uppercase tracking-widest text-ink-primary font-semibold">
@@ -45,7 +43,7 @@ export default function ArchivePage() {
             <Link
               key={proj.slug}
               href={`/${proj.slug}`}
-              className="group block rounded-2xl bg-[#0D0F12] border border-white/10 hover:border-amber-signal/40 p-6 shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-amber-signal/10 relative overflow-hidden"
+              className="group block rounded-2xl bg-bg-panel border border-hairline hover:border-amber-signal/40 p-6 shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-amber-signal/10 relative overflow-hidden"
             >
               {/* Subtle back-light glow */}
               <div className="absolute -right-20 -top-20 w-48 h-48 bg-cryo/10 rounded-full blur-3xl group-hover:bg-amber-signal/15 transition-all duration-500 pointer-events-none" />
@@ -55,7 +53,7 @@ export default function ArchivePage() {
                 {proj.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="text-[10px] font-mono px-2.5 py-0.5 rounded-md bg-white/5 border border-white/5 text-ink-secondary group-hover:border-white/10 transition"
+                    className="text-[10px] font-mono px-2.5 py-0.5 rounded-md bg-bg-hover border border-hairline text-ink-secondary group-hover:border-hairline transition"
                   >
                     {tag}
                   </span>
@@ -72,25 +70,25 @@ export default function ArchivePage() {
               </div>
 
               {/* Hero Hook */}
-              <p className="text-xs text-ink-secondary leading-relaxed line-clamp-3 mb-6 bg-white/[0.02] p-3 rounded-xl border border-white/5">
+              <p className="text-xs text-ink-secondary leading-relaxed line-clamp-3 mb-6 bg-bg-inset p-3 rounded-xl border border-hairline">
                 "{proj.heroFinding}"
               </p>
 
               {/* Tiny Looping Physics Preview Animation */}
-              <div className="h-16 w-full bg-[#08090A] rounded-xl border border-white/5 p-2 mb-6 flex items-center justify-center relative overflow-hidden">
+              <div className="h-16 w-full bg-bg-inset rounded-xl border border-hairline p-2 mb-6 flex items-center justify-center relative overflow-hidden">
                 <svg viewBox="0 0 300 50" className="w-full h-full">
                   {/* Subtle grid */}
-                  <line x1="0" y1="25" x2="300" y2="25" stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
+                  <line x1="0" y1="25" x2="300" y2="25" stroke="var(--chart-grid)" strokeDasharray="3 3" />
                   <path
                     d="M 10 40 Q 60 40, 100 35 T 180 20 T 260 5"
                     fill="none"
-                    stroke="#7FD4FF"
+                    stroke="var(--cryo)"
                     strokeWidth="2"
                     strokeDasharray="4 2"
                     className="animate-pulse"
                   />
-                  <circle cx="180" cy="20" r="3" fill="#E5A93C" className="animate-ping" />
-                  <circle cx="180" cy="20" r="3" fill="#E5A93C" />
+                  <circle cx="180" cy="20" r="3" fill="var(--amber)" className="animate-ping" />
+                  <circle cx="180" cy="20" r="3" fill="var(--amber)" />
                 </svg>
                 <div className="absolute bottom-1 right-2 text-[9px] font-mono text-ink-dim">
                   Live Sublimation Curve
@@ -98,7 +96,7 @@ export default function ArchivePage() {
               </div>
 
               {/* Metrics Footer */}
-              <div className="grid grid-cols-4 gap-2 pt-4 border-t border-white/5 text-center">
+              <div className="grid grid-cols-4 gap-2 pt-4 border-t border-hairline text-center">
                 <div>
                   <div className="text-sm font-bold font-mono text-ink-primary group-hover:text-amber-bright transition">
                     {proj.stats.chaptersCount}
@@ -128,9 +126,9 @@ export default function ArchivePage() {
           ))}
 
           {/* Template Scaffold Card for Project #2 */}
-          <div className="rounded-2xl bg-[#0D0F12]/50 border border-dashed border-white/10 p-6 flex flex-col justify-between">
+          <div className="rounded-2xl bg-bg-panel/50 border border-dashed border-hairline p-6 flex flex-col justify-between">
             <div>
-              <div className="inline-flex items-center gap-1.5 text-[10px] font-mono px-2.5 py-0.5 rounded-md bg-white/5 text-ink-dim mb-4">
+              <div className="inline-flex items-center gap-1.5 text-[10px] font-mono px-2.5 py-0.5 rounded-md bg-bg-hover text-ink-dim mb-4">
                 <span>Extensible Architecture</span>
               </div>
               <h3 className="text-lg font-semibold text-ink-secondary mb-2">
@@ -142,7 +140,7 @@ export default function ArchivePage() {
               </p>
             </div>
 
-            <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 text-xs font-mono text-ink-dim flex items-center justify-between">
+            <div className="p-3 rounded-xl bg-bg-inset border border-hairline text-xs font-mono text-ink-dim flex items-center justify-between">
               <span>See CONTRIBUTING.md</span>
               <ChevronRight className="w-4 h-4 text-ink-dim" />
             </div>

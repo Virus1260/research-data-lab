@@ -74,9 +74,9 @@ export function CycleProfileScrubber() {
   }, [isPlaying]);
 
   return (
-    <div className="instrument-card rounded-2xl p-5 my-6 border border-white/10 bg-[#0D0F12]/90 backdrop-blur-sm">
+    <div className="instrument-card rounded-2xl p-5 my-6 border border-hairline bg-bg-panel backdrop-blur-sm">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-4 border-b border-white/10 gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-4 border-b border-hairline gap-2">
         <div>
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-amber-signal animate-pulse" />
@@ -104,7 +104,7 @@ export function CycleProfileScrubber() {
       </div>
 
       {/* Main Scrubber Slider */}
-      <div className="bg-[#08090A] p-4 rounded-xl border border-white/5 space-y-3">
+      <div className="bg-bg-inset p-4 rounded-xl border border-hairline space-y-3">
         <div className="flex items-center justify-between text-xs">
           <span className="text-ink-secondary flex items-center gap-1.5">
             <Clock className="w-3.5 h-3.5 text-amber-signal" /> Cycle Time
@@ -116,7 +116,7 @@ export function CycleProfileScrubber() {
             </span>
             <button
               onClick={() => setIsPlaying(!isPlaying)}
-              className="p-1.5 rounded-lg bg-white/5 border border-white/10 text-ink-primary hover:bg-white/10"
+              className="p-1.5 rounded-lg bg-bg-hover border border-hairline text-ink-primary hover:bg-bg-hover"
               title={isPlaying ? "Pause cycle" : "Play cycle"}
             >
               {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 ml-0.5" />}
@@ -126,7 +126,7 @@ export function CycleProfileScrubber() {
                 setIsPlaying(false);
                 setTimeHours(0);
               }}
-              className="p-1.5 rounded-lg bg-white/5 border border-white/10 text-ink-muted hover:text-ink-primary"
+              className="p-1.5 rounded-lg bg-bg-hover border border-hairline text-ink-muted hover:text-ink-primary"
               title="Reset cycle"
             >
               <RotateCcw className="w-3.5 h-3.5" />
@@ -148,7 +148,7 @@ export function CycleProfileScrubber() {
         <div className="grid grid-cols-5 gap-1 text-center text-[10px] font-mono pt-1">
           <div
             className={`p-1 rounded cursor-pointer transition ${
-              timeHours <= 2 ? "bg-white/15 text-white font-bold" : "text-ink-dim"
+              timeHours <= 2 ? "bg-bg-hover text-ink-primary font-bold" : "text-ink-dim"
             }`}
             onClick={() => setTimeHours(1)}
           >
@@ -191,7 +191,7 @@ export function CycleProfileScrubber() {
 
       {/* Live Synchronized Instrument Telemetry */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
-        <div className="bg-[#08090A] p-3.5 rounded-xl border border-white/5">
+        <div className="bg-bg-inset p-3.5 rounded-xl border border-hairline">
           <div className="flex items-center gap-1.5 text-xs text-ink-muted mb-1">
             <Thermometer className="w-3.5 h-3.5 text-cryo" /> Jacket Temp
           </div>
@@ -201,7 +201,7 @@ export function CycleProfileScrubber() {
           <div className="text-[10px] text-ink-dim font-mono">Heat transfer fluid TCU</div>
         </div>
 
-        <div className="bg-[#08090A] p-3.5 rounded-xl border border-white/5">
+        <div className="bg-bg-inset p-3.5 rounded-xl border border-hairline">
           <div className="flex items-center gap-1.5 text-xs text-ink-muted mb-1">
             <Thermometer className="w-3.5 h-3.5 text-amber-signal" /> Product Temp
           </div>
@@ -211,7 +211,7 @@ export function CycleProfileScrubber() {
           <div className="text-[10px] text-ink-dim font-mono">In-bed Pt100 RTD sensor</div>
         </div>
 
-        <div className="bg-[#08090A] p-3.5 rounded-xl border border-white/5">
+        <div className="bg-bg-inset p-3.5 rounded-xl border border-hairline">
           <div className="flex items-center gap-1.5 text-xs text-ink-muted mb-1">
             <Gauge className="w-3.5 h-3.5 text-ink-primary" /> Chamber Pressure
           </div>
@@ -226,7 +226,7 @@ export function CycleProfileScrubber() {
       </div>
 
       {/* Stage Description Context */}
-      <div className="mt-3 p-3 rounded-xl bg-white/5 text-xs text-ink-secondary flex items-start gap-2">
+      <div className="mt-3 p-3 rounded-xl bg-bg-hover text-xs text-ink-secondary flex items-start gap-2">
         <ShieldCheck className="w-4 h-4 text-amber-signal shrink-0 mt-0.5" />
         <div>
           <span className="font-semibold text-ink-primary">{stageName}: </span>

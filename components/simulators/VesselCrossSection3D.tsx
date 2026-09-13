@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { Eye, RotateCw, Layers, ShieldCheck, Sparkles, Box } from "lucide-react";
+import { tokenColor } from "@/lib/utils";
 
 export function VesselCrossSection3D() {
   const mountRef = useRef<HTMLDivElement | null>(null);
@@ -62,7 +63,12 @@ export function VesselCrossSection3D() {
 
     // Scene
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x08090a);
+    const applySceneBackground = () => {
+      scene.background = new THREE.Color(tokenColor("--bg-inset", "#e8dece"));
+    };
+    applySceneBackground();
+    const themeObserver = new MutationObserver(applySceneBackground);
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
 
     // Camera
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
@@ -210,6 +216,7 @@ export function VesselCrossSection3D() {
     window.addEventListener("resize", handleResize);
 
     return () => {
+      themeObserver.disconnect();
       cancelAnimationFrame(animId);
       container.removeEventListener("pointerdown", onPointerDown);
       window.removeEventListener("pointermove", onPointerMove);
@@ -228,9 +235,9 @@ export function VesselCrossSection3D() {
   };
 
   return (
-    <div className="instrument-card rounded-2xl p-5 my-6 border border-white/10 bg-[#0D0F12]/90 backdrop-blur-sm">
+    <div className="instrument-card rounded-2xl p-5 my-6 border border-hairline bg-bg-panel backdrop-blur-sm">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-4 border-b border-white/10 gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-4 border-b border-hairline gap-2">
         <div>
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-amber-signal animate-pulse" />
@@ -244,7 +251,7 @@ export function VesselCrossSection3D() {
         </div>
 
         {/* Layer Selector */}
-        <div className="flex items-center gap-1 bg-white/5 p-1 rounded-xl border border-white/5 text-xs">
+        <div className="flex items-center gap-1 bg-bg-hover p-1 rounded-xl border border-hairline text-xs">
           {[
             { id: "all", label: "Full Assembly" },
             { id: "agitator", label: "Ribbon Screw" },
@@ -268,7 +275,7 @@ export function VesselCrossSection3D() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* 3D WebGL Canvas (7 cols) */}
-        <div className="lg:col-span-7 bg-[#08090A] rounded-xl border border-white/5 relative overflow-hidden flex items-center justify-center">
+        <div className="lg:col-span-7 bg-bg-inset rounded-xl border border-hairline relative overflow-hidden flex items-center justify-center">
           <div ref={mountRef} className="w-full h-[300px] cursor-grab active:cursor-grabbing" />
           <div className="absolute bottom-2 left-3 text-[10px] font-mono text-ink-dim flex items-center gap-1.5 pointer-events-none">
             <RotateCw className="w-3 h-3" />
@@ -277,9 +284,9 @@ export function VesselCrossSection3D() {
         </div>
 
         {/* Layer Specification Callout (5 cols) */}
-        <div className="lg:col-span-5 flex flex-col justify-between p-4 rounded-xl bg-[#08090A] border border-white/5">
+        <div className="lg:col-span-5 flex flex-col justify-between p-4 rounded-xl bg-bg-inset border border-hairline">
           <div className="space-y-3">
-            <div className="flex items-center justify-between border-b border-white/5 pb-2">
+            <div className="flex items-center justify-between border-b border-hairline pb-2">
               <span className="text-xs font-mono uppercase tracking-wider text-amber-signal">
                 Subsystem Layer Spec
               </span>
@@ -300,7 +307,7 @@ export function VesselCrossSection3D() {
             </p>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-white/5 text-[11px] text-ink-dim font-mono flex items-center gap-1.5">
+          <div className="mt-4 pt-3 border-t border-hairline text-[11px] text-ink-dim font-mono flex items-center gap-1.5">
             <ShieldCheck className="w-3.5 h-3.5 text-amber-signal shrink-0" />
             <span>Patent NL1022668C2: Wall clearance strictly 0.5–15 mm.</span>
           </div>

@@ -111,7 +111,7 @@ export function Header({ projectSlug = "hosokawa-afd-freeze-dryer" }: { projectS
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
-            className="p-1.5 rounded-lg transition-all"
+            className="h-11 w-11 inline-flex items-center justify-center rounded-lg transition-colors"
             style={{
               color: 'var(--ink-muted)',
               border: '1px solid var(--border)',
@@ -130,7 +130,7 @@ export function Header({ projectSlug = "hosokawa-afd-freeze-dryer" }: { projectS
           {/* ⌘K Palette */}
           <button
             onClick={triggerPalette}
-            className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-mono transition-all"
+            className="h-11 inline-flex items-center gap-2 px-3 rounded-lg text-xs font-mono transition-colors"
             style={{
               backgroundColor: 'var(--bg-surface)',
               border: '1px solid var(--border)',

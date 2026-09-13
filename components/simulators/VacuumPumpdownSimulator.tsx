@@ -39,9 +39,9 @@ export function VacuumPumpdownSimulator() {
   const curvePath = pathPoints.length > 0 ? `M ${pathPoints.join(" L ")}` : "";
 
   return (
-    <div className="instrument-card rounded-2xl p-5 my-6 border border-white/10 bg-[#0D0F12]/90 backdrop-blur-sm">
+    <div className="instrument-card rounded-2xl p-5 my-6 border border-hairline bg-bg-panel backdrop-blur-sm">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-4 border-b border-white/10 gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-4 border-b border-hairline gap-2">
         <div>
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-cryo animate-pulse" />
@@ -53,7 +53,7 @@ export function VacuumPumpdownSimulator() {
             Chamber Vacuum Pump-Down Simulator
           </h3>
         </div>
-        <div className="text-xs font-mono text-ink-muted bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
+        <div className="text-xs font-mono text-ink-muted bg-bg-hover px-3 py-1.5 rounded-lg border border-hairline">
           P(t) = (P₀ - P_ult) · e^(-S·t/V) + P_ult
         </div>
       </div>
@@ -61,7 +61,7 @@ export function VacuumPumpdownSimulator() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Sliders (6 cols) */}
         <div className="lg:col-span-6 space-y-4">
-          <div className="bg-[#08090A] p-3.5 rounded-xl border border-white/5">
+          <div className="bg-bg-inset p-3.5 rounded-xl border border-hairline">
             <div className="flex justify-between text-xs mb-1.5">
               <span className="text-ink-secondary">Vessel Chamber Volume</span>
               <span className="font-mono text-cryo font-bold">{volume} Liters</span>
@@ -82,7 +82,7 @@ export function VacuumPumpdownSimulator() {
             </div>
           </div>
 
-          <div className="bg-[#08090A] p-3.5 rounded-xl border border-white/5">
+          <div className="bg-bg-inset p-3.5 rounded-xl border border-hairline">
             <div className="flex justify-between text-xs mb-1.5">
               <span className="text-ink-secondary">Pump Displacement Speed (S)</span>
               <span className="font-mono text-amber-bright font-bold">{speed} m³/h</span>
@@ -99,7 +99,7 @@ export function VacuumPumpdownSimulator() {
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-[#08090A] p-3 rounded-xl border border-white/5">
+            <div className="bg-bg-inset p-3 rounded-xl border border-hairline">
               <div className="flex justify-between text-[11px] mb-1">
                 <span className="text-ink-secondary">Leak Rate</span>
                 <span className="font-mono text-ink-primary">{leakRate}</span>
@@ -116,7 +116,7 @@ export function VacuumPumpdownSimulator() {
               <span className="text-[9px] text-ink-dim font-mono">mbar·L/s</span>
             </div>
 
-            <div className="bg-[#08090A] p-3 rounded-xl border border-white/5">
+            <div className="bg-bg-inset p-3 rounded-xl border border-hairline">
               <div className="flex justify-between text-[11px] mb-1">
                 <span className="text-ink-secondary">Target Vacuum</span>
                 <span className="font-mono text-ink-primary">{targetP}</span>
@@ -137,7 +137,7 @@ export function VacuumPumpdownSimulator() {
 
         {/* Live SVG Pumpdown Curve (6 cols) */}
         <div className="lg:col-span-6 flex flex-col justify-between">
-          <div className="bg-[#08090A] rounded-xl border border-white/5 p-2 relative">
+          <div className="bg-bg-inset rounded-xl border border-hairline p-2 relative">
             <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} className="w-full h-auto">
               {/* Target Line */}
               <line
@@ -225,7 +225,7 @@ export function VacuumPumpdownSimulator() {
 
           {/* Time to target readout */}
           <div className="mt-3 grid grid-cols-2 gap-3">
-            <div className="bg-[#08090A] p-3 rounded-xl border border-white/5">
+            <div className="bg-bg-inset p-3 rounded-xl border border-hairline">
               <div className="text-[11px] text-ink-muted">Time to Target Pressure</div>
               <div className="text-xl font-bold font-mono text-amber-bright">
                 {results.timeToTargetMin}{" "}
@@ -234,7 +234,7 @@ export function VacuumPumpdownSimulator() {
               <div className="text-[10px] text-ink-dim font-mono">{results.timeToTargetSec} seconds</div>
             </div>
 
-            <div className="bg-[#08090A] p-3 rounded-xl border border-white/5">
+            <div className="bg-bg-inset p-3 rounded-xl border border-hairline">
               <div className="text-[11px] text-ink-muted">Chamber Tau Constant</div>
               <div className="text-xl font-bold font-mono text-cryo">
                 {results.tauSeconds}{" "}

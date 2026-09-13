@@ -17,6 +17,12 @@ const config: Config = {
         "bg-surface": "var(--bg-surface)",
         "bg-elevated": "var(--bg-elevated)",
         "bg-hover": "var(--bg-hover)",
+        "bg-inset": "var(--bg-inset)",
+        overlay: "var(--overlay)",
+        hairline: "var(--border)",
+        "hairline-strong": "var(--border-strong)",
+        "on-amber": "var(--on-amber)",
+        "chart-grid": "var(--chart-grid)",
 
         cryo: {
           DEFAULT: "var(--cryo)",
@@ -36,13 +42,12 @@ const config: Config = {
           dim: "var(--ink-dim)",
         },
 
-        // Static fallbacks (still needed in some legacy JSX)
         obsidian: {
-          DEFAULT: "#08090A",
-          canvas: "#08090A",
-          panel: "#0D0F12",
-          surface: "#12141A",
-          elevated: "#181B24",
+          DEFAULT: "var(--on-amber)",
+          canvas: "var(--bg)",
+          panel: "var(--bg-panel)",
+          surface: "var(--bg-surface)",
+          elevated: "var(--bg-elevated)",
         },
       },
       fontFamily: {

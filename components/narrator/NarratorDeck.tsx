@@ -42,8 +42,8 @@ export function NarratorDeck() {
       <div className="max-w-4xl mx-auto pointer-events-auto">
         {/* Mini Transcript Popover */}
         {transcriptOpen && manifest && (
-          <div className="mb-2 bg-[#0D0F12]/95 backdrop-blur-md border border-white/10 rounded-xl p-4 shadow-2xl max-h-64 overflow-y-auto">
-            <div className="flex items-center justify-between pb-2 mb-3 border-b border-white/10">
+          <div className="mb-2 bg-bg-panel backdrop-blur-md border border-hairline rounded-xl p-4 shadow-2xl max-h-64 overflow-y-auto">
+            <div className="flex items-center justify-between pb-2 mb-3 border-b border-hairline">
               <div className="flex items-center gap-2">
                 <FileText className="w-4 h-4 text-amber-signal" />
                 <span className="text-xs font-mono uppercase tracking-wider text-ink-primary">
@@ -67,7 +67,7 @@ export function NarratorDeck() {
                     className={`w-full text-left p-2 rounded transition-colors flex items-start gap-2 ${
                       isActive
                         ? "bg-amber-signal/15 border-l-2 border-amber-signal text-amber-bright font-medium"
-                        : "hover:bg-white/5 text-ink-secondary"
+                        : "hover:bg-bg-hover text-ink-secondary"
                     }`}
                   >
                     <span className="font-mono text-[10px] opacity-60 shrink-0 pt-0.5">
@@ -82,7 +82,7 @@ export function NarratorDeck() {
         )}
 
         {/* Main Deck Bar */}
-        <div className="bg-[#0D0F12]/95 backdrop-blur-lg border border-white/10 rounded-2xl p-3 shadow-2xl flex flex-col gap-2">
+        <div className="bg-bg-panel backdrop-blur-lg border border-hairline rounded-2xl p-3 shadow-2xl flex flex-col gap-2">
           {/* Top Row: Track info & Live Cue preview */}
           <div className="flex items-center justify-between px-2 gap-4">
             <div className="flex items-center gap-2 min-w-0">
@@ -113,7 +113,7 @@ export function NarratorDeck() {
                 className={`text-[11px] font-mono px-2 py-1 rounded transition flex items-center gap-1 border ${
                   syncScroll
                     ? "bg-amber-signal/20 border-amber-signal text-amber-signal"
-                    : "bg-white/5 border-white/10 text-ink-muted hover:text-ink-secondary"
+                    : "bg-bg-hover border-hairline text-ink-muted hover:text-ink-secondary"
                 }`}
               >
                 <span>Auto-follow</span>
@@ -122,7 +122,7 @@ export function NarratorDeck() {
 
               <button
                 onClick={() => setTranscriptOpen(!transcriptOpen)}
-                className="text-[11px] font-mono px-2 py-1 rounded bg-white/5 border border-white/10 text-ink-secondary hover:text-ink-primary flex items-center gap-1"
+                className="text-[11px] font-mono px-2 py-1 rounded bg-bg-hover border border-hairline text-ink-secondary hover:text-ink-primary flex items-center gap-1"
               >
                 <FileText className="w-3 h-3" />
                 <span>Transcript</span>
@@ -137,7 +137,7 @@ export function NarratorDeck() {
               {formatTime(currentTime)}
             </span>
             <div
-              className="flex-1 relative h-1.5 bg-white/10 rounded-full cursor-pointer group"
+              className="flex-1 relative h-1.5 bg-bg-hover rounded-full cursor-pointer group"
               onClick={(e) => {
                 const rect = e.currentTarget.getBoundingClientRect();
                 const pos = (e.clientX - rect.left) / rect.width;
@@ -164,7 +164,7 @@ export function NarratorDeck() {
               {/* Skip Back 15s */}
               <button
                 onClick={() => skip(-15)}
-                className="p-1.5 rounded-lg text-ink-muted hover:text-ink-primary hover:bg-white/5 transition"
+                className="p-1.5 rounded-lg text-ink-muted hover:text-ink-primary hover:bg-bg-hover transition"
                 title="Rewind 15s"
               >
                 <RotateCcw className="w-4 h-4" />
@@ -173,16 +173,16 @@ export function NarratorDeck() {
               {/* Play / Pause Primary Button */}
               <button
                 onClick={togglePlay}
-                className="p-2 rounded-full bg-amber-signal text-obsidian hover:bg-amber-bright transition shadow-lg shadow-amber-signal/20 hover:scale-105 active:scale-95"
+                className="p-2 rounded-full bg-amber-signal text-on-amber hover:bg-amber-bright transition shadow-lg shadow-amber-signal/20 hover:scale-105 active:scale-95"
                 title={isPlaying ? "Pause Narration" : "Play Narration"}
               >
-                {isPlaying ? <Pause className="w-4 h-4 fill-obsidian" /> : <Play className="w-4 h-4 fill-obsidian ml-0.5" />}
+                {isPlaying ? <Pause className="w-4 h-4 fill-on-amber" /> : <Play className="w-4 h-4 fill-on-amber ml-0.5" />}
               </button>
 
               {/* Skip Forward 15s */}
               <button
                 onClick={() => skip(15)}
-                className="p-1.5 rounded-lg text-ink-muted hover:text-ink-primary hover:bg-white/5 transition"
+                className="p-1.5 rounded-lg text-ink-muted hover:text-ink-primary hover:bg-bg-hover transition"
                 title="Forward 15s"
               >
                 <RotateCw className="w-4 h-4" />
@@ -190,7 +190,7 @@ export function NarratorDeck() {
             </div>
 
             {/* Playback Speed selector */}
-            <div className="flex items-center gap-1 bg-white/5 border border-white/5 rounded-lg p-0.5">
+            <div className="flex items-center gap-1 bg-bg-hover border border-hairline rounded-lg p-0.5">
               {rates.map((r) => (
                 <button
                   key={r}

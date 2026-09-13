@@ -292,14 +292,14 @@ export function InteractiveBOMTable({ projectSlug, items }: InteractiveBOMTableP
           <div className="flex items-center gap-3 shrink-0">
             <Link
               href={`/${projectSlug}/${getChapterSlugFromRef(selectedItem.packageRef)}`}
-              className="px-4 py-2 rounded-xl bg-amber-signal text-obsidian font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 hover:bg-amber-bright transition"
+              className="px-4 py-2 rounded-xl bg-amber-signal text-on-amber font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 hover:bg-amber-bright transition"
             >
               <span>View in Dossier Ch {selectedItem.packageRef}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
             <button
               onClick={() => setSelectedItem(null)}
-              className="px-3 py-2 rounded-xl bg-white/5 text-ink-muted hover:text-ink-primary text-xs font-mono"
+              className="px-3 py-2 rounded-xl bg-bg-hover text-ink-muted hover:text-ink-primary text-xs font-mono"
             >
               Close
             </button>
