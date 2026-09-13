@@ -325,11 +325,10 @@ export function ExhibitReader({ chapter, projectSlug, prevChapter, nextChapter, 
                 href={`#${h.id}`}
                 className="block text-[11px] leading-snug py-1 rounded transition-all"
                 style={{
-                  paddingLeft: h.level === 1 ? '0px' : h.level === 2 ? '8px' : '16px',
+                  paddingLeft: h.level === 1 ? '8px' : h.level === 2 ? '12px' : '20px',
                   color: activeSection === h.id ? 'var(--cryo)' : 'var(--ink-muted)',
                   fontWeight: activeSection === h.id ? '600' : '400',
                   borderLeft: activeSection === h.id ? '2px solid var(--cryo)' : '2px solid transparent',
-                  paddingLeft: h.level === 1 ? '8px' : h.level === 2 ? '12px' : '20px',
                 }}
               >
                 {h.text}
