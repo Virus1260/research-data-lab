@@ -30,6 +30,7 @@ const config: Config = {
           glow: "var(--cryo-glow)",
         },
         amber: {
+          DEFAULT: "var(--amber)",
           signal: "var(--amber)",
           bright: "var(--amber-bright)",
           subtle: "var(--amber-subtle)",

@@ -73,11 +73,54 @@ function ClausiusClapeyronPlayground() {
         </span>
       </div>
 
-      <div className="mb-4 py-3 rounded-lg text-center" style={{ background: 'var(--bg-surface)' }}>
-        <KatexEquation
-          expression={`\\ln\\frac{P}{P_{ref}} = \\frac{\\Delta H_{sub}}{R}\\left(\\frac{1}{T_{ref}} - \\frac{1}{T}\\right)`}
-          displayMode
-        />
+      {/* Dynamic Animated Split Formula: Symbolic (Left) vs Live Evaluated (Right) */}
+      <div
+        className="mb-5 rounded-2xl p-3 sm:p-4 border transition-all duration-300 shadow-sm"
+        style={{
+          background: 'color-mix(in srgb, var(--bg-surface) 65%, transparent)',
+          borderColor: 'var(--border-strong)',
+        }}
+      >
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-stretch">
+          {/* Left: Theoretical Mathematical Law */}
+          <div
+            className="p-3 sm:p-4 rounded-xl flex flex-col justify-center items-center text-center transition-all duration-300"
+            style={{
+              background: 'var(--bg-panel)',
+              border: '1px solid var(--border)',
+            }}
+          >
+            <div className="text-[10px] font-mono uppercase tracking-widest text-ink-dim mb-1 font-bold">
+              Pure Law (Symbolic)
+            </div>
+            <div className="overflow-x-auto w-full py-1 text-sm">
+              <KatexEquation
+                expression={`\\ln\\frac{P}{P_{ref}} = \\frac{\\Delta H_{sub}}{R}\\left(\\frac{1}{T_{ref}} - \\frac{1}{T}\\right)`}
+                displayMode
+              />
+            </div>
+          </div>
+
+          {/* Right: Live Dynamic Parameter Substitution */}
+          <div
+            className="p-3 sm:p-4 rounded-xl flex flex-col justify-center items-center text-center transition-all duration-300 relative overflow-hidden"
+            style={{
+              background: 'color-mix(in srgb, var(--amber-subtle) 45%, var(--bg-panel))',
+              border: '1px solid color-mix(in srgb, var(--amber) 50%, var(--border))',
+            }}
+          >
+            <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-amber font-bold mb-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber animate-pulse" />
+              <span>Live Evaluated Variables (T = {T_C}°C)</span>
+            </div>
+            <div className="overflow-x-auto w-full py-1 text-sm font-semibold">
+              <KatexEquation
+                expression={`\\ln\\frac{P}{6.11} = \\frac{51.08 \\times 10^3}{8.314}\\left(\\frac{1}{273.16} - \\frac{1}{\\mathbf{${T_K.toFixed(2)}}}\\right) \\implies P = \\mathbf{${P < 0.001 ? P.toExponential(2) : P.toFixed(3)}}\\text{ mbar}`}
+                displayMode
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="mb-5">
@@ -146,11 +189,54 @@ function SublimationRatePlayground() {
         </div>
       </div>
 
-      <div className="mb-4 py-3 rounded-lg text-center" style={{ background: 'var(--bg-surface)' }}>
-        <KatexEquation
-          expression={`\\dot{m} = \\frac{Q}{\\Delta H_{sub}} = \\frac{U \\cdot A \\cdot \\Delta T}{\\Delta H_{sub}}`}
-          displayMode
-        />
+      {/* Dynamic Animated Split Formula: Symbolic (Left) vs Live Evaluated (Right) */}
+      <div
+        className="mb-5 rounded-2xl p-3 sm:p-4 border transition-all duration-300 shadow-sm"
+        style={{
+          background: 'color-mix(in srgb, var(--bg-surface) 65%, transparent)',
+          borderColor: 'var(--border-strong)',
+        }}
+      >
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-stretch">
+          {/* Left: Pure Law */}
+          <div
+            className="p-3 sm:p-4 rounded-xl flex flex-col justify-center items-center text-center transition-all duration-300"
+            style={{
+              background: 'var(--bg-panel)',
+              border: '1px solid var(--border)',
+            }}
+          >
+            <div className="text-[10px] font-mono uppercase tracking-widest text-ink-dim mb-1 font-bold">
+              Sublimation Heat-Flux Law
+            </div>
+            <div className="overflow-x-auto w-full py-1 text-sm">
+              <KatexEquation
+                expression={`\\dot{m} = \\frac{Q}{\\Delta H_{sub}} = \\frac{U \\cdot A \\cdot \\Delta T}{\\Delta H_{sub}}`}
+                displayMode
+              />
+            </div>
+          </div>
+
+          {/* Right: Live Dynamic Parameter Substitution */}
+          <div
+            className="p-3 sm:p-4 rounded-xl flex flex-col justify-center items-center text-center transition-all duration-300 relative overflow-hidden"
+            style={{
+              background: 'color-mix(in srgb, var(--cryo-subtle) 45%, var(--bg-panel))',
+              border: '1px solid color-mix(in srgb, var(--cryo) 50%, var(--border))',
+            }}
+          >
+            <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-cryo font-bold mb-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-cryo animate-pulse" />
+              <span>Live Evaluated Variables (U = {U}, A = {A} m²)</span>
+            </div>
+            <div className="overflow-x-auto w-full py-1 text-sm font-semibold">
+              <KatexEquation
+                expression={`\\dot{m} = \\frac{\\mathbf{${U}} \\times \\mathbf{${A.toFixed(1)}} \\times \\mathbf{${dT}}}{\\mathbf{2838}} \\times 3.6 \\implies \\dot{m} = \\mathbf{${rate.toFixed(3)}}\\text{ kg/h}`}
+                displayMode
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 mb-5">
@@ -222,11 +308,54 @@ function VacuumPumpdownPlayground() {
         </div>
       </div>
 
-      <div className="mb-4 py-3 rounded-lg text-center" style={{ background: 'var(--bg-surface)' }}>
-        <KatexEquation
-          expression={`P(t) = (P_0 - P_{ult})\\,e^{-S_{eff}\\cdot t/V} + P_{ult} + \\frac{Q_{leak}}{S_{eff}}`}
-          displayMode
-        />
+      {/* Dynamic Animated Split Formula: Symbolic (Left) vs Live Evaluated (Right) */}
+      <div
+        className="mb-5 rounded-2xl p-3 sm:p-4 border transition-all duration-300 shadow-sm"
+        style={{
+          background: 'color-mix(in srgb, var(--bg-surface) 65%, transparent)',
+          borderColor: 'var(--border-strong)',
+        }}
+      >
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-stretch">
+          {/* Left: Pure Law */}
+          <div
+            className="p-3 sm:p-4 rounded-xl flex flex-col justify-center items-center text-center transition-all duration-300"
+            style={{
+              background: 'var(--bg-panel)',
+              border: '1px solid var(--border)',
+            }}
+          >
+            <div className="text-[10px] font-mono uppercase tracking-widest text-ink-dim mb-1 font-bold">
+              Evacuation Kinetics Law
+            </div>
+            <div className="overflow-x-auto w-full py-1 text-sm">
+              <KatexEquation
+                expression={`P(t) = (P_0 - P_{ult})\\,e^{-S_{eff}\\cdot t/V} + P_{ult} + \\frac{Q_{leak}}{S_{eff}}`}
+                displayMode
+              />
+            </div>
+          </div>
+
+          {/* Right: Live Dynamic Parameter Substitution */}
+          <div
+            className="p-3 sm:p-4 rounded-xl flex flex-col justify-center items-center text-center transition-all duration-300 relative overflow-hidden"
+            style={{
+              background: 'color-mix(in srgb, var(--cryo-subtle) 45%, var(--bg-panel))',
+              border: '1px solid color-mix(in srgb, var(--cryo) 50%, var(--border))',
+            }}
+          >
+            <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-cryo font-bold mb-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-cryo animate-pulse" />
+              <span>Live Evaluated Variables (V = {V} L, S = {S} m³/h)</span>
+            </div>
+            <div className="overflow-x-auto w-full py-1 text-sm font-semibold">
+              <KatexEquation
+                expression={`P(t) = 1013 \\cdot e^{-\\frac{\\mathbf{${S}} \\cdot t}{\\mathbf{${(V / 1000).toFixed(2)}}}} \\implies \\text{Target } 0.05\\text{ mbar in }\\mathbf{${t_min.toFixed(1)}}\\text{ min}`}
+                displayMode
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3 mb-5">
@@ -330,11 +459,54 @@ function RefrigerationPlayground() {
         </div>
       </div>
 
-      <div className="mb-4 py-3 rounded-lg text-center" style={{ background: 'var(--bg-surface)' }}>
-        <KatexEquation
-          expression={`Q = \\frac{m\\,c_p\\,\\Delta T + m\\,x_{water}\\,\\Delta H_f}{t}`}
-          displayMode
-        />
+      {/* Dynamic Animated Split Formula: Symbolic (Left) vs Live Evaluated (Right) */}
+      <div
+        className="mb-5 rounded-2xl p-3 sm:p-4 border transition-all duration-300 shadow-sm"
+        style={{
+          background: 'color-mix(in srgb, var(--bg-surface) 65%, transparent)',
+          borderColor: 'var(--border-strong)',
+        }}
+      >
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-stretch">
+          {/* Left: Pure Law */}
+          <div
+            className="p-3 sm:p-4 rounded-xl flex flex-col justify-center items-center text-center transition-all duration-300"
+            style={{
+              background: 'var(--bg-panel)',
+              border: '1px solid var(--border)',
+            }}
+          >
+            <div className="text-[10px] font-mono uppercase tracking-widest text-ink-dim mb-1 font-bold">
+              Enthalpy Balance Law
+            </div>
+            <div className="overflow-x-auto w-full py-1 text-sm">
+              <KatexEquation
+                expression={`Q = \\frac{m\\,c_p\\,\\Delta T + m\\,x_{water}\\,\\Delta H_f}{t}`}
+                displayMode
+              />
+            </div>
+          </div>
+
+          {/* Right: Live Dynamic Parameter Substitution */}
+          <div
+            className="p-3 sm:p-4 rounded-xl flex flex-col justify-center items-center text-center transition-all duration-300 relative overflow-hidden"
+            style={{
+              background: 'color-mix(in srgb, var(--amber-subtle) 45%, var(--bg-panel))',
+              border: '1px solid color-mix(in srgb, var(--amber) 50%, var(--border))',
+            }}
+          >
+            <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-amber font-bold mb-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber animate-pulse" />
+              <span>Live Evaluated Variables (m = {m} kg, ΔT = {dT} K)</span>
+            </div>
+            <div className="overflow-x-auto w-full py-1 text-sm font-semibold">
+              <KatexEquation
+                expression={`Q = \\frac{\\mathbf{${m}} \\cdot 3.9 \\cdot \\mathbf{${dT}} + \\mathbf{${m}} \\cdot \\mathbf{${x.toFixed(2)}} \\cdot 334}{\\mathbf{${t.toFixed(1)}} \\times 3600} \\implies Q = \\mathbf{${Q.toFixed(2)}}\\text{ kW}`}
+                displayMode
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 mb-5">

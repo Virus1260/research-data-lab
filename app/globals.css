@@ -380,31 +380,150 @@ body::before {
   margin-left: 0.25em;
 }
 
+/* High-contrast accessible range sliders */
 input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
-  height: 6px;
-  background: var(--bg-hover);
-  border-radius: 3px;
+  height: 8px;
+  background: color-mix(in srgb, var(--ink-dim) 35%, var(--bg-surface));
+  border: 1px solid var(--border-strong);
+  border-radius: 9999px;
   outline: none;
   cursor: pointer;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.15);
+  margin: 6px 0;
+  transition: all 0.2s ease;
 }
+
+input[type="range"]:hover {
+  background: color-mix(in srgb, var(--ink-dim) 45%, var(--bg-surface));
+  border-color: var(--border-active);
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 8px;
+  border-radius: 9999px;
+}
+
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
-  background: var(--cryo);
-  box-shadow: 0 0 0 3px var(--cryo-subtle), 0 2px 6px rgba(0, 0, 0, 0.2);
+  background: var(--amber);
+  border: 2px solid var(--bg-panel);
+  box-shadow: 0 0 0 2px var(--amber-glow), 0 2px 8px rgba(0, 0, 0, 0.35);
   cursor: pointer;
+  margin-top: -6px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.18);
+  box-shadow: 0 0 0 4px var(--amber-glow), 0 3px 10px rgba(0, 0, 0, 0.45);
+}
+
+input[type="range"]::-webkit-slider-thumb:active {
+  transform: scale(1.05);
+}
+
+input[type="range"]::-moz-range-track {
+  height: 8px;
+  background: color-mix(in srgb, var(--ink-dim) 35%, var(--bg-surface));
+  border: 1px solid var(--border-strong);
+  border-radius: 9999px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
 input[type="range"]::-moz-range-thumb {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
-  background: var(--cryo);
-  border: none;
+  background: var(--amber);
+  border: 2px solid var(--bg-panel);
+  box-shadow: 0 0 0 2px var(--amber-glow), 0 2px 8px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+input[type="range"]::-moz-range-thumb:hover {
+  transform: scale(1.18);
+}
+
+/* ──────────────────────────────────────────────
+   PRINT & MONOGRAPH PUBLISHING RULES
+   Clean, paper-ready black-on-white formatting
+   ────────────────────────────────────────────── */
+@media print {
+  header,
+  aside,
+  nav,
+  .no-print,
+  [aria-label="Audio narration controls"],
+  .narrator-deck,
+  button,
+  .command-palette {
+    display: none !important;
+  }
+
+  body,
+  main,
+  article {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 11pt !important;
+    line-height: 1.55 !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  h1, h2, h3, h4 {
+    color: #000000 !important;
+    page-break-after: avoid !important;
+    font-weight: 700 !important;
+  }
+
+  h1 { font-size: 20pt !important; margin-bottom: 12pt !important; }
+  h2 { font-size: 15pt !important; margin-top: 18pt !important; margin-bottom: 8pt !important; border-bottom: 1px solid #ddd !important; padding-bottom: 4pt !important; }
+  h3 { font-size: 12pt !important; margin-top: 14pt !important; }
+
+  table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+    margin: 12pt 0 !important;
+    page-break-inside: avoid !important;
+  }
+
+  th, td {
+    border: 1px solid #444444 !important;
+    padding: 6pt 8pt !important;
+    color: #000000 !important;
+    font-size: 9.5pt !important;
+  }
+
+  th {
+    background-color: #f0f0f0 !important;
+    font-weight: bold !important;
+  }
+
+  .katex-display {
+    page-break-inside: avoid !important;
+    margin: 10pt 0 !important;
+  }
+
+  a {
+    color: #000000 !important;
+    text-decoration: underline !important;
+  }
+
+  a[href^="http"]:after {
+    content: " (" attr(href) ")";
+    font-size: 8pt;
+    font-family: monospace;
+    opacity: 0.8;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -64,7 +64,7 @@ export default async function LabPage({ params }: { params: Promise<{ project: s
           <div className="flex flex-wrap items-center gap-4 pt-2">
             <Link
               href={`/${project.slug}/03-hosokawa-afd-vs-generic-lyophilizers`}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber text-on-amber font-semibold text-xs uppercase tracking-wider hover:bg-amber-bright transition shadow-lg shadow-amber-glow hover:scale-105 active:scale-95"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber hover:bg-amber-bright text-[#0e0a02] font-black text-xs uppercase tracking-wider transition shadow-lg shadow-amber/30 hover:scale-105 active:scale-95 border border-amber/40"
             >
               <span>Explore Chapter 03 (Hero Finding)</span>
               <ArrowRight className="w-4 h-4" />

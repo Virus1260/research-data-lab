@@ -76,25 +76,25 @@ export function PhaseDiagramExplorer() {
   const fdBoxY2 = pToY(0.01);
 
   return (
-    <div className="instrument-card rounded-2xl p-5 my-6 border border-hairline bg-bg-panel backdrop-blur-sm">
+    <div className="instrument-card rounded-2xl p-4 sm:p-5 my-6 border border-hairline bg-bg-panel backdrop-blur-sm max-w-3xl mx-auto shadow-lg">
       {/* Simulator Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-4 border-b border-hairline gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 mb-3 border-b border-hairline gap-2.5">
         <div>
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-cryo animate-pulse" />
-            <span className="text-[11px] font-mono uppercase tracking-widest text-cryo">
+            <span className="text-[11px] font-mono uppercase tracking-widest text-cryo font-semibold">
               Simulator 01 • Chapter 02
             </span>
           </div>
-          <h3 className="text-lg font-medium text-ink-primary mt-1">
-            Water Phase Diagram Explorer (Clausius–Clapeyron Derived)
+          <h3 className="text-base sm:text-lg font-bold text-ink-primary mt-0.5">
+            Water Phase Diagram Explorer (Clausius–Clapeyron)
           </h3>
         </div>
 
         {/* Live Phase State Badge */}
         <div className="flex items-center gap-2">
           <div
-            className="px-3 py-1.5 rounded-lg border font-mono text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5 transition shadow"
+            className="px-2.5 py-1 rounded-lg border font-mono text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5 transition shadow-sm"
             style={{
               borderColor: phase.color,
               backgroundColor: `${phase.color}15`,
@@ -107,9 +107,9 @@ export function PhaseDiagramExplorer() {
 
           <button
             onClick={() => setShowWindow(!showWindow)}
-            className={`text-[11px] font-mono px-2.5 py-1.5 rounded-lg border transition ${
+            className={`text-[11px] font-mono px-2.5 py-1 rounded-lg border transition ${
               showWindow
-                ? "bg-amber-signal/15 border-amber-signal text-amber-signal"
+                ? "bg-amber-subtle border-amber text-amber font-bold"
                 : "bg-bg-hover border-hairline text-ink-muted hover:text-ink-secondary"
             }`}
           >
@@ -118,12 +118,12 @@ export function PhaseDiagramExplorer() {
         </div>
       </div>
 
-      {/* SVG Interactive Canvas */}
-      <div className="relative bg-bg-inset rounded-xl border border-hairline p-2 overflow-hidden select-none">
+      {/* SVG Interactive Canvas - Sensible Compact Height */}
+      <div className="relative bg-bg-inset rounded-xl border border-hairline p-2 overflow-hidden select-none max-w-[580px] mx-auto">
         <svg
           ref={svgRef}
           viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-          className="w-full h-auto cursor-crosshair"
+          className="w-full h-auto max-h-[280px] cursor-crosshair"
           onPointerDown={handlePointerDown}
         >
           {/* Background Grid */}
@@ -134,7 +134,7 @@ export function PhaseDiagramExplorer() {
               y1={margin.top}
               x2={tToX(t)}
               y2={margin.top + plotHeight}
-              stroke="rgba(255,255,255,0.05)"
+              stroke="var(--chart-grid)"
               strokeDasharray="3 3"
             />
           ))}
@@ -147,7 +147,7 @@ export function PhaseDiagramExplorer() {
                 y1={pToY(p)}
                 x2={margin.left + plotWidth}
                 y2={pToY(p)}
-                stroke="rgba(255,255,255,0.05)"
+                stroke="var(--chart-grid)"
                 strokeDasharray="3 3"
               />
             );
@@ -160,8 +160,8 @@ export function PhaseDiagramExplorer() {
               y={fdBoxY1}
               width={fdBoxX2 - fdBoxX1}
               height={fdBoxY2 - fdBoxY1}
-              fill="rgba(229, 169, 60, 0.12)"
-              stroke="#E5A93C"
+              fill="rgba(229, 169, 60, 0.15)"
+              stroke="var(--amber)"
               strokeWidth="1.5"
               strokeDasharray="4 2"
             />
@@ -211,14 +211,16 @@ export function PhaseDiagramExplorer() {
             y1={margin.top + plotHeight}
             x2={margin.left + plotWidth}
             y2={margin.top + plotHeight}
-            stroke="rgba(255,255,255,0.2)"
+            stroke="var(--border-strong)"
+            strokeWidth="1.5"
           />
           <line
             x1={margin.left}
             y1={margin.top}
             x2={margin.left}
             y2={margin.top + plotHeight}
-            stroke="rgba(255,255,255,0.2)"
+            stroke="var(--border-strong)"
+            strokeWidth="1.5"
           />
 
           {/* Axis Labels */}
@@ -226,8 +228,8 @@ export function PhaseDiagramExplorer() {
             <text
               key={t}
               x={tToX(t)}
-              y={margin.top + plotHeight + 18}
-              fill="#8A91A0"
+              y={margin.top + plotHeight + 16}
+              fill="var(--ink-muted)"
               fontSize="10"
               fontFamily="monospace"
               textAnchor="middle"
@@ -242,7 +244,7 @@ export function PhaseDiagramExplorer() {
                 key={logP}
                 x={margin.left - 8}
                 y={pToY(p) + 3}
-                fill="#8A91A0"
+                fill="var(--ink-muted)"
                 fontSize="10"
                 fontFamily="monospace"
                 textAnchor="end"
