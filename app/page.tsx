@@ -10,14 +10,14 @@ export default function ArchivePage() {
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
       {/* Hero Header */}
       <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-signal/10 border border-amber-signal/25 text-amber-bright text-xs font-mono">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-subtle border border-amber/25 text-amber-bright text-xs font-mono">
           <Sparkles className="w-3.5 h-3.5" />
           <span>Interactive Digital Laboratory</span>
         </div>
 
         <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-ink-primary">
           Dense engineering dossiers,{" "}
-          <span className="text-amber-signal">made interactive.</span>
+          <span className="text-amber" style={{ textShadow: '0 0 20px var(--amber-glow)' }}>made interactive.</span>
         </h1>
 
         <p className="text-sm sm:text-base text-ink-muted leading-relaxed">
@@ -43,10 +43,10 @@ export default function ArchivePage() {
             <Link
               key={proj.slug}
               href={`/${proj.slug}`}
-              className="group block rounded-2xl bg-bg-panel border border-hairline hover:border-amber-signal/40 p-6 shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-amber-signal/10 relative overflow-hidden"
+              className="group block rounded-2xl bg-bg-panel border border-hairline hover:border-amber-signal/50 p-6 shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-amber-signal/15 relative overflow-hidden"
             >
               {/* Subtle back-light glow */}
-              <div className="absolute -right-20 -top-20 w-48 h-48 bg-cryo/10 rounded-full blur-3xl group-hover:bg-amber-signal/15 transition-all duration-500 pointer-events-none" />
+              <div className="absolute -right-20 -top-20 w-48 h-48 bg-cryo-subtle rounded-full blur-3xl group-hover:bg-amber-subtle transition-all duration-500 pointer-events-none" />
 
               {/* Tags Row */}
               <div className="flex flex-wrap items-center gap-2 mb-4">
@@ -64,13 +64,13 @@ export default function ArchivePage() {
               <div className="space-y-1 mb-3">
                 <h3 className="text-xl font-bold text-ink-primary group-hover:text-amber-bright transition flex items-center justify-between">
                   <span>{proj.title}</span>
-                  <ArrowRight className="w-4 h-4 text-ink-dim group-hover:text-amber-signal group-hover:translate-x-1 transition" />
+                  <ArrowRight className="w-4 h-4 text-ink-dim group-hover:text-amber group-hover:translate-x-1 transition" />
                 </h3>
                 <p className="text-xs font-mono text-ink-muted">{proj.subtitle}</p>
               </div>
 
               {/* Hero Hook */}
-              <p className="text-xs text-ink-secondary leading-relaxed line-clamp-3 mb-6 bg-bg-inset p-3 rounded-xl border border-hairline">
+              <p className="text-xs text-ink-secondary leading-relaxed line-clamp-3 mb-6 bg-bg-inset p-3 rounded-xl border border-hairline font-medium">
                 "{proj.heroFinding}"
               </p>
 
@@ -88,7 +88,7 @@ export default function ArchivePage() {
                     className="animate-pulse"
                   />
                   <circle cx="180" cy="20" r="3" fill="var(--amber)" className="animate-ping" />
-                  <circle cx="180" cy="20" r="3" fill="var(--amber)" />
+                  <circle cx="180" cy="20" r="3" fill="var(--amber)" style={{ filter: 'drop-shadow(0 0 6px var(--amber-glow))' }} />
                 </svg>
                 <div className="absolute bottom-1 right-2 text-[9px] font-mono text-ink-dim">
                   Live Sublimation Curve
@@ -136,7 +136,7 @@ export default function ArchivePage() {
               </h3>
               <p className="text-xs text-ink-muted leading-relaxed mb-4">
                 The laboratory container is fully decoupled from the freeze dryer. Drop a new research folder into{" "}
-                <code className="text-[11px] font-mono text-amber-signal">/research-data/</code> to immediately deploy a new interactive exhibit.
+                <code className="text-[11px] font-mono text-amber">/research-data/</code> to immediately deploy a new interactive exhibit.
               </p>
             </div>
 

@@ -10,25 +10,36 @@ interface ThemeContextType {
   toggleTheme: () => void;
 }
 
-const ThemeContext = createContext<ThemeContextType | null>(null);
+const defaultContext: ThemeContextType = {
+  theme: "light",
+  setTheme: () => {},
+  toggleTheme: () => {},
+};
+
+const ThemeContext = createContext<ThemeContextType>(defaultContext);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  // Default: light (user preference)
+  // Default: light mode as specified
   const [theme, setThemeState] = useState<Theme>("light");
 
   useEffect(() => {
-    const stored = localStorage.getItem("rd-theme") as Theme | null;
-    if (stored === "dark" || stored === "light") {
-      applyTheme(stored);
-      setThemeState(stored);
-    } else {
-      // Default to light
+    try {
+      const stored = localStorage.getItem("rd-theme") as Theme | null;
+      if (stored === "dark" || stored === "light") {
+        applyTheme(stored);
+        setThemeState(stored);
+      } else {
+        // Default to light mode
+        applyTheme("light");
+        setThemeState("light");
+      }
+    } catch {
       applyTheme("light");
-      setThemeState("light");
     }
   }, []);
 
   const applyTheme = (t: Theme) => {
+    if (typeof document === "undefined") return;
     const root = document.documentElement;
     if (t === "dark") {
       root.classList.add("dark");
@@ -42,7 +53,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const setTheme = (t: Theme) => {
     setThemeState(t);
     applyTheme(t);
-    localStorage.setItem("rd-theme", t);
+    try {
+      localStorage.setItem("rd-theme", t);
+    } catch {}
   };
 
   const toggleTheme = () => setTheme(theme === "dark" ? "light" : "dark");
@@ -56,6 +69,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
 export function useTheme() {
   const ctx = useContext(ThemeContext);
-  if (!ctx) throw new Error("useTheme must be used within ThemeProvider");
-  return ctx;
+  return ctx || defaultContext;
 }
+

@@ -158,11 +158,11 @@ export function getProjectReferences(projectSlug: string): ReferenceItem[] {
  * Returns audio manifest for a chapter if it exists
  */
 export function getChapterAudioManifest(projectSlug: string, chapterSlug: string): AudioManifest | null {
-  // Check both chapterSlug.manifest.json or chapter-03.manifest.json
+  const chNum = chapterSlug.split("-")[0];
   const possibleNames = [
     `${chapterSlug}.manifest.json`,
-    `chapter-${chapterSlug.split("-")[0]}.manifest.json`,
-    `chapter-03.manifest.json`, // Fallback for Ch 03
+    `chapter-${chNum}.manifest.json`,
+    `chapter-03.manifest.json`,
   ];
 
   for (const name of possibleNames) {
@@ -178,3 +178,32 @@ export function getChapterAudioManifest(projectSlug: string, chapterSlug: string
 
   return null;
 }
+
+/**
+ * Returns audio file URL for a chapter if it exists in public or research-data
+ */
+export function getChapterAudioUrl(projectSlug: string, chapterSlug: string): string | null {
+  const chNum = chapterSlug.split("-")[0];
+  const possibleAudioFiles = [
+    `${chapterSlug}.mp3`,
+    `chapter-${chNum}.mp3`,
+    `chapter-03.mp3`,
+  ];
+
+  const publicAudioDir = path.join(process.cwd(), "public", "research-data", projectSlug, "audio");
+  for (const name of possibleAudioFiles) {
+    if (fs.existsSync(path.join(publicAudioDir, name))) {
+      return `/research-data/${projectSlug}/audio/${name}`;
+    }
+  }
+
+  const researchAudioDir = path.join(RESEARCH_DATA_DIR, projectSlug, "audio");
+  for (const name of possibleAudioFiles) {
+    if (fs.existsSync(path.join(researchAudioDir, name))) {
+      return `/research-data/${projectSlug}/audio/${name}`;
+    }
+  }
+
+  return null;
+}
+

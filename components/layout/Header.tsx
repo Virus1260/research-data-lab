@@ -111,7 +111,7 @@ export function Header({ projectSlug = "hosokawa-afd-freeze-dryer" }: { projectS
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
-            className="h-11 w-11 inline-flex items-center justify-center rounded-lg transition-colors"
+            className="h-11 w-11 inline-flex items-center justify-center rounded-lg transition-all duration-200 hover:scale-105 active:scale-95"
             style={{
               color: 'var(--ink-muted)',
               border: '1px solid var(--border)',
@@ -121,9 +121,9 @@ export function Header({ projectSlug = "hosokawa-afd-freeze-dryer" }: { projectS
             aria-label="Toggle theme"
           >
             {theme === 'dark' ? (
-              <Sun className="w-4 h-4" />
+              <Sun className="w-4 h-4 transition-transform hover:rotate-45" />
             ) : (
-              <Moon className="w-4 h-4" />
+              <Moon className="w-4 h-4 transition-transform hover:-rotate-12" />
             )}
           </button>
 

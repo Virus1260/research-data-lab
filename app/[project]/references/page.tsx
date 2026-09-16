@@ -5,6 +5,8 @@ import { getProjectBySlug, getProjectReferences } from "@/lib/content";
 import { ReferencesExplorer } from "@/components/shelf/ReferencesExplorer";
 import { Library, Sparkles } from "lucide-react";
 
+export const dynamic = 'force-dynamic';
+
 export default async function ReferencesPage({
   params,
 }: {
@@ -27,18 +29,18 @@ export default async function ReferencesPage({
           ARCHIVE
         </Link>
         <span>/</span>
-        <Link href={`/${project.slug}`} className="hover:text-amber-signal transition uppercase">
+        <Link href={`/${project.slug}`} className="hover:text-amber transition uppercase">
           {project.slug}
         </Link>
         <span>/</span>
-        <span className="text-amber-signal">THE SHELF (REFERENCES)</span>
+        <span className="text-amber">THE SHELF (REFERENCES)</span>
       </div>
 
       {/* Header Banner */}
       <div className="rounded-3xl bg-bg-panel border border-hairline p-6 sm:p-8 mb-8 relative overflow-hidden shadow-xl">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-signal/10 border border-amber-signal/25 text-amber-bright text-xs font-mono">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-subtle border border-amber/25 text-amber-bright text-xs font-mono">
               <Library className="w-3.5 h-3.5" />
               <span>Primary Technical Literature & Patents</span>
             </div>

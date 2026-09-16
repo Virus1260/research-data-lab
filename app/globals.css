@@ -5,91 +5,103 @@
 
 /* ──────────────────────────────────────────────
    DESIGN TOKENS  –  Light (default)
-   Cream / milk / parchment — never blunt #FFF
+   Premium cream / parchment / milk white palette
+   Sophisticated shades - never blunt #FFFFFF
    ────────────────────────────────────────────── */
 :root,
 .light {
   color-scheme: light;
 
-  --bg: #f3ede3;
-  --bg-panel: #faf6ef;
-  --bg-surface: #ece3d4;
-  --bg-elevated: #fff9f0;
-  --bg-hover: #e6dccb;
-  --bg-inset: #e8dece;
+  /* Premium cream-based background system */
+  --bg: #f7f3e8;          /* Warm cream base */
+  --bg-panel: #fdfaf3;    /* Near-white cream panel */
+  --bg-surface: #f0ebe1;  /* Surface cream */
+  --bg-elevated: #ffffff; /* Pure white for elevated elements */
+  --bg-hover: #ebe6da;    /* Interactive hover state */
+  --bg-inset: #e8e3d7;    /* Inset/darker cream */
 
-  --border: rgba(72, 52, 28, 0.14);
-  --border-strong: rgba(72, 52, 28, 0.22);
-  --border-active: rgba(184, 122, 18, 0.7);
+  /* Sophisticated border system */
+  --border: rgba(68, 45, 25, 0.12);
+  --border-strong: rgba(68, 45, 25, 0.18);
+  --border-active: rgba(184, 122, 18, 0.65);
 
-  --cryo: #0d6d8c;
-  --cryo-subtle: rgba(13, 109, 140, 0.12);
-  --cryo-glow: rgba(13, 109, 140, 0.28);
+  /* Cryo blue accent - cooler than gold for contrast */
+  --cryo: #0a7eb8;
+  --cryo-subtle: rgba(10, 126, 184, 0.10);
+  --cryo-glow: rgba(10, 126, 184, 0.25);
 
-  --amber: #b47a12;
-  --amber-bright: #c88814;
-  --amber-subtle: rgba(180, 122, 18, 0.14);
-  --amber-glow: rgba(180, 122, 18, 0.28);
+  /* Warm amber signal accent */
+  --amber: #c68410;
+  --amber-bright: #d8961a;
+  --amber-subtle: rgba(198, 132, 16, 0.12);
+  --amber-glow: rgba(198, 132, 16, 0.25);
   --on-amber: #1a1408;
 
-  --ink-primary: #1a1612;
-  --ink-secondary: #3d372e;
-  --ink-muted: #5c554a;
-  --ink-dim: #8a7f70;
+  /* Premium ink system with improved contrast */
+  --ink-primary: #1a1612;     /* Near black for primary text */
+  --ink-secondary: #3d362c;   /* Dark brown for body text */
+  --ink-muted: #6b6357;       /* Medium brown for secondary */
+  --ink-dim: #9a9083;         /* Light brown for subtle elements */
 
-  --overlay: rgba(42, 32, 20, 0.45);
-  --scrollbar-track: #e8dece;
-  --scrollbar-thumb: #c9bba6;
-  --code-bg: #efe6d7;
-  --table-stripe: rgba(72, 52, 28, 0.04);
-  --table-header-bg: #efe6d7;
-  --shadow-panel: 0 1px 2px rgba(58, 42, 20, 0.06), 0 10px 28px -16px rgba(58, 42, 20, 0.28);
-  --grain: rgba(58, 42, 20, 0.035);
-  --chart-grid: rgba(72, 52, 28, 0.12);
+  --overlay: rgba(40, 30, 18, 0.50);
+  --scrollbar-track: #e8e3d7;
+  --scrollbar-thumb: #c5b8a8;
+  --code-bg: #f2ede3;
+  --table-stripe: rgba(68, 45, 25, 0.04);
+  --table-header-bg: #f5f0e6;
+  --shadow-panel: 0 1px 3px rgba(52, 38, 20, 0.08), 0 12px 32px -12px rgba(52, 38, 20, 0.20);
+  --grain: rgba(52, 38, 20, 0.03);
+  --chart-grid: rgba(68, 45, 25, 0.10);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* ──────────────────────────────────────────────
    DESIGN TOKENS  –  Dark (obsidian cleanroom)
+   Premium dark palette with improved contrast
    ────────────────────────────────────────────── */
 .dark {
   color-scheme: dark;
 
-  --bg: #0a0b0d;
-  --bg-panel: #12141a;
-  --bg-surface: #181b22;
-  --bg-elevated: #1e222c;
-  --bg-hover: #262b38;
-  --bg-inset: #0c0d10;
+  /* Premium obsidian-based background system */
+  --bg: #0a0b0d;          /* Deep obsidian base */
+  --bg-panel: #12141a;    /* Graphite panel */
+  --bg-surface: #181b22;  /* Surface obsidian */
+  --bg-elevated: #1e222c; /* Elevated dark */
+  --bg-hover: #262b38;    /* Interactive hover */
+  --bg-inset: #0c0d10;    /* Inset black */
 
-  --border: rgba(247, 236, 214, 0.1);
-  --border-strong: rgba(247, 236, 214, 0.18);
-  --border-active: rgba(229, 169, 60, 0.5);
+  /* Sophisticated border system for dark mode */
+  --border: rgba(247, 236, 214, 0.12);
+  --border-strong: rgba(247, 236, 214, 0.20);
+  --border-active: rgba(229, 169, 60, 0.55);
 
+  /* Cryo blue accent - brighter for dark mode */
   --cryo: #7fd4ff;
-  --cryo-subtle: rgba(127, 212, 255, 0.12);
-  --cryo-glow: rgba(127, 212, 255, 0.32);
+  --cryo-subtle: rgba(127, 212, 255, 0.15);
+  --cryo-glow: rgba(127, 212, 255, 0.35);
 
+  /* Warm amber signal accent - enhanced for dark mode */
   --amber: #e5a93c;
   --amber-bright: #f3c56a;
-  --amber-subtle: rgba(229, 169, 60, 0.14);
-  --amber-glow: rgba(229, 169, 60, 0.28);
+  --amber-subtle: rgba(229, 169, 60, 0.16);
+  --amber-glow: rgba(229, 169, 60, 0.30);
   --on-amber: #1a1408;
 
-  --ink-primary: #f6f1e8;
-  --ink-secondary: #cfc6b8;
-  --ink-muted: #9a9184;
-  --ink-dim: #6d665c;
+  /* Premium ink system with high contrast for dark mode */
+  --ink-primary: #f8f4eb;     /* Near white for primary text */
+  --ink-secondary: #d6cec0;   /* Warm white for body text */
+  --ink-muted: #a89a88;       /* Medium warm gray */
+  --ink-dim: #7a6f62;         /* Darker warm gray for subtle */
 
-  --overlay: rgba(4, 5, 6, 0.72);
+  --overlay: rgba(4, 5, 6, 0.75);
   --scrollbar-track: #0c0d10;
-  --scrollbar-thumb: #2a2f3a;
+  --scrollbar-thumb: #2f3440;
   --code-bg: #0e1014;
-  --table-stripe: rgba(247, 236, 214, 0.03);
+  --table-stripe: rgba(247, 236, 214, 0.04);
   --table-header-bg: #161922;
-  --shadow-panel: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 18px 40px -24px rgba(0, 0, 0, 0.7);
-  --grain: rgba(255, 248, 236, 0.03);
-  --chart-grid: rgba(247, 236, 214, 0.1);
+  --shadow-panel: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 20px 44px -24px rgba(0, 0, 0, 0.75);
+  --grain: rgba(255, 248, 236, 0.035);
+  --chart-grid: rgba(247, 236, 214, 0.12);
 }
 
 /* ──────────────────────────────────────────────
@@ -145,6 +157,8 @@ body::before {
 :focus-visible {
   outline: 2px solid var(--amber);
   outline-offset: 2px;
+  /* Ensure focus has sufficient contrast */
+  box-shadow: 0 0 0 1px var(--bg), 0 0 0 4px var(--amber);
 }
 
 ::-webkit-scrollbar { width: 8px; height: 8px; }
@@ -224,8 +238,12 @@ body::before {
   color: var(--cryo);
   text-decoration: underline;
   text-underline-offset: 3px;
+  font-weight: 500;
 }
-.chapter-body a:hover { color: var(--amber); }
+.chapter-body a:hover {
+  color: var(--amber);
+  text-decoration-thickness: 2px;
+}
 
 .chapter-body code {
   font-family: var(--font-geist-mono), ui-monospace, monospace;
@@ -322,6 +340,12 @@ body::before {
   position: relative;
   overflow: hidden;
   box-shadow: var(--shadow-panel);
+  transition: border-color 180ms var(--ease-out), box-shadow 180ms var(--ease-out);
+}
+
+.simulator-panel:hover {
+  border-color: var(--border-strong);
+  box-shadow: 0 1px 3px rgba(52, 38, 20, 0.12), 0 16px 40px -12px rgba(52, 38, 20, 0.25);
 }
 
 .simulator-panel::before {

@@ -5,6 +5,8 @@ import { getProjectBySlug, getProjectBOM } from "@/lib/content";
 import { InteractiveBOMTable } from "@/components/bench/InteractiveBOMTable";
 import { Table, Sparkles } from "lucide-react";
 
+export const dynamic = 'force-dynamic';
+
 export default async function BenchPage({ params }: { params: Promise<{ project: string }> }) {
   const resolvedParams = await params;
   const project = getProjectBySlug(resolvedParams.project);
@@ -23,18 +25,18 @@ export default async function BenchPage({ params }: { params: Promise<{ project:
           ARCHIVE
         </Link>
         <span>/</span>
-        <Link href={`/${project.slug}`} className="hover:text-amber-signal transition uppercase">
+        <Link href={`/${project.slug}`} className="hover:text-amber transition uppercase">
           {project.slug}
         </Link>
         <span>/</span>
-        <span className="text-amber-signal">THE BENCH (BOM)</span>
+        <span className="text-amber">THE BENCH (BOM)</span>
       </div>
 
       {/* Header Banner */}
       <div className="rounded-3xl bg-bg-panel border border-hairline p-6 sm:p-8 mb-8 relative overflow-hidden shadow-xl">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cryo/10 border border-cryo/25 text-cryo text-xs font-mono">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cryo-subtle border border-cryo/25 text-cryo text-xs font-mono">
               <Table className="w-3.5 h-3.5" />
               <span>Interactive Hardware Bill of Materials</span>
             </div>

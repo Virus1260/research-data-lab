@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation";
-import { getProjectBySlug, getChapterBySlug, getProjectChapters, getChapterAudioManifest } from "@/lib/content";
+import { getProjectBySlug, getChapterBySlug, getProjectChapters, getChapterAudioManifest, getChapterAudioUrl } from "@/lib/content";
 import { ExhibitReader } from "@/components/exhibit/ExhibitReader";
 import { SimulatorRegistry } from "@/components/simulators/SimulatorRegistry";
+
+export const dynamic = 'force-dynamic';
 
 interface PageProps {
   params: Promise<{ project: string; chapter: string }>;
@@ -44,9 +46,9 @@ export default async function ChapterPage({ params }: PageProps) {
   const prevChapter = currentIndex > 0 ? allChapters[currentIndex - 1] : null;
   const nextChapter = currentIndex < allChapters.length - 1 ? allChapters[currentIndex + 1] : null;
 
-  // Audio URL — check if manifest exists
+  // Audio URL — check if manifest and audio file exist
   const audioManifest = getChapterAudioManifest(project, chapter);
-  const audioUrl = `/research-data/${project}/audio/${chapter}.mp3`;
+  const audioUrl = getChapterAudioUrl(project, chapter);
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -62,8 +64,10 @@ export default async function ChapterPage({ params }: PageProps) {
         projectSlug={project}
         prevChapter={prevChapter}
         nextChapter={nextChapter}
-        audioUrl={audioManifest ? audioUrl : null}
+        audioUrl={audioUrl}
+        manifest={audioManifest}
       />
     </div>
   );
 }
+

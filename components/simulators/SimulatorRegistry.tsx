@@ -10,6 +10,7 @@ import { CycleProfileScrubber } from "./CycleProfileScrubber";
 import { VesselCrossSection3D } from "./VesselCrossSection3D";
 import { AfdComparisonFlip } from "./AfdComparisonFlip";
 import { RefrigerationCascadeDiagram } from "./RefrigerationCascadeDiagram";
+import { LawEquationsPlayground } from "@/components/exhibit/LawEquationsPlayground";
 
 interface RegistryProps {
   name: string;
@@ -17,8 +18,11 @@ interface RegistryProps {
 
 export function SimulatorComponent({ name }: RegistryProps) {
   switch (name) {
+    case "LawEquationsPlayground":
+      return <LawEquationsPlayground />;
     case "PhaseDiagramExplorer":
       return <PhaseDiagramExplorer />;
+
     case "SublimationRateCalculator":
       return <SublimationRateCalculator />;
     case "RefrigerationLoadCalculator":

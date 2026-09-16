@@ -1,13 +1,15 @@
 // Inline script to set theme before first paint — prevents flash
-// This runs as a raw <script> injected into <head>
+// Defaults to light mode as specified
 export function ThemeScript() {
   const script = `
     (function() {
       try {
         var stored = localStorage.getItem('rd-theme');
-        var theme = (stored === 'dark' || stored === 'light') ? stored : 'light';
+        // Default to light mode unless user explicitly chose dark
+        var theme = (stored === 'dark') ? 'dark' : 'light';
         document.documentElement.classList.add(theme);
       } catch(e) {
+        // Fallback to light mode on any error
         document.documentElement.classList.add('light');
       }
     })();
