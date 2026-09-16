@@ -526,6 +526,16 @@ input[type="range"]::-moz-range-thumb:hover {
   }
 }
 
+/* Narrator In-Page Speech Highlighting & Focus Glow */
+.narrator-active-highlight {
+  background: color-mix(in srgb, var(--amber-subtle) 90%, transparent) !important;
+  border-left: 4px solid var(--amber) !important;
+  padding-left: 12px !important;
+  border-radius: 8px !important;
+  box-shadow: 0 0 20px rgba(198, 132, 16, 0.20) !important;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html, body, .instrument-card {
     transition: none !important;

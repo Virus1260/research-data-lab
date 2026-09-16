@@ -128,20 +128,42 @@ export function ReferencesExplorer({ projectSlug, references }: ReferencesExplor
               </h3>
 
               {ref.description && (
-                <div className="text-xs text-ink-secondary leading-relaxed font-mono break-all">
-                  {ref.description.startsWith("http") ? (
-                    <a
-                      href={ref.description}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-cryo underline hover:text-amber transition inline-flex items-center gap-1"
-                    >
-                      <span>{ref.description}</span>
-                      <ExternalLink className="w-3 h-3 shrink-0" />
-                    </a>
-                  ) : (
-                    ref.description
-                  )}
+                <div className="text-xs text-ink-secondary leading-relaxed font-mono break-all pt-1">
+                  {(() => {
+                    const urlRegex = /(https?:\/\/[^\s<>)"]+)/g;
+                    const parts = ref.description.split(urlRegex);
+                    return parts.map((part, pIdx) => {
+                      if (part.startsWith("http://") || part.startsWith("https://")) {
+                        let cleanPart = part;
+                        let trailingPunct = "";
+                        while (cleanPart.match(/[.,;:)\]]$/)) {
+                          trailingPunct = cleanPart.slice(-1) + trailingPunct;
+                          cleanPart = cleanPart.slice(0, -1);
+                        }
+                        return (
+                          <React.Fragment key={pIdx}>
+                            <a
+                              href={cleanPart}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 px-2.5 py-0.5 my-0.5 rounded-lg bg-amber/10 hover:bg-amber/25 border border-amber/30 hover:border-amber/60 text-amber font-mono text-[11px] font-semibold transition-all duration-150 group shadow-xs align-middle"
+                              title={`Open ${cleanPart} in new tab`}
+                            >
+                              <span className="truncate max-w-[200px] sm:max-w-xs group-hover:underline">
+                                {cleanPart}
+                              </span>
+                              <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded bg-amber text-on-amber text-[9px] uppercase font-bold shrink-0">
+                                <span>Open ↗</span>
+                                <ExternalLink className="w-2.5 h-2.5" />
+                              </span>
+                            </a>
+                            {trailingPunct}
+                          </React.Fragment>
+                        );
+                      }
+                      return <span key={pIdx}>{part}</span>;
+                    });
+                  })()}
                 </div>
               )}
             </div>

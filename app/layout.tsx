@@ -26,6 +26,11 @@ export const metadata: Metadata = {
   description:
     "An interactive digital laboratory that transforms dense engineering research dossiers into visual, interactive, narrated experiences.",
   keywords: ["freeze dryer", "lyophilizer", "engineering", "research", "interactive", "AFD", "Hosokawa"],
+  icons: {
+    icon: "/icon.svg",
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
+  },
   openGraph: {
     title: "Research Data • Interactive Engineering Lab",
     description: "Transform dense engineering research into interactive, narrated, explorable experiences.",

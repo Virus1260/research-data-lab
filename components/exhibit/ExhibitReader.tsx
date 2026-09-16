@@ -1,9 +1,24 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import type { ChapterMeta, AudioManifest } from "@/lib/types";
 import { KatexEquation } from "./KatexEquation";
-import { Volume2, VolumeX, List, ChevronLeft, ChevronRight, Sparkles, Sigma, Calculator } from "lucide-react";
+import { ExportModal } from "./ExportModal";
+import {
+  Volume2,
+  VolumeX,
+  List,
+  ChevronLeft,
+  ChevronRight,
+  Sparkles,
+  Sigma,
+  Calculator,
+  Sliders,
+  Headphones,
+  Download,
+  ExternalLink,
+} from "lucide-react";
 import { useNarrator } from "@/components/narrator/NarratorContext";
 
 interface ExhibitReaderProps {
@@ -13,6 +28,68 @@ interface ExhibitReaderProps {
   nextChapter?: ChapterMeta | null;
   audioUrl?: string | null;
   manifest?: AudioManifest | null;
+}
+
+/**
+ * Interactive link component that dynamically represents any reference or URL
+ * as readable text accompanied by a clickable "Open in new tab" interactive button badge.
+ */
+function InteractiveUrlLink({
+  url,
+  label,
+  className = "",
+}: {
+  url: string;
+  label?: string;
+  className?: string;
+}) {
+  let displayLabel = label;
+  if (!displayLabel) {
+    try {
+      const parsed = new URL(url.startsWith("http") ? url : `https://${url}`);
+      const host = parsed.hostname.replace(/^www\./, "");
+      const path =
+        parsed.pathname.length > 32
+          ? parsed.pathname.slice(0, 30) + "…"
+          : parsed.pathname === "/"
+          ? ""
+          : parsed.pathname;
+      displayLabel = `${host}${path}`;
+    } catch {
+      displayLabel = url.length > 42 ? url.slice(0, 40) + "…" : url;
+    }
+  }
+
+  const targetHref = url.startsWith("http") ? url : `https://${url}`;
+
+  return (
+    <a
+      href={targetHref}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 my-0.5 mx-1 rounded-lg text-xs font-mono font-medium transition-all duration-200 group border shadow-xs align-middle hover:shadow-md hover:-translate-y-0.5 ${className}`}
+      style={{
+        background: "color-mix(in srgb, var(--amber-subtle) 70%, var(--bg-surface))",
+        borderColor: "color-mix(in srgb, var(--amber) 40%, var(--border))",
+        color: "var(--ink-primary)",
+      }}
+      title={`Open external reference: ${targetHref}`}
+    >
+      <span className="truncate max-w-[220px] sm:max-w-md group-hover:text-amber underline decoration-amber/30 group-hover:decoration-amber transition-colors">
+        {displayLabel}
+      </span>
+      <span
+        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider transition-all duration-150 shrink-0"
+        style={{
+          background: "var(--amber)",
+          color: "var(--on-amber)",
+        }}
+      >
+        <span>Open ↗</span>
+        <ExternalLink className="w-2.5 h-2.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+      </span>
+    </a>
+  );
 }
 
 // Convert known textual engineering formulas to LaTeX
@@ -60,9 +137,20 @@ export function ExhibitReader({
   manifest,
 }: ExhibitReaderProps) {
   const [mounted, setMounted] = useState(false);
-  const { loadTrack, currentTrack, isPlaying } = useNarrator();
+  const {
+    loadTrack,
+    currentTrack,
+    isPlaying,
+    selectedPersona,
+    voiceStudioOpen,
+    setVoiceStudioOpen,
+    activeSpokenPhrase,
+    activeCue,
+    syncScroll,
+  } = useNarrator();
   const [tocOpen, setTocOpen] = useState(true);
   const [activeSection, setActiveSection] = useState("");
+  const [exportOpen, setExportOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -86,12 +174,60 @@ export function ExhibitReader({
     return () => observer.disconnect();
   }, [chapter.content, mounted]);
 
+  const isCurrentTrack = currentTrack?.slug === chapter.slug;
+  const isThisPlaying = isCurrentTrack && isPlaying;
+
+  // In-page speech highlighting & smooth auto-scroll for active narration
+  useEffect(() => {
+    if (!mounted) return;
+
+    // Clean up previous highlights
+    const prevHighlights = document.querySelectorAll(".narrator-active-highlight");
+    prevHighlights.forEach((el) => el.classList.remove("narrator-active-highlight"));
+
+    if (!isThisPlaying) return;
+
+    // Target cue or phrase
+    const targetText = (activeCue?.text || activeSpokenPhrase || "").trim().toLowerCase();
+    if (!targetText || targetText.length < 4) return;
+
+    const mainContainer = document.getElementById("monograph-reader-main");
+    if (!mainContainer) return;
+
+    // Find the paragraph, list item, or heading containing words from the spoken phrase
+    const candidates = mainContainer.querySelectorAll("p, li, h1, h2, h3, blockquote");
+    const searchWords = targetText
+      .replace(/[^\w\s]/g, "")
+      .split(/\s+/)
+      .filter((w) => w.length > 3);
+    if (searchWords.length === 0) return;
+
+    let bestMatch: Element | null = null;
+    let highestScore = 0;
+
+    for (const el of Array.from(candidates)) {
+      const elText = (el.textContent || "").toLowerCase();
+      let score = 0;
+      for (const word of searchWords) {
+        if (elText.includes(word)) score++;
+      }
+      if (score > highestScore) {
+        highestScore = score;
+        bestMatch = el;
+      }
+    }
+
+    if (bestMatch && highestScore >= Math.min(2, searchWords.length)) {
+      bestMatch.classList.add("narrator-active-highlight");
+      if (syncScroll) {
+        bestMatch.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+  }, [activeSpokenPhrase, activeCue, isThisPlaying, syncScroll, mounted]);
+
   if (!mounted) {
     return null;
   }
-
-  const isCurrentTrack = currentTrack?.slug === chapter.slug;
-  const isThisPlaying = isCurrentTrack && isPlaying;
 
   const handlePlayNarration = () => {
     loadTrack(chapter.slug, chapter.title, audioUrl || "", manifest, chapter.content);
@@ -378,11 +514,22 @@ export function ExhibitReader({
         }
         elements.push(
           <ul key={key++} className="my-4 space-y-2 ml-5 list-disc text-ink-secondary marker:text-amber">
-            {listItems.map((item, j) => (
-              <li key={j} className="text-sm sm:text-base leading-relaxed pl-1">
-                {renderInline(item)}
-              </li>
-            ))}
+            {listItems.map((item, j) => {
+              const hasUrl =
+                item.includes("http://") || item.includes("https://") || item.includes("www.");
+              return (
+                <li
+                  key={j}
+                  className={`text-sm sm:text-base leading-relaxed pl-1 rounded-xl transition-all ${
+                    hasUrl
+                      ? "p-2 bg-bg-surface/30 hover:bg-bg-hover/70 border border-hairline/40 my-1.5"
+                      : ""
+                  }`}
+                >
+                  {renderInline(item)}
+                </li>
+              );
+            })}
           </ul>
         );
         continue;
@@ -396,12 +543,23 @@ export function ExhibitReader({
           i++;
         }
         elements.push(
-          <ol key={key++} className="my-4 space-y-2 ml-5 list-decimal text-ink-secondary marker:text-cryo marker:font-bold">
-            {listItems.map((item, j) => (
-              <li key={j} className="text-sm sm:text-base leading-relaxed pl-1">
-                {renderInline(item)}
-              </li>
-            ))}
+          <ol key={key++} className="my-4 space-y-2.5 ml-5 list-decimal text-ink-secondary marker:text-amber marker:font-bold">
+            {listItems.map((item, j) => {
+              const hasUrl =
+                item.includes("http://") || item.includes("https://") || item.includes("www.");
+              return (
+                <li
+                  key={j}
+                  className={`text-sm sm:text-base leading-relaxed pl-1 rounded-xl transition-all ${
+                    hasUrl
+                      ? "p-2.5 bg-bg-surface/35 hover:bg-bg-hover/80 border border-hairline/50 my-2 shadow-xs hover:border-amber/30"
+                      : ""
+                  }`}
+                >
+                  {renderInline(item)}
+                </li>
+              );
+            })}
           </ol>
         );
         continue;
@@ -438,17 +596,71 @@ export function ExhibitReader({
     return elements;
   }
 
-  // Inline formatting: bold, italic, code, inline math
+  // Inline formatting: bold, italic, code, inline math, markdown links, raw URLs
   function renderInline(text: string): React.ReactNode {
     if (!text) return null;
 
-    const tokens = text.split(/(\$[^$]+\$|\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g);
+    // Matches: KaTeX $...$, Markdown links [text](url), Raw URLs (https?:// or www.), **bold**, *italic*, `code`
+    const TOKEN_REGEX =
+      /(\$[^$]+\$|\[[^\]]+\]\([^\s)]+\)|(?:https?:\/\/|www\.)[^\s<>)"]+|\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g;
+    const tokens = text.split(TOKEN_REGEX);
+
     return (
       <>
         {tokens.map((token, idx) => {
+          if (!token) return null;
+
+          // Inline KaTeX Math: $...$
           if (token.startsWith("$") && token.endsWith("$") && token.length > 2) {
             return <KatexEquation key={idx} expression={token.slice(1, -1)} />;
           }
+
+          // Markdown Link: [label](url)
+          if (token.startsWith("[") && token.includes("](") && token.endsWith(")")) {
+            const match = token.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+            if (match) {
+              const [, label, linkUrl] = match;
+              if (
+                linkUrl.startsWith("http://") ||
+                linkUrl.startsWith("https://") ||
+                linkUrl.startsWith("www.")
+              ) {
+                return <InteractiveUrlLink key={idx} url={linkUrl} label={label} />;
+              }
+              // Internal application link
+              return (
+                <Link
+                  key={idx}
+                  href={linkUrl}
+                  className="inline-flex items-center gap-1 text-cryo hover:text-amber font-semibold underline underline-offset-2 transition-colors"
+                >
+                  <span>{label}</span>
+                </Link>
+              );
+            }
+          }
+
+          // Raw URL: https://... or http://... or www....
+          if (
+            token.startsWith("http://") ||
+            token.startsWith("https://") ||
+            token.startsWith("www.")
+          ) {
+            let cleanUrl = token;
+            let trailingPunct = "";
+            while (cleanUrl.match(/[.,;:)\]]$/)) {
+              trailingPunct = cleanUrl.slice(-1) + trailingPunct;
+              cleanUrl = cleanUrl.slice(0, -1);
+            }
+            return (
+              <React.Fragment key={idx}>
+                <InteractiveUrlLink url={cleanUrl} />
+                {trailingPunct}
+              </React.Fragment>
+            );
+          }
+
+          // Bold: **...**
           if (token.startsWith("**") && token.endsWith("**")) {
             return (
               <strong key={idx} className="font-bold text-ink-primary">
@@ -456,6 +668,8 @@ export function ExhibitReader({
               </strong>
             );
           }
+
+          // Italic: *...*
           if (token.startsWith("*") && token.endsWith("*") && !token.startsWith("**")) {
             return (
               <em key={idx} className="italic text-ink-primary">
@@ -463,6 +677,8 @@ export function ExhibitReader({
               </em>
             );
           }
+
+          // Code: `...`
           if (token.startsWith("`") && token.endsWith("`")) {
             return (
               <code
@@ -473,6 +689,7 @@ export function ExhibitReader({
               </code>
             );
           }
+
           return <React.Fragment key={idx}>{token}</React.Fragment>;
         })}
       </>
@@ -517,8 +734,8 @@ export function ExhibitReader({
           </nav>
         )}
 
-        {/* Narration Button in TOC */}
-        <div className="mt-auto pb-6">
+        {/* Narration & Export Buttons in TOC */}
+        <div className="mt-auto pb-6 space-y-2">
           <div className="h-px mb-4 bg-hairline" />
           <button
             onClick={handlePlayNarration}
@@ -540,11 +757,32 @@ export function ExhibitReader({
               </>
             )}
           </button>
+
+          <button
+            onClick={() => setVoiceStudioOpen(!voiceStudioOpen)}
+            className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] font-mono text-ink-secondary hover:text-ink-primary bg-bg-surface hover:bg-bg-hover border border-hairline transition"
+            title="Configure human narrator persona and pacing"
+          >
+            <span className="flex items-center gap-1.5 truncate">
+              <span>{selectedPersona.avatar}</span>
+              <span className="truncate">{selectedPersona.name.split(" ")[0]} ({selectedPersona.accent})</span>
+            </span>
+            <Sliders className="w-3 h-3 text-amber shrink-0 ml-1" />
+          </button>
+
+          <button
+            onClick={() => setExportOpen(true)}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-mono text-ink-primary bg-bg-surface hover:bg-bg-hover border border-hairline transition shadow-xs"
+            title="Export / Print Chapter (PDF, Word, Markdown)"
+          >
+            <Download className="w-3.5 h-3.5 text-amber" />
+            <span>Export / Print</span>
+          </button>
         </div>
       </aside>
 
       {/* Main Chapter Content */}
-      <main className="flex-1 min-w-0 px-4 sm:px-10 py-10 max-w-4xl">
+      <main id="monograph-reader-main" className="flex-1 min-w-0 px-4 sm:px-10 py-10 max-w-4xl">
         {/* Chapter Header */}
         <div className="mb-10 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -557,18 +795,41 @@ export function ExhibitReader({
               </span>
             </div>
 
-            {/* Top Listen Button */}
-            <button
-              onClick={handlePlayNarration}
-              className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md ${
-                isThisPlaying
-                  ? "bg-amber text-on-amber shadow-amber-glow animate-pulse"
-                  : "bg-bg-panel hover:bg-bg-hover text-ink-primary border border-hairline"
-              }`}
-            >
-              {isThisPlaying ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4 text-amber" />}
-              <span>{isThisPlaying ? "Narration Playing" : audioUrl ? "Listen (Studio Narration)" : "Listen (AI Audio)"}</span>
-            </button>
+            <div className="flex items-center gap-2">
+              {/* Export / Print Button */}
+              <button
+                onClick={() => setExportOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-mono bg-bg-panel hover:bg-bg-hover text-ink-primary border border-hairline transition shadow-sm"
+                title="Export or Print this chapter (PDF, Word, Markdown)"
+              >
+                <Download className="w-3.5 h-3.5 text-amber" />
+                <span className="font-semibold hidden sm:inline">Export</span>
+              </button>
+
+              {/* Voice Persona Selector */}
+              <button
+                onClick={() => setVoiceStudioOpen(!voiceStudioOpen)}
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-mono bg-bg-panel hover:bg-bg-hover text-ink-primary border border-hairline transition shadow-sm"
+                title={`Narrator: ${selectedPersona.name} (${selectedPersona.accent}) - Click to customize`}
+              >
+                <span>{selectedPersona.avatar}</span>
+                <span className="font-semibold hidden sm:inline">{selectedPersona.name.split(" ")[0]}</span>
+                <Sliders className="w-3.5 h-3.5 text-amber" />
+              </button>
+
+              {/* Top Listen Button */}
+              <button
+                onClick={handlePlayNarration}
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md ${
+                  isThisPlaying
+                    ? "bg-amber text-on-amber shadow-amber-glow animate-pulse"
+                    : "bg-amber/10 hover:bg-amber/20 text-amber border border-amber/30"
+                }`}
+              >
+                {isThisPlaying ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4 text-amber" />}
+                <span>{isThisPlaying ? "Narration Playing" : audioUrl ? "Listen (Studio Audio)" : "Listen (Neural AI Voice)"}</span>
+              </button>
+            </div>
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-ink-primary leading-tight">
@@ -621,6 +882,14 @@ export function ExhibitReader({
             </a>
           )}
         </div>
+
+        {/* Export & Print Monograph Modal */}
+        <ExportModal
+          isOpen={exportOpen}
+          onClose={() => setExportOpen(false)}
+          chapter={chapter}
+          projectSlug={projectSlug}
+        />
       </main>
     </div>
   );

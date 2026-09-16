@@ -214,8 +214,53 @@ export function NarratorDeck() {
           </div>
         )}
 
+        {/* Minimized Floating Corner Pill */}
+        {currentTrack && isMinimized && (
+          <div className="flex justify-end animate-fade-in pointer-events-auto">
+            <div
+              className="flex items-center gap-2 p-2 px-3.5 rounded-full shadow-2xl backdrop-blur-xl border transition-all hover:scale-105"
+              style={{
+                background: "color-mix(in srgb, var(--bg-panel) 92%, transparent)",
+                borderColor: "var(--border-strong)",
+              }}
+            >
+              <button
+                onClick={() => setIsMinimized(false)}
+                className="flex items-center gap-1.5 text-xs font-mono font-bold text-ink-primary hover:text-amber transition"
+                title="Expand Narrator Console"
+              >
+                <span className="text-base">{selectedPersona.avatar}</span>
+                <span>{selectedPersona.name.split(" ")[0]}</span>
+                {isPlaying && <span className="w-1.5 h-1.5 rounded-full bg-amber animate-ping" />}
+              </button>
+
+              <div className="w-px h-3.5 bg-hairline" />
+
+              <button
+                onClick={togglePlay}
+                className="p-1.5 rounded-full bg-amber text-on-amber hover:scale-110 transition shadow-sm"
+                title={isPlaying ? "Pause Narration" : "Resume Narration"}
+              >
+                {isPlaying ? (
+                  <Pause className="w-3 h-3 fill-current" />
+                ) : (
+                  <Play className="w-3 h-3 fill-current ml-0.5" />
+                )}
+              </button>
+
+              <button
+                onClick={() => setIsMinimized(false)}
+                className="p-1 text-ink-dim hover:text-ink-primary transition"
+                title="Maximize Player"
+              >
+                <Maximize2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Main Deck Console Bar */}
-        {currentTrack && (
+        {currentTrack && !isMinimized && (
           <div className="bg-bg-panel/95 backdrop-blur-xl border border-hairline rounded-3xl p-3 sm:p-4 shadow-2xl flex flex-col gap-2.5">
           {/* Top Row: Track & Persona Info + Dynamic Visualizer */}
           <div className="flex items-center justify-between px-2 gap-4">
@@ -250,24 +295,34 @@ export function NarratorDeck() {
               </div>
             </div>
 
-            {/* Dynamic Sound Waveform Visualizer */}
-            <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-bg-surface border border-hairline shrink-0">
-              <Activity className="w-3.5 h-3.5 text-cryo mr-1" />
-              {[20, 50, 80, 40, 90, 60, 30].map((baseHeight, idx) => {
-                const height = isPlaying
-                  ? Math.max(15, Math.min(100, baseHeight * (audioLevel / 50)))
-                  : 20;
-                return (
-                  <span
-                    key={idx}
-                    className="w-1 rounded-full transition-all duration-150"
-                    style={{
-                      height: `${Math.round(height * 0.16)}px`,
-                      backgroundColor: isPlaying ? "var(--amber)" : "var(--border-strong)",
-                    }}
-                  />
-                );
-              })}
+            {/* Dynamic Sound Waveform Visualizer & Minimize Button */}
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-bg-surface border border-hairline shrink-0">
+                <Activity className="w-3.5 h-3.5 text-cryo mr-1" />
+                {[20, 50, 80, 40, 90, 60, 30].map((baseHeight, idx) => {
+                  const height = isPlaying
+                    ? Math.max(15, Math.min(100, baseHeight * (audioLevel / 50)))
+                    : 20;
+                  return (
+                    <span
+                      key={idx}
+                      className="w-1 rounded-full transition-all duration-150"
+                      style={{
+                        height: `${Math.round(height * 0.16)}px`,
+                        backgroundColor: isPlaying ? "var(--amber)" : "var(--border-strong)",
+                      }}
+                    />
+                  );
+                })}
+              </div>
+
+              <button
+                onClick={() => setIsMinimized(true)}
+                className="p-1.5 rounded-lg bg-bg-surface hover:bg-bg-hover text-ink-dim hover:text-ink-primary transition border border-hairline"
+                title="Minimize player to floating corner pill"
+              >
+                <Minimize2 className="w-3.5 h-3.5" />
+              </button>
             </div>
           </div>
 
@@ -388,6 +443,14 @@ export function NarratorDeck() {
                 title="Auto-scroll to active sentence"
               >
                 <span className="text-[10px]">SYNC</span>
+              </button>
+
+              <button
+                onClick={() => setIsMinimized(true)}
+                className="p-1.5 rounded-lg bg-bg-surface hover:bg-bg-hover text-ink-dim hover:text-ink-primary transition border border-hairline"
+                title="Compact into floating button"
+              >
+                <Minimize2 className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
