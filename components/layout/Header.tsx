@@ -3,13 +3,13 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Search, Compass, Table, Library, Atom, Sun, Moon } from "lucide-react";
+import { Search, Compass, Table, Library, Atom, Sun, Moon, Headphones, Bookmark } from "lucide-react";
 import { useNarrator } from "@/components/narrator/NarratorContext";
 import { useTheme } from "@/components/layout/ThemeProvider";
 
 export function Header({ projectSlug = "hosokawa-afd-freeze-dryer" }: { projectSlug?: string }) {
   const pathname = usePathname();
-  const { isPlaying, currentTrack, togglePlay } = useNarrator();
+  const { isPlaying, currentTrack, togglePlay, selectedPersona, voiceStudioOpen, setVoiceStudioOpen } = useNarrator();
   const { theme, toggleTheme } = useTheme();
 
   const navLinks = [
@@ -108,6 +108,23 @@ export function Header({ projectSlug = "hosokawa-afd-freeze-dryer" }: { projectS
             </button>
           )}
 
+          {/* Voice Persona & Acoustics Studio */}
+          <button
+            onClick={() => setVoiceStudioOpen(!voiceStudioOpen)}
+            className="h-11 inline-flex items-center gap-1.5 px-3 rounded-lg text-xs font-mono transition-all hover:scale-105 active:scale-95"
+            style={{
+              backgroundColor: voiceStudioOpen ? 'var(--amber-subtle)' : 'var(--bg-surface)',
+              border: `1px solid ${voiceStudioOpen ? 'color-mix(in srgb, var(--amber) 45%, transparent)' : 'var(--border)'}`,
+              color: voiceStudioOpen ? 'var(--amber)' : 'var(--ink-secondary)',
+            }}
+            title={`Narrator: ${selectedPersona.name} (${selectedPersona.accent}) - Click to adjust voice or human pacing rules`}
+            aria-label="Acoustic Voice Studio"
+          >
+            <span className="text-base">{selectedPersona.avatar}</span>
+            <span className="hidden sm:inline font-semibold">{selectedPersona.name.split(" ")[0]}</span>
+            <Headphones className="w-3.5 h-3.5 text-amber opacity-80 ml-0.5" />
+          </button>
+
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
@@ -125,6 +142,23 @@ export function Header({ projectSlug = "hosokawa-afd-freeze-dryer" }: { projectS
             ) : (
               <Moon className="w-4 h-4 transition-transform hover:-rotate-12" />
             )}
+          </button>
+
+          {/* Master Topic Index / Bookmark Drawer */}
+          <button
+            onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "b" }))}
+            className="h-11 inline-flex items-center gap-1.5 px-3 rounded-lg text-xs font-mono transition-all hover:scale-105 active:scale-95"
+            style={{
+              backgroundColor: 'var(--bg-surface)',
+              border: '1px solid var(--border)',
+              color: 'var(--ink-secondary)',
+            }}
+            title="Open Master Topic & Subtopic Index (Shortcut: B)"
+            aria-label="Topic Index"
+          >
+            <Bookmark className="w-3.5 h-3.5 text-amber" />
+            <span className="hidden lg:inline font-semibold">Index</span>
+            <kbd className="hidden lg:inline text-[9px] px-1 py-0.5 rounded bg-bg border border-border">B</kbd>
           </button>
 
           {/* ⌘K Palette */}

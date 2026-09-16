@@ -7,6 +7,7 @@ import { CommandPalette } from "@/components/command-palette/CommandPalette";
 import { Header } from "@/components/layout/Header";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
 import { ThemeScript } from "@/components/layout/ThemeScript";
+import { MasterBookmarkDrawer } from "@/components/layout/MasterBookmarkDrawer";
 
 const geistSans = Geist({
   subsets: ["latin"],
@@ -49,6 +50,7 @@ export default function RootLayout({
             <CommandPalette />
             <main className="flex-1 pb-28">{children}</main>
             <NarratorDeck />
+            <MasterBookmarkDrawer />
           </NarratorProvider>
         </ThemeProvider>
       </body>

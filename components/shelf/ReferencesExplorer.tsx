@@ -123,20 +123,32 @@ export function ReferencesExplorer({ projectSlug, references }: ReferencesExplor
                 )}
               </div>
 
-              <h3 className="text-sm font-bold text-ink-primary group-hover:text-ink-primary transition leading-snug">
+              <h3 className="text-sm font-bold text-ink-primary group-hover:text-amber transition leading-snug">
                 {ref.title}
               </h3>
 
               {ref.description && (
-                <p className="text-xs text-ink-secondary leading-relaxed">
-                  {ref.description}
-                </p>
+                <div className="text-xs text-ink-secondary leading-relaxed font-mono break-all">
+                  {ref.description.startsWith("http") ? (
+                    <a
+                      href={ref.description}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-cryo underline hover:text-amber transition inline-flex items-center gap-1"
+                    >
+                      <span>{ref.description}</span>
+                      <ExternalLink className="w-3 h-3 shrink-0" />
+                    </a>
+                  ) : (
+                    ref.description
+                  )}
+                </div>
               )}
             </div>
 
             {/* Outbound link footer */}
-            <div className="pt-3 border-t border-hairline flex items-center justify-between text-xs">
-              <span className="text-[10px] font-mono text-ink-dim truncate max-w-[240px]">
+            <div className="pt-3 border-t border-hairline flex items-center justify-between text-xs gap-2">
+              <span className="text-[10px] font-mono text-ink-dim truncate max-w-[200px]">
                 {ref.category}
               </span>
               {ref.url ? (
@@ -144,13 +156,21 @@ export function ReferencesExplorer({ projectSlug, references }: ReferencesExplor
                   href={ref.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-xs font-mono text-amber-signal hover:text-amber-bright transition"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-subtle hover:bg-amber text-amber hover:text-on-amber font-mono text-xs font-bold transition border border-amber/30 shadow-sm"
                 >
-                  <span>Access Source</span>
+                  <span>Access Primary Source</span>
                   <ExternalLink className="w-3.5 h-3.5" />
                 </a>
               ) : (
-                <span className="text-[10px] font-mono text-ink-dim">Standard Reference</span>
+                <a
+                  href={`https://www.google.com/search?q=${encodeURIComponent(ref.title)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-bg-surface hover:bg-bg-hover text-ink-muted hover:text-ink-primary font-mono text-[11px] transition border border-hairline"
+                >
+                  <span>Search Literature</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
               )}
             </div>
           </div>
