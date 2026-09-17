@@ -13,7 +13,25 @@ import {
   BookOpen,
   Layers,
   Sparkles,
+  Loader2,
 } from "lucide-react";
+import {
+  Document,
+  Packer,
+  Paragraph,
+  TextRun,
+  Table,
+  TableRow,
+  TableCell,
+  HeadingLevel,
+  AlignmentType,
+  WidthType,
+  PageBreak,
+  Header,
+  Footer,
+  PageNumber,
+  convertMillimetersToTwip,
+} from "docx";
 
 interface ExportModalProps {
   isOpen: boolean;
@@ -25,13 +43,111 @@ interface ExportModalProps {
 }
 
 /**
- * Converts Markdown text into clean, highly styled Microsoft Word HTML
- * properly handling tables, bullet/numbered lists, blockquotes, code blocks,
- * and typographic styling.
+ * Tokenizes markdown inline formatting into docx TextRun elements:
+ * supports **bold**, *italic*, `code`, and links.
  */
-function markdownToWordHtml(markdown: string): string {
+function parseInlineRuns(text: string): TextRun[] {
+  if (!text) return [new TextRun({ text: "" })];
+
+  // Strip raw HTML tags if any (e.g. <br>, <strong>)
+  const clean = text.replace(/<[^>]+>/g, "");
+  const regex = /(\*\*[^*]+\*\*|`[^`]+`|\*[^*]+\*|_([^_]+)_|\[([^\]]+)\]\(([^)]+)\)|https?:\/\/[^\s]+)/g;
+  const runs: TextRun[] = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = regex.exec(clean)) !== null) {
+    if (match.index > lastIndex) {
+      runs.push(
+        new TextRun({
+          text: clean.slice(lastIndex, match.index),
+          font: "Calibri",
+          size: 22,
+          color: "1A1A1A",
+        })
+      );
+    }
+
+    const token = match[0];
+    if (token.startsWith("**") && token.endsWith("**")) {
+      runs.push(
+        new TextRun({
+          text: token.slice(2, -2),
+          bold: true,
+          font: "Calibri",
+          size: 22,
+          color: "0C1829",
+        })
+      );
+    } else if (token.startsWith("`") && token.endsWith("`")) {
+      runs.push(
+        new TextRun({
+          text: token.slice(1, -1),
+          font: "Consolas",
+          size: 19,
+          color: "0F172A",
+          shading: { fill: "F1F5F9" },
+        })
+      );
+    } else if ((token.startsWith("*") && token.endsWith("*")) || (token.startsWith("_") && token.endsWith("_"))) {
+      runs.push(
+        new TextRun({
+          text: token.slice(1, -1),
+          italics: true,
+          font: "Calibri",
+          size: 22,
+          color: "2D3748",
+        })
+      );
+    } else if (token.startsWith("[") && token.includes("](")) {
+      const linkMatch = token.match(/\[([^\]]+)\]\(([^)]+)\)/);
+      if (linkMatch) {
+        runs.push(
+          new TextRun({
+            text: linkMatch[1],
+            color: "0366D6",
+            underline: {},
+            font: "Calibri",
+            size: 22,
+          })
+        );
+      }
+    } else if (token.startsWith("http://") || token.startsWith("https://")) {
+      runs.push(
+        new TextRun({
+          text: token,
+          color: "0366D6",
+          underline: {},
+          font: "Consolas",
+          size: 19,
+        })
+      );
+    }
+
+    lastIndex = regex.lastIndex;
+  }
+
+  if (lastIndex < clean.length) {
+    runs.push(
+      new TextRun({
+        text: clean.slice(lastIndex),
+        font: "Calibri",
+        size: 22,
+        color: "1A1A1A",
+      })
+    );
+  }
+
+  return runs.length > 0 ? runs : [new TextRun({ text: clean, font: "Calibri", size: 22 })];
+}
+
+/**
+ * Parses Markdown chapter text into genuine docx paragraphs, tables, lists, and code blocks.
+ * Ignores empty lines so NO accidental blank pages are created.
+ */
+function markdownToDocxParagraphs(markdown: string): (Paragraph | Table)[] {
   const lines = markdown.split("\n");
-  const output: string[] = [];
+  const elements: (Paragraph | Table)[] = [];
   let i = 0;
 
   while (i < lines.length) {
@@ -43,197 +159,213 @@ function markdownToWordHtml(markdown: string): string {
       continue;
     }
 
-    // 1. Code Blocks
-    if (trimmed.startsWith("```")) {
-      const codeLines: string[] = [];
+    // 1. Skip frontmatter if raw
+    if (trimmed === "---") {
       i++;
-      while (i < lines.length && !lines[i].trim().startsWith("```")) {
-        codeLines.push(
-          lines[i]
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-        );
+      while (i < lines.length && lines[i].trim() !== "---") {
         i++;
       }
-      i++; // skip closing ```
-      output.push(
-        `<pre style="background:#f4f6f8; border:1pt solid #d1d5db; padding:8pt 10pt; font-family:'Consolas','Courier New',monospace; font-size:9pt; line-height:1.4; color:#1f2937; margin:10pt 0;"><code>${codeLines.join("\n")}</code></pre>`
-      );
+      if (i < lines.length) i++;
       continue;
     }
 
-    // 2. Markdown Tables
+    // 2. Code blocks
+    if (trimmed.startsWith("```")) {
+      i++;
+      while (i < lines.length && !lines[i].trim().startsWith("```")) {
+        elements.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: lines[i],
+                font: "Consolas",
+                size: 18,
+                color: "1F2937",
+              }),
+            ],
+            shading: { fill: "F3F4F6" },
+            spacing: { before: 20, after: 20, line: 240 },
+          })
+        );
+        i++;
+      }
+      if (i < lines.length) i++;
+      continue;
+    }
+
+    // 3. Markdown Tables
     if (trimmed.startsWith("|") && trimmed.endsWith("|")) {
       const tableLines: string[] = [];
       while (i < lines.length && lines[i].trim().startsWith("|") && lines[i].trim().endsWith("|")) {
         tableLines.push(lines[i].trim());
         i++;
       }
-
       if (tableLines.length >= 2) {
-        const headerRow = tableLines[0];
-        const isSeparator = tableLines[1].includes("---");
-        const bodyStartIndex = isSeparator ? 2 : 1;
-
-        const parseCells = (row: string) =>
-          row
+        const parseCells = (r: string) =>
+          r
             .slice(1, -1)
             .split("|")
             .map((c) => c.trim());
+        const headers = parseCells(tableLines[0]);
+        const startIdx = tableLines[1].includes("---") ? 2 : 1;
 
-        const headers = parseCells(headerRow);
-        let tableHtml = `<table class="data-table" style="border-collapse:collapse; width:100%; margin:14pt 0; font-family:'Calibri',sans-serif; font-size:9.5pt;">`;
-        tableHtml += `<thead><tr style="background-color:#f3f0e8;">`;
-        headers.forEach((h) => {
-          tableHtml += `<th style="border:1pt solid #b0a390; padding:6pt 8pt; text-align:left; font-weight:bold; color:#0c1829;">${formatInline(h)}</th>`;
-        });
-        tableHtml += `</tr></thead><tbody>`;
+        const rows: TableRow[] = [
+          new TableRow({
+            children: headers.map(
+              (h) =>
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      children: [new TextRun({ text: h, bold: true, font: "Calibri", size: 20, color: "0C1829" })],
+                      spacing: { before: 60, after: 60 },
+                    }),
+                  ],
+                  shading: { fill: "F3F0E8" },
+                })
+            ),
+          }),
+        ];
 
-        for (let r = bodyStartIndex; r < tableLines.length; r++) {
+        for (let r = startIdx; r < tableLines.length; r++) {
           const cells = parseCells(tableLines[r]);
-          const bgColor = r % 2 === 0 ? "#faf8f5" : "#ffffff";
-          tableHtml += `<tr style="background-color:${bgColor};">`;
-          cells.forEach((c) => {
-            tableHtml += `<td style="border:1pt solid #d4c8b6; padding:5pt 8pt; color:#1a1a1a; vertical-align:top;">${formatInline(c)}</td>`;
-          });
-          tableHtml += `</tr>`;
+          const fill = r % 2 === 0 ? "FAF8F5" : "FFFFFF";
+          rows.push(
+            new TableRow({
+              children: cells.map(
+                (c) =>
+                  new TableCell({
+                    children: [
+                      new Paragraph({
+                        children: parseInlineRuns(c),
+                        spacing: { before: 40, after: 40 },
+                      }),
+                    ],
+                    shading: { fill },
+                  })
+              ),
+            })
+          );
         }
-        tableHtml += `</tbody></table>`;
-        output.push(tableHtml);
-        continue;
-      }
-    }
 
-    // 3. Blockquotes / Callouts
-    if (trimmed.startsWith(">")) {
-      const quoteLines: string[] = [];
-      while (i < lines.length && lines[i].trim().startsWith(">")) {
-        quoteLines.push(lines[i].trim().replace(/^>\s?/, ""));
-        i++;
+        elements.push(
+          new Table({
+            width: { size: 100, type: WidthType.PERCENTAGE },
+            rows,
+          })
+        );
       }
-      output.push(
-        `<div class="callout" style="background:#fdfaf3; border-left:3.5pt solid #c68410; padding:8pt 12pt; margin:12pt 0; font-style:italic; color:#1e293b;">${formatInline(quoteLines.join(" "))}</div>`
-      );
       continue;
     }
 
-    // 4. Headings
-    if (trimmed.startsWith("#### ")) {
-      output.push(`<h4 style="font-size:11.5pt; font-weight:bold; color:#374151; margin-top:12pt; margin-bottom:4pt;">${formatInline(trimmed.slice(5))}</h4>`);
+    // 4. Custom interactive component placeholders (strip raw JSX)
+    if (trimmed.startsWith("<") && (trimmed.endsWith("/>") || trimmed.endsWith(">"))) {
+      const compName = trimmed.replace(/[<>/]/g, "").trim().split(" ")[0];
+      elements.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: `[Interactive Exhibit / Diagram: ${compName} — Explore online in Research Data Lab]`,
+              italics: true,
+              font: "Calibri",
+              size: 20,
+              color: "888888",
+            }),
+          ],
+          spacing: { before: 60, after: 60 },
+        })
+      );
       i++;
       continue;
     }
+
+    // 5. Headings
     if (trimmed.startsWith("### ")) {
-      output.push(`<h3 style="font-size:13pt; font-weight:bold; color:#1e293b; margin-top:16pt; margin-bottom:6pt;">${formatInline(trimmed.slice(4))}</h3>`);
+      elements.push(
+        new Paragraph({
+          text: trimmed.slice(4),
+          heading: HeadingLevel.HEADING_3,
+          spacing: { before: 180, after: 80 },
+        })
+      );
       i++;
       continue;
     }
     if (trimmed.startsWith("## ")) {
-      output.push(
-        `<h2 style="font-size:15.5pt; font-weight:bold; color:#0f172a; margin-top:20pt; margin-bottom:6pt; border-bottom:1pt solid #e2e8f0; padding-bottom:3pt;">${formatInline(trimmed.slice(3))}</h2>`
+      elements.push(
+        new Paragraph({
+          text: trimmed.slice(3),
+          heading: HeadingLevel.HEADING_2,
+          spacing: { before: 240, after: 100 },
+        })
       );
       i++;
       continue;
     }
     if (trimmed.startsWith("# ")) {
-      output.push(
-        `<h1 style="font-size:20pt; font-weight:bold; color:#0c1829; margin-top:22pt; margin-bottom:8pt; border-bottom:2pt solid #c68410; padding-bottom:5pt;">${formatInline(trimmed.slice(2))}</h1>`
+      elements.push(
+        new Paragraph({
+          text: trimmed.slice(2),
+          heading: HeadingLevel.HEADING_1,
+          spacing: { before: 280, after: 120 },
+        })
       );
       i++;
       continue;
     }
 
-    // 5. Unordered Lists
-    if (trimmed.match(/^[-*+] /)) {
-      const listItems: string[] = [];
-      while (i < lines.length && lines[i].trim().match(/^[-*+] /)) {
-        listItems.push(lines[i].trim().replace(/^[-*+] /, ""));
-        i++;
-      }
-      let listHtml = `<ul style="margin:8pt 0 10pt 20pt; padding:0; list-style-type:disc; color:#1f2937;">`;
-      listItems.forEach((li) => {
-        listHtml += `<li style="margin-bottom:4pt; line-height:1.5;">${formatInline(li)}</li>`;
-      });
-      listHtml += `</ul>`;
-      output.push(listHtml);
-      continue;
-    }
-
-    // 6. Ordered Lists
-    if (trimmed.match(/^\d+\. /)) {
-      const listItems: string[] = [];
-      while (i < lines.length && lines[i].trim().match(/^\d+\. /)) {
-        listItems.push(lines[i].trim().replace(/^\d+\. /, ""));
-        i++;
-      }
-      let listHtml = `<ol style="margin:8pt 0 10pt 20pt; padding:0; list-style-type:decimal; color:#1f2937;">`;
-      listItems.forEach((li) => {
-        listHtml += `<li style="margin-bottom:4pt; line-height:1.5;">${formatInline(li)}</li>`;
-      });
-      listHtml += `</ol>`;
-      output.push(listHtml);
-      continue;
-    }
-
-    // 7. Horizontal Rule
-    if (trimmed.match(/^---+$/) || trimmed.match(/^\*\*\*+$/)) {
-      output.push(`<hr style="border:none; border-top:1pt solid #d1d5db; margin:16pt 0;" />`);
-      i++;
-      continue;
-    }
-
-    // 8. Normal Paragraph
-    const paraLines: string[] = [];
-    while (
-      i < lines.length &&
-      lines[i].trim() &&
-      !lines[i].trim().match(/^(#{1,4} |[-*+] |\d+\. |```|> |---|\*\*\*|\|)/)
-    ) {
-      paraLines.push(lines[i].trim());
-      i++;
-    }
-    if (paraLines.length > 0) {
-      output.push(
-        `<p style="margin:0 0 8pt 0; line-height:1.55; text-align:justify; color:#111827; font-size:10.5pt;">${formatInline(paraLines.join(" "))}</p>`
+    // 6. Bullet lists
+    if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
+      elements.push(
+        new Paragraph({
+          children: parseInlineRuns(trimmed.slice(2)),
+          bullet: { level: 0 },
+          spacing: { before: 30, after: 30, line: 260 },
+        })
       );
-    } else {
       i++;
+      continue;
     }
+
+    // 7. Numbered lists
+    const numMatch = trimmed.match(/^(\d+)\.\s+(.*)/);
+    if (numMatch) {
+      elements.push(
+        new Paragraph({
+          children: [
+            new TextRun({ text: numMatch[1] + ". ", bold: true, font: "Calibri", size: 22 }),
+            ...parseInlineRuns(numMatch[2]),
+          ],
+          spacing: { before: 30, after: 30, line: 260 },
+        })
+      );
+      i++;
+      continue;
+    }
+
+    // 8. Blockquotes
+    if (trimmed.startsWith("> ")) {
+      elements.push(
+        new Paragraph({
+          children: parseInlineRuns(trimmed.slice(2)),
+          indent: { left: convertMillimetersToTwip(8) },
+          spacing: { before: 80, after: 80, line: 260 },
+        })
+      );
+      i++;
+      continue;
+    }
+
+    // 9. Standard paragraphs
+    elements.push(
+      new Paragraph({
+        children: parseInlineRuns(trimmed),
+        spacing: { before: 40, after: 100, line: 276 },
+      })
+    );
+    i++;
   }
 
-  return output.join("\n");
-}
-
-/**
- * Replaces markdown bold, italic, code, URLs, and formulas with inline HTML
- */
-function formatInline(text: string): string {
-  return text
-    // Escaped entities
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    // Bold
-    .replace(/\*\*(.*?)\*\*/g, '<strong style="color:#000000; font-weight:700;">$1</strong>')
-    // Italic
-    .replace(/\*(.*?)\*/g, '<em style="font-style:italic;">$1</em>')
-    .replace(/_([^_]+)_/g, '<em style="font-style:italic;">$1</em>')
-    // Inline code
-    .replace(
-      /`([^`]+)`/g,
-      '<code style="font-family:\'Consolas\',monospace; background-color:#f1f5f9; color:#0f172a; padding:1pt 3pt; border-radius:2pt; font-size:9pt; border:1px solid #e2e8f0;">$1</code>'
-    )
-    // Markdown links [text](url)
-    .replace(
-      /\[([^\]]+)\]\(([^)]+)\)/g,
-      '<a href="$2" style="color:#0366d6; text-decoration:underline;">$1</a>'
-    )
-    // Raw URLs
-    .replace(
-      /(https?:\/\/[^\s<]+)/g,
-      '<a href="$1" style="color:#0366d6; text-decoration:underline; font-family:\'Consolas\',monospace; font-size:9pt;">$1</a>'
-    );
+  return elements;
 }
 
 export function ExportModal({
@@ -248,6 +380,7 @@ export function ExportModal({
   const initialMode = defaultMode || (chapter ? "single" : "all");
   const [exportMode, setExportMode] = useState<"single" | "all">(initialMode);
   const [copied, setCopied] = useState(false);
+  const [isGeneratingDocx, setIsGeneratingDocx] = useState(false);
 
   if (!isOpen) return null;
 
@@ -262,208 +395,293 @@ export function ExportModal({
     }, 250);
   };
 
-  // 2. Export as Microsoft Word (.doc) with Duplex Spiral-Binding Margins & Dynamic Headers/Footers
-  const handleExportWord = () => {
-    const isSingle = exportMode === "single" && chapter;
-    const docTitle = isSingle
-      ? `${chapter.chapterNumber} — ${chapter.title}`
-      : "Hosokawa Active Freeze Dryer (AFD) — Technical Monograph Compendium";
-    const subTitle = isSingle
-      ? `Research Data Lab • ${chapter.act} • Chapter ${chapter.chapterNumber}`
-      : "Complete 19-Chapter Research Package & Engineering Compendium";
+  // 2. Export as genuine OpenXML Microsoft Word (.docx) with uniform 20mm margins and true page breaks
+  const handleExportWord = async () => {
+    try {
+      setIsGeneratingDocx(true);
+      const isSingle = exportMode === "single" && chapter;
+      const docTitle = isSingle
+        ? `${chapter.chapterNumber} — ${chapter.title}`
+        : "Hosokawa Active Freeze Dryer (AFD) — Technical Monograph Compendium";
+      const subTitle = isSingle
+        ? `Research Data Lab • ${chapter.act} • Chapter ${chapter.chapterNumber}`
+        : "Complete 19-Chapter Research Package & Engineering Compendium";
 
-    // Build Table of Contents / Index for the document
-    let indexHtml = "";
-    if (activeChapters.length > 1) {
-      indexHtml = `
-        <div style="margin:20pt 0; border:1pt solid #d1d5db; background:#faf8f5; padding:16pt 20pt; border-radius:4pt;">
-          <h2 style="font-size:14pt; font-weight:bold; color:#0c1829; margin-top:0; margin-bottom:8pt; border-bottom:1.5pt solid #c68410; padding-bottom:4pt;">
-            DOCUMENT CHAPTER INDEX &amp; TABLE OF CONTENTS
-          </h2>
-          <table style="width:100%; border-collapse:collapse; font-size:9.5pt; font-family:'Calibri',sans-serif;">
-            <thead>
-              <tr style="border-bottom:1pt solid #b0a390; color:#555555; text-align:left;">
-                <th style="padding:4pt 6pt; width:60px;">CH #</th>
-                <th style="padding:4pt 6pt;">CHAPTER TITLE</th>
-                <th style="padding:4pt 6pt; width:140px;">ACT / STAGE</th>
-                <th style="padding:4pt 6pt; width:80px; text-align:right;">READ TIME</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${activeChapters
-                .map(
-                  (c, idx) => `
-                <tr style="border-bottom:0.5pt dotted #cccccc;">
-                  <td style="padding:5pt 6pt; font-family:'Consolas',monospace; font-weight:bold; color:#c68410;">${c.chapterNumber}</td>
-                  <td style="padding:5pt 6pt;">
-                    <a href="#ch-${c.chapterNumber}" style="color:#0f172a; text-decoration:none; font-weight:600;">${c.title}</a>
-                  </td>
-                  <td style="padding:5pt 6pt; color:#475569; font-size:9pt;">${c.act}</td>
-                  <td style="padding:5pt 6pt; color:#64748b; font-size:9pt; text-align:right;">${c.readTime}</td>
-                </tr>`
-                )
-                .join("")}
-            </tbody>
-          </table>
-        </div>
-      `;
-    } else if (chapter) {
-      indexHtml = `
-        <div style="margin:16pt 0; border:1pt solid #e2e8f0; background:#f8fafc; padding:12pt 16pt; border-radius:4pt;">
-          <h3 style="font-size:11pt; font-weight:bold; color:#0f172a; margin-top:0; margin-bottom:6pt; text-transform:uppercase; letter-spacing:0.5pt;">
-            Chapter Topics &amp; Outlines
-          </h3>
-          <ul style="margin:0 0 0 16pt; padding:0; font-size:9.5pt; color:#334155;">
-            ${chapter.headings
-              .filter((h) => h.level === 2)
-              .map((h) => `<li style="margin-bottom:3pt;">${h.text}</li>`)
-              .join("")}
-          </ul>
-        </div>
-      `;
+      const docElements: (Paragraph | Table)[] = [];
+
+      // Document Cover Title Block
+      docElements.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: subTitle.toUpperCase(),
+              bold: true,
+              font: "Consolas",
+              size: 20,
+              color: "C68410",
+            }),
+          ],
+          spacing: { before: 100, after: 80 },
+        }),
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: docTitle,
+              bold: true,
+              font: "Calibri",
+              size: 44,
+              color: "0C1829",
+            }),
+          ],
+          spacing: { before: 80, after: 120 },
+        }),
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: "A4 Format • Uniform 20mm Common Margins • Verified Word OpenXML Pagination",
+              font: "Calibri",
+              size: 20,
+              color: "64748B",
+            }),
+          ],
+          spacing: { before: 40, after: 240 },
+        })
+      );
+
+      // Table of Contents Table if multi-chapter
+      if (activeChapters.length > 1) {
+        docElements.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: "DOCUMENT CHAPTER INDEX & TABLE OF CONTENTS",
+                bold: true,
+                font: "Calibri",
+                size: 24,
+                color: "0C1829",
+              }),
+            ],
+            spacing: { before: 160, after: 100 },
+          })
+        );
+
+        const tocRows: TableRow[] = [
+          new TableRow({
+            children: [
+              new TableCell({
+                width: { size: 12, type: WidthType.PERCENTAGE },
+                children: [new Paragraph({ children: [new TextRun({ text: "CH #", bold: true, font: "Calibri", size: 19 })] })],
+                shading: { fill: "F3F0E8" },
+              }),
+              new TableCell({
+                width: { size: 50, type: WidthType.PERCENTAGE },
+                children: [new Paragraph({ children: [new TextRun({ text: "CHAPTER TITLE", bold: true, font: "Calibri", size: 19 })] })],
+                shading: { fill: "F3F0E8" },
+              }),
+              new TableCell({
+                width: { size: 23, type: WidthType.PERCENTAGE },
+                children: [new Paragraph({ children: [new TextRun({ text: "ACT / STAGE", bold: true, font: "Calibri", size: 19 })] })],
+                shading: { fill: "F3F0E8" },
+              }),
+              new TableCell({
+                width: { size: 15, type: WidthType.PERCENTAGE },
+                children: [new Paragraph({ children: [new TextRun({ text: "READ TIME", bold: true, font: "Calibri", size: 19 })], alignment: AlignmentType.RIGHT })],
+                shading: { fill: "F3F0E8" },
+              }),
+            ],
+          }),
+        ];
+
+        activeChapters.forEach((c, idx) => {
+          const fill = idx % 2 === 0 ? "FAF8F5" : "FFFFFF";
+          tocRows.push(
+            new TableRow({
+              children: [
+                new TableCell({
+                  children: [new Paragraph({ children: [new TextRun({ text: c.chapterNumber, bold: true, font: "Consolas", size: 19, color: "C68410" })] })],
+                  shading: { fill },
+                }),
+                new TableCell({
+                  children: [new Paragraph({ children: [new TextRun({ text: c.title, font: "Calibri", size: 20, color: "0F172A", bold: true })] })],
+                  shading: { fill },
+                }),
+                new TableCell({
+                  children: [new Paragraph({ children: [new TextRun({ text: c.act, font: "Calibri", size: 19, color: "475569" })] })],
+                  shading: { fill },
+                }),
+                new TableCell({
+                  children: [new Paragraph({ children: [new TextRun({ text: c.readTime, font: "Calibri", size: 19, color: "64748B" })], alignment: AlignmentType.RIGHT })],
+                  shading: { fill },
+                }),
+              ],
+            })
+          );
+        });
+
+        docElements.push(
+          new Table({
+            width: { size: 100, type: WidthType.PERCENTAGE },
+            rows: tocRows,
+          })
+        );
+      }
+
+      // Chapters content: Add clean PageBreak only between chapters!
+      activeChapters.forEach((c, index) => {
+        if (index > 0 || activeChapters.length > 1) {
+          docElements.push(new Paragraph({ children: [new PageBreak()] }));
+        }
+
+        docElements.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: `RESEARCH DATA LAB • ${c.act.toUpperCase()} • CHAPTER ${c.chapterNumber}`,
+                font: "Consolas",
+                size: 18,
+                color: "888888",
+              }),
+            ],
+            spacing: { before: 180, after: 60 },
+          }),
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: c.title,
+                bold: true,
+                font: "Calibri",
+                size: 34,
+                color: "0C1829",
+              }),
+            ],
+            heading: HeadingLevel.HEADING_1,
+            spacing: { before: 60, after: 80 },
+          }),
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: `Estimated Reading Time: ${c.readTime} • Hosokawa AFD Engineering Package`,
+                italics: true,
+                font: "Calibri",
+                size: 19,
+                color: "64748B",
+              }),
+            ],
+            spacing: { before: 40, after: 200 },
+          }),
+          ...markdownToDocxParagraphs(c.content)
+        );
+      });
+
+      // Attribution footer at end of document
+      docElements.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: "Generated by Research Data Lab • Hosokawa AFD Engineering Package • Source: https://github.com/Virus1260/research-data-lab",
+              font: "Consolas",
+              size: 17,
+              color: "888888",
+            }),
+          ],
+          spacing: { before: 300, after: 100 },
+        })
+      );
+
+      // Build Document with uniform 20mm margins on all sides
+      const doc = new Document({
+        sections: [
+          {
+            properties: {
+              page: {
+                margin: {
+                  top: convertMillimetersToTwip(20),
+                  right: convertMillimetersToTwip(20),
+                  bottom: convertMillimetersToTwip(20),
+                  left: convertMillimetersToTwip(20),
+                },
+              },
+            },
+            headers: {
+              default: new Header({
+                children: [
+                  new Paragraph({
+                    alignment: AlignmentType.RIGHT,
+                    children: [
+                      new TextRun({
+                        text: "RESEARCH DATA LAB • HOSOKAWA ACTIVE FREEZE DRYER (AFD) MONOGRAPH",
+                        size: 17,
+                        color: "777777",
+                        font: "Calibri",
+                      }),
+                    ],
+                  }),
+                ],
+              }),
+            },
+            footers: {
+              default: new Footer({
+                children: [
+                  new Paragraph({
+                    alignment: AlignmentType.RIGHT,
+                    children: [
+                      new TextRun({
+                        text: "OPEN LAB COMPENDIUM • UNIFORM 20mm MARGINS • Page ",
+                        size: 17,
+                        color: "777777",
+                        font: "Calibri",
+                      }),
+                      new TextRun({
+                        children: [PageNumber.CURRENT],
+                        size: 17,
+                        color: "777777",
+                        font: "Calibri",
+                      }),
+                      new TextRun({
+                        text: " of ",
+                        size: 17,
+                        color: "777777",
+                        font: "Calibri",
+                      }),
+                      new TextRun({
+                        children: [PageNumber.TOTAL_PAGES],
+                        size: 17,
+                        color: "777777",
+                        font: "Calibri",
+                      }),
+                    ],
+                  }),
+                ],
+              }),
+            },
+            children: docElements,
+          },
+        ],
+      });
+
+      const blob = await Packer.toBlob(doc);
+      const fileName = isSingle
+        ? `${chapter.slug}.docx`
+        : `hosokawa-afd-monograph-complete.docx`;
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.setAttribute("download", fileName);
+      document.body.appendChild(a);
+      a.click();
+
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 10000);
+
+      onClose();
+    } catch (err) {
+      console.error("Failed to export docx:", err);
+    } finally {
+      setIsGeneratingDocx(false);
     }
-
-    // Build chapter body content
-    const chaptersContentHtml = activeChapters
-      .map((c, index) => {
-        const pageBreakStyle =
-          index > 0
-            ? "page-break-before:always; mso-break-type:section-break; margin-top:24pt;"
-            : "";
-        return `
-          <div id="ch-${c.chapterNumber}" style="${pageBreakStyle}">
-            <div style="font-family:'Consolas',monospace; font-size:9.5pt; color:#888888; text-transform:uppercase; letter-spacing:0.5pt; margin-bottom:4pt;">
-              RESEARCH DATA LAB &bull; ${c.act} &bull; CHAPTER ${c.chapterNumber}
-            </div>
-            <h1 style="font-size:22pt; font-weight:bold; color:#0c1829; margin-top:2pt; margin-bottom:4pt; border-bottom:2pt solid #c68410; padding-bottom:6pt;">
-              ${c.title}
-            </h1>
-            <div style="font-size:9.5pt; font-family:'Calibri',sans-serif; color:#64748b; margin-bottom:14pt;">
-              Estimated Reading Time: ${c.readTime} &bull; Hosokawa AFD Engineering Package
-            </div>
-            <div class="chapter-text">
-              ${markdownToWordHtml(c.content)}
-            </div>
-          </div>
-        `;
-      })
-      .join("\n");
-
-    const fullWordHtml = `
-      <html xmlns:o='urn:schemas-microsoft-com:office:office'
-            xmlns:w='urn:schemas-microsoft-com:office:word'
-            xmlns='http://www.w3.org/TR/REC-html40'>
-      <head>
-        <meta charset='utf-8'>
-        <title>${docTitle}</title>
-        <!--[if gte mso 9]>
-        <xml>
-          <w:WordDocument>
-            <w:View>Print</w:View>
-            <w:Zoom>100</w:Zoom>
-            <w:DoNotOptimizeForBrowser/>
-          </w:WordDocument>
-        </xml>
-        <![endif]-->
-        <style>
-          /* A4 Portrait with Common 20mm (56.7pt) Margins for all pages */
-          @page Section1 {
-            size: 595.3pt 841.9pt;
-            margin: 56.7pt 56.7pt 56.7pt 56.7pt;
-            mso-header-margin: 35.4pt;
-            mso-footer-margin: 35.4pt;
-            mso-title-page: yes;
-            mso-header: h1;
-            mso-footer: f1;
-          }
-          div.Section1 { page: Section1; }
-          body {
-            font-family: 'Calibri', 'Segoe UI', Arial, sans-serif;
-            font-size: 11pt;
-            line-height: 1.55;
-            color: #111111;
-          }
-          p.MsoHeader, li.MsoHeader, div.MsoHeader {
-            margin: 0;
-            font-size: 8.5pt;
-            font-family: 'Calibri', sans-serif;
-            color: #666666;
-            border-bottom: 0.5pt solid #cccccc;
-            padding-bottom: 4pt;
-          }
-          p.MsoFooter, li.MsoFooter, div.MsoFooter {
-            margin: 0;
-            font-size: 8.5pt;
-            font-family: 'Calibri', sans-serif;
-            color: #666666;
-            border-top: 0.5pt solid #cccccc;
-            padding-top: 4pt;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="Section1">
-          <!-- Microsoft Word Running Header Definition -->
-          <div style="mso-element:header" id="h1">
-            <p class="MsoHeader">
-              <span style="float:left;">RESEARCH DATA LAB &bull; HOSOKAWA ACTIVE FREEZE DRYER</span>
-              <span style="float:right;">ENGINEERING MONOGRAPH</span>
-            </p>
-          </div>
-
-          <!-- Microsoft Word Running Footer with Real Word Dynamic Page Numbers -->
-          <div style="mso-element:footer" id="f1">
-            <p class="MsoFooter">
-              <span style="float:left;">OPEN LAB COMPENDIUM &bull; STANDARD MARGINS</span>
-              <span style="float:right;">Page <span style="mso-field-code:' PAGE '"></span> of <span style="mso-field-code:' NUMPAGES '"></span></span>
-            </p>
-          </div>
-
-          <!-- Cover / Title Header -->
-          <div style="border-bottom:2pt solid #0c1829; padding-bottom:14pt; margin-bottom:16pt;">
-            <div style="font-family:'Consolas',monospace; font-size:10pt; font-weight:bold; color:#c68410; text-transform:uppercase; letter-spacing:1pt;">
-              ${subTitle}
-            </div>
-            <h1 style="font-size:24pt; font-weight:bold; color:#0c1829; margin-top:6pt; margin-bottom:6pt; line-height:1.2;">
-              ${docTitle}
-            </h1>
-            <div style="font-size:10pt; color:#475569;">
-              Print-Ready Format (A4 &bull; 20mm Common Margins &bull; Dynamic Page Numbering &bull; Formatted Data Tables)
-            </div>
-          </div>
-
-          <!-- Chapter Index / Table of Contents -->
-          ${indexHtml}
-
-          <!-- Chapter Contents -->
-          ${chaptersContentHtml}
-
-          <!-- Document End Attribution -->
-          <div style="margin-top:30pt; padding-top:10pt; border-top:1pt solid #dddddd; font-size:8.5pt; color:#888888; font-family:'Consolas',monospace;">
-            Generated by Research Data Lab &bull; Hosokawa AFD Engineering Package &bull; Source: https://github.com/Virus1260/research-data-lab
-          </div>
-        </div>
-      </body>
-      </html>
-    `;
-
-    const blob = new Blob(["\ufeff" + fullWordHtml], {
-      type: "application/vnd.ms-word;charset=utf-8",
-    });
-    const fileName = isSingle
-      ? `${chapter.slug}.doc`
-      : `hosokawa-afd-monograph-complete.doc`;
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.setAttribute("download", fileName);
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(() => {
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }, 10000);
-    onClose();
   };
 
   // 3. Export as Markdown (.md)
@@ -608,7 +826,7 @@ ${c.content}
             <span>Clean Standard A4 Publishing Engine</span>
           </div>
           <p className="text-ink-secondary leading-relaxed">
-            Formatted with <strong>uniform 20mm margins</strong> on all sides across all pages for both Word and PDF,
+            Formatted with <strong>uniform 20mm margins</strong> on all sides across all pages for both Word (.docx) and PDF,
             ensuring consistent borders, clean reading, and proper printing.
           </p>
         </div>
@@ -633,20 +851,21 @@ ${c.content}
             </div>
           </button>
 
-          {/* Microsoft Word */}
+          {/* Microsoft Word (.docx) */}
           <button
             onClick={handleExportWord}
-            className="p-4 rounded-2xl bg-bg-surface hover:bg-bg-hover border border-hairline hover:border-cryo transition text-left space-y-2 group shadow-sm"
+            disabled={isGeneratingDocx}
+            className="p-4 rounded-2xl bg-bg-surface hover:bg-bg-hover border border-hairline hover:border-cryo transition text-left space-y-2 group shadow-sm disabled:opacity-50"
           >
             <div className="w-8 h-8 rounded-xl bg-cryo-subtle flex items-center justify-center text-cryo group-hover:scale-110 transition">
-              <FileText className="w-4 h-4" />
+              {isGeneratingDocx ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
             </div>
             <div>
               <div className="text-xs font-bold text-ink-primary group-hover:text-cryo transition">
-                Microsoft Word (.doc)
+                {isGeneratingDocx ? "Generating .docx..." : "Microsoft Word (.docx)"}
               </div>
               <p className="text-[11px] text-ink-dim leading-relaxed">
-                Formatted tables, Table of Contents, Page X of Y footers.
+                Native OpenXML .docx • Uniform 20mm Margins • Verified Pagination.
               </p>
             </div>
           </button>
