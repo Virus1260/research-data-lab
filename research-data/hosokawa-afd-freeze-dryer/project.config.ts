@@ -84,6 +84,18 @@ export const project: ProjectConfig = {
         "18-references-and-source-list",
       ],
     },
+    {
+      id: "act-5",
+      name: "Automation & P&ID",
+      roman: "V",
+      description: "P&ID flow architecture, ISA 5.1 instrumentation, BPCS vs. SIS safety separation, and equipment sizing.",
+      chapters: [
+        "19-piping-and-instrumentation-diagram",
+        "20-control-system-architecture",
+        "21-batch-sequence-and-operating-cycle",
+        "22-practical-equipment-sizing-vacuum-and-cryogenics",
+      ],
+    },
   ],
   simulators: {
     "02-physics-and-thermodynamics": ["PhaseDiagramExplorer"],
@@ -102,9 +114,9 @@ export const project: ProjectConfig = {
     ],
   },
   summary:
-    "A 19-chapter engineering research dossier on Hosokawa's Active Freeze Dryer technology, reconstructed from patents, public literature, and heat/mass transfer physics.",
+    "A 22-chapter engineering research dossier on Hosokawa's Active Freeze Dryer technology, reconstructed from patents, public literature, control architecture, and heat/mass transfer physics.",
   stats: {
-    chaptersCount: 19,
+    chaptersCount: 22,
     subsystemsCount: 17,
     bomItemsCount: 74,
     referencesCount: 34,

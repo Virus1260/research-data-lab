@@ -134,7 +134,7 @@ export function Header({ projectSlug = "hosokawa-afd-freeze-dryer" }: { projectS
               border: '1px solid var(--border)',
               backgroundColor: 'var(--bg-surface)',
             }}
-            title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            title={theme === 'dark' ? 'Switch to Light Mode (Press T or Ctrl+Shift+L)' : 'Switch to Dark Mode (Press T or Ctrl+Shift+L)'}
             aria-label="Toggle theme"
           >
             {theme === 'dark' ? (
@@ -161,7 +161,7 @@ export function Header({ projectSlug = "hosokawa-afd-freeze-dryer" }: { projectS
             <kbd className="hidden lg:inline text-[9px] px-1 py-0.5 rounded bg-bg border border-border">B</kbd>
           </button>
 
-          {/* ⌘K Palette */}
+          {/* Ctrl+K Palette */}
           <button
             onClick={triggerPalette}
             className="h-11 inline-flex items-center gap-2 px-3 rounded-lg text-xs font-mono transition-colors"
@@ -170,7 +170,7 @@ export function Header({ projectSlug = "hosokawa-afd-freeze-dryer" }: { projectS
               border: '1px solid var(--border)',
               color: 'var(--ink-muted)',
             }}
-            title="Open command palette (⌘K)"
+            title="Open command palette (Ctrl+K or /)"
           >
             <Search className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Search Lab</span>
@@ -178,7 +178,7 @@ export function Header({ projectSlug = "hosokawa-afd-freeze-dryer" }: { projectS
               className="hidden sm:inline text-[10px] px-1.5 py-0.5 rounded"
               style={{ backgroundColor: 'var(--bg)', border: '1px solid var(--border)' }}
             >
-              ⌘K
+              Ctrl+K
             </kbd>
           </button>
         </div>

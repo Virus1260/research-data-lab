@@ -1,0 +1,92 @@
+---
+title: "Batch Sequence & Operating Cycle (ISA-88 State Machine)"
+chapterNumber: "21"
+slug: "21-batch-sequence-and-operating-cycle"
+act: "Automation & P&ID"
+actId: "act-5"
+readTime: "7 min read"
+simulators: []
+---
+
+# 21 — Batch Sequence & Operating Cycle (ISA-88 State Machine)
+
+The traditional pitfall in bespoke automation projects is writing one long, monolithic script: *"step 1, then step 2, then step 3..."* That approach functions initially, but collapses when engineers need to alter hold times, qualify validation runs, or handle unexpected process alarms.
+
+To build an industrial-grade, reproducible pharmaceutical freeze dryer, we follow **ANSI/ISA-88 (IEC 61512)** — the global benchmark for automated batch control.
+
+![ISA-88 Batch Structure & Phase State Machine](/diagrams/isa88_batch_structure.png)
+
+---
+
+## 1. The ISA-88 Hierarchical Model
+
+ISA-88 establishes a strict four-layer hierarchy that isolates process intent from equipment execution:
+
+```
+PROCEDURE         (Master Batch Recipe: "Complete AFD Lyophilization")
+   └── UNIT PROCEDURE   (Major Phase: "Freezing", "Drying", "Discharge", "CIP/SIP")
+          └── OPERATION        (Discrete Goal: "Primary Sublimation Drying")
+                 └── PHASE            (Atomic Reusable Unit: "Hold Chamber Vacuum")
+```
+
+### Why Phases Are the Magic Building Block
+A **Phase** is the smallest self-contained, independently verifiable unit of control logic.
+- A phase like `"Ramp Jacket Temperature"` does not know or care whether it is executing during an initial trial batch or a validated commercial lot.
+- It receives clean recipe parameters (target temperature: `-15°C`, ramp rate: `0.5°C/min`, hold duration: `120 min`), executes its closed-loop PID control, and signals completion when its objective is fulfilled.
+
+---
+
+## 2. The Universal Phase State Machine
+
+Every phase in the PLC conforms to the standardized ISA-88 finite state machine (FSM):
+
+```
+┌──────┐  Start Cmd  ┌─────────┐ Done Condition ┌──────────┐
+│ IDLE ├────────────►│ RUNNING ├───────────────►│ COMPLETE │
+└──────┘             └────┬────┘                └──────────┘
+                          │
+          Hold Cmd ┌──────┴──────┐ Fault / SIS Trip
+                   ▼             ▼
+              ┌────────┐    ┌──────────┐
+              │  HELD  │    │ ABORTING │
+              └───┬────┘    └────┬─────┘
+                  │ Resume       ▼
+                  └────────►┌─────────┐
+                            │ ABORTED │
+                            └─────────┘
+```
+
+### Standard States & Behaviors
+- **IDLE**: The phase is initialized, waiting for the supervisory sequencer to provide setpoint parameters and trigger the `Start` command.
+- **RUNNING**: The phase actively drives its actuators (e.g. `TIC-201` modulates `FCV-201`, or `SIC-101` turns `M-101`).
+- **HELD**: Process is paused safely (e.g. operator paused the batch to inspect a filter). Actuators hold safe steady-state values.
+- **ABORTING / ABORTED**: An interlock or critical fault occurred (e.g. vacuum loss or refrigeration trip). The phase immediately de-energizes heaters, closes isolation valves, and hands control over to emergency shutdown routines.
+
+---
+
+## 3. AFD Lyophilization Cycle Mapped to ISA-88
+
+| Unit Procedure | Operation | Phase Breakdown | Key Active Instruments & Actuators |
+|---|---|---|---|
+| **1. Freezing** | Charge & Pre-cool | • Purge chamber with N2<br>• Pre-chill jacket to -30°C<br>• Meter liquid feed into vessel | `TIC-201`, `XV-104`, `FT-101`, `SIC-101` (15 RPM) |
+| | Solidification | • Ramp jacket to -50°C<br>• Maintain continuous orbital agitation<br>• Hold until core temp reaches solidus | `TT-101`, `JIT-101` (torque monitoring), `PKG-301` |
+| **2. Drying** | Primary Sublimation | • Chill condenser coil to -70°C<br>• Evacuate chamber to 0.04 mbar<br>• Ramp jacket to -15°C<br>• Monitor dual-gauge convergence | `TT-103`, `PKG-401`, `PIC-101` (`PV-102`), `PIT-101A/B` |
+| | Secondary Desorption | • Step jacket to +25°C<br>• Maintain deep vacuum (0.02 mbar)<br>• Hold for bound moisture desorption | `TIC-201`, `PIT-101A`, `PDT-102` |
+| **3. Discharge** | Powder Recovery | • Backfill vessel with sterile N2 to 950 mbar<br>• Pulse clean reverse N2 through filter `V-102`<br>• Open ball-segment valve `XV-105` | `XV-104`, `PIT-101A`, `XV-105`, `SIC-101` (slow discharge rotation) |
+| **4. Clean / SIP** | CIP Wash | • Circulate wash water & detergent<br>• Drain bottom outlet | `PKG-501`, `FT-501`, `XV-501` |
+| | SIP Sterilization (Opt.) | • Admit clean steam at 121°C<br>• Maintain 30 min sterilization dwell | `PKG-502`, `TT-503`, `PSV-501` |
+
+---
+
+## 4. Automated Phase Transition: Comparative Pressure Convergence
+
+In traditional freeze dryers, operators guess the end of primary drying using fixed timers, risking either unfinished batches or wasted machine hours.
+
+In this automated AFD architecture, the transition from **Primary Drying** to **Secondary Drying** is triggered automatically:
+1. `PIT-101A` (Capacitance Manometer) reads absolute total pressure.
+2. `PIT-101B` (Pirani Sensor) reads apparent pressure skewed high by water vapor thermal conductivity.
+3. While active sublimation occurs, `PIT-101B` exceeds `PIT-101A` by up to 60%.
+4. As sublimation nears completion, water vapor diminishes, replaced by background nitrogen bleed.
+5. When the ratio:
+   $$\Delta P = \frac{P_{\text{Pirani}} - P_{\text{Capacitance}}}{P_{\text{Capacitance}}} \le 0.05$$
+   remains true for a continuous 20-minute window, the PLC automatically transitions the batch from Primary to Secondary Drying.

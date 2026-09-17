@@ -366,14 +366,10 @@ export function ExportModal({
         </xml>
         <![endif]-->
         <style>
-          /* A4 Portrait with Duplex Spiral-Binding Margins:
-             Odd Pages: Left 28mm (79.4pt) gutter, Right 14mm (39.7pt)
-             Even Pages: Left 14mm (39.7pt), Right 28mm (79.4pt) gutter
-             Top / Bottom: 20mm (56.7pt) */
+          /* A4 Portrait with Common 20mm (56.7pt) Margins for all pages */
           @page Section1 {
             size: 595.3pt 841.9pt;
-            margin: 56.7pt 39.7pt 56.7pt 79.4pt;
-            mso-mirror-margins: 1;
+            margin: 56.7pt 56.7pt 56.7pt 56.7pt;
             mso-header-margin: 35.4pt;
             mso-footer-margin: 35.4pt;
             mso-title-page: yes;
@@ -418,7 +414,7 @@ export function ExportModal({
           <!-- Microsoft Word Running Footer with Real Word Dynamic Page Numbers -->
           <div style="mso-element:footer" id="f1">
             <p class="MsoFooter">
-              <span style="float:left;">OPEN LAB COMPENDIUM &bull; DUPLEX SPIRAL READY</span>
+              <span style="float:left;">OPEN LAB COMPENDIUM &bull; STANDARD MARGINS</span>
               <span style="float:right;">Page <span style="mso-field-code:' PAGE '"></span> of <span style="mso-field-code:' NUMPAGES '"></span></span>
             </p>
           </div>
@@ -432,7 +428,7 @@ export function ExportModal({
               ${docTitle}
             </h1>
             <div style="font-size:10pt; color:#475569;">
-              Duplex Spiral-Binding Ready (A4 • 28mm Spine Gutter • Dynamic Page Numbering • Real Formatted Tables)
+              Print-Ready Format (A4 &bull; 20mm Common Margins &bull; Dynamic Page Numbering &bull; Formatted Data Tables)
             </div>
           </div>
 
@@ -452,7 +448,7 @@ export function ExportModal({
     `;
 
     const blob = new Blob(["\ufeff" + fullWordHtml], {
-      type: "application/msword;charset=utf-8",
+      type: "application/vnd.ms-word;charset=utf-8",
     });
     const fileName = isSingle
       ? `${chapter.slug}.doc`
@@ -460,11 +456,13 @@ export function ExportModal({
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = fileName;
+    a.setAttribute("download", fileName);
     document.body.appendChild(a);
     a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 10000);
     onClose();
   };
 
@@ -493,7 +491,7 @@ ${chapter.content}
 title: "Hosokawa Active Freeze Dryer (AFD) — Technical Monograph Compendium"
 version: "1.0.0"
 chaptersCount: ${activeChapters.length}
-duplexBinding: "A4 ready (28mm gutter)"
+margins: "A4 common 20mm"
 ---
 
 # Hosokawa Active Freeze Dryer (AFD) — Technical Monograph Compendium
@@ -519,11 +517,13 @@ ${c.content}
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = fileName;
+    a.setAttribute("download", fileName);
     document.body.appendChild(a);
     a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 10000);
     onClose();
   };
 
@@ -605,11 +605,11 @@ ${c.content}
         <div className="p-3 rounded-xl bg-bg-surface/50 border border-hairline/60 text-[11px] space-y-1">
           <div className="flex items-center gap-1.5 font-bold text-amber">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Duplex Spiral-Binding Print &amp; Word Engine</span>
+            <span>Clean Standard A4 Publishing Engine</span>
           </div>
           <p className="text-ink-secondary leading-relaxed">
-            Formatted for A4 duplex printing: <strong>28mm gutter margin</strong> on the binding edge
-            (left on odd pages, right on even pages) so spiral punching never cuts into formulas or text.
+            Formatted with <strong>uniform 20mm margins</strong> on all sides across all pages for both Word and PDF,
+            ensuring consistent borders, clean reading, and proper printing.
           </p>
         </div>
 
@@ -628,7 +628,7 @@ ${c.content}
                 Print / Save as PDF
               </div>
               <p className="text-[11px] text-ink-dim leading-relaxed">
-                Pitch-black vector text with odd/even spiral gutters.
+                Pitch-black vector text with uniform 20mm margins.
               </p>
             </div>
           </button>

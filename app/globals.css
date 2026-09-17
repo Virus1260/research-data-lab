@@ -452,32 +452,12 @@ input[type="range"]::-moz-range-thumb:hover {
 }
 
 /* ──────────────────────────────────────────────
-   PRINT & DUPLEX SPIRAL-BINDING RULES (A4)
-   Odd Pages: binding margin on LEFT (28mm)
-   Even Pages: binding margin on RIGHT (28mm)
+   PRINT RULES (A4)
+   Standard balanced 20mm margins common for all pages
    ────────────────────────────────────────────── */
 @page {
   size: A4 portrait;
-  margin-top: 20mm;
-  margin-bottom: 20mm;
-}
-
-@page :left {
-  /* Verso / Even page: spiral binding on right */
-  margin-left: 14mm !important;
-  margin-right: 28mm !important;
-}
-
-@page :right {
-  /* Recto / Odd page: spiral binding on left */
-  margin-left: 28mm !important;
-  margin-right: 14mm !important;
-}
-
-@page :first {
-  /* Cover / First page */
-  margin-left: 28mm !important;
-  margin-right: 14mm !important;
+  margin: 20mm !important;
 }
 
 @media print {

@@ -188,20 +188,42 @@ export function CommandPalette({ projectSlug = "hosokawa-afd-freeze-dryer" }: { 
     },
   ];
 
-  // Listen for ⌘K / Ctrl+K
+  // Listen for Ctrl+K, /, and theme toggle shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+      const isInput =
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement ||
+        (e.target instanceof HTMLElement && e.target.isContentEditable);
+
+      // Search palette: Ctrl+K, Meta+K, or "/"
+      if (
+        ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") ||
+        (!isInput && e.key === "/")
+      ) {
         e.preventDefault();
         setIsOpen((prev) => !prev);
+        return;
       }
+
+      // Theme toggle: Ctrl+Shift+L, Alt+T, or 'T' (when not in input)
+      if (
+        (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "l") ||
+        (e.altKey && e.key.toLowerCase() === "t") ||
+        (!isInput && e.key.toLowerCase() === "t" && !e.ctrlKey && !e.metaKey && !e.altKey)
+      ) {
+        e.preventDefault();
+        toggleTheme();
+        return;
+      }
+
       if (e.key === "Escape") {
         setIsOpen(false);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [toggleTheme]);
 
   const filtered = query.trim()
     ? items.filter(
@@ -291,7 +313,7 @@ export function CommandPalette({ projectSlug = "hosokawa-afd-freeze-dryer" }: { 
             {theme === "dark" ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
             {theme === "dark" ? "Light lab" : "Dark lab"}
           </button>
-          <span>ESC to close • ⌘K anywhere</span>
+          <span>ESC to close • Ctrl+K or / anywhere • T for theme</span>
         </div>
       </div>
     </div>

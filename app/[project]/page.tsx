@@ -102,9 +102,9 @@ export default async function LabPage({ params }: { params: Promise<{ project: s
           <div className="flex items-center justify-between border-b border-hairline pb-3">
             <h2 className="text-xs font-mono uppercase tracking-widest text-ink-primary font-bold flex items-center gap-2">
               <Compass className="w-4 h-4 text-amber" />
-              <span>The Four Act Stations</span>
+              <span>The {project.acts.length} Act Stations</span>
             </h2>
-            <span className="text-xs font-mono text-ink-dim">19 Chapters Grouped by Role</span>
+            <span className="text-xs font-mono text-ink-dim">{chapters.length} Chapters Grouped by Role</span>
           </div>
 
           <div className="space-y-6">
@@ -188,7 +188,7 @@ export default async function LabPage({ params }: { params: Promise<{ project: s
             <div className="space-y-2">
               <div className="flex justify-between text-xs font-mono">
                 <span className="text-ink-dim">Research Coverage</span>
-                <span className="text-amber font-bold">19 / 19 Chapters (100%)</span>
+                <span className="text-amber font-bold">{chapters.length} / {chapters.length} Chapters (100%)</span>
               </div>
               <div className="h-2 w-full bg-bg-inset rounded-full overflow-hidden border border-hairline">
                 <div className="h-full bg-gradient-to-r from-amber to-amber-bright w-full" />
