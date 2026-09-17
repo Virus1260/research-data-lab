@@ -370,10 +370,12 @@ export function SystemArchitectureFlowChart() {
       {activeView === "tree" && treePaths.length === 6 && (
         <svg
           className="hidden md:block absolute inset-0 w-full h-full pointer-events-none z-10 overflow-visible"
+          shapeRendering="geometricPrecision"
+          style={{ transform: "translateZ(0)", willChange: "transform" }}
         >
           <defs>
             <filter id="glow-terminal" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="3.5" result="blur" />
+              <feGaussianBlur stdDeviation="3" result="blur" />
               <feMerge>
                 <feMergeNode in="blur" />
                 <feMergeNode in="SourceGraphic" />
@@ -397,6 +399,8 @@ export function SystemArchitectureFlowChart() {
                   strokeWidth={isHovered ? "3.5" : "2"}
                   strokeOpacity={isHovered ? "1" : "0.45"}
                   fill="none"
+                  vectorEffect="non-scaling-stroke"
+                  shapeRendering="geometricPrecision"
                 />
 
                 {/* 2. Animated Flowing Data Packets */}
@@ -406,6 +410,8 @@ export function SystemArchitectureFlowChart() {
                   strokeWidth="2"
                   strokeDasharray="5 9"
                   fill="none"
+                  vectorEffect="non-scaling-stroke"
+                  shapeRendering="geometricPrecision"
                   className="animate-flow-dash-slow"
                 />
 
@@ -427,6 +433,7 @@ export function SystemArchitectureFlowChart() {
                   fill="none"
                   stroke={sub.colorHex}
                   strokeWidth="1.5"
+                  shapeRendering="geometricPrecision"
                   className="animate-radar-pulse"
                 />
               </g>
@@ -439,10 +446,12 @@ export function SystemArchitectureFlowChart() {
       {activeView === "radial" && radialPaths.length === 6 && (
         <svg
           className="hidden md:block absolute inset-0 w-full h-full pointer-events-none z-10 overflow-visible"
+          shapeRendering="geometricPrecision"
+          style={{ transform: "translateZ(0)", willChange: "transform" }}
         >
           <defs>
             <filter id="glow-radial" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="3.5" result="blur" />
+              <feGaussianBlur stdDeviation="3" result="blur" />
               <feMerge>
                 <feMergeNode in="blur" />
                 <feMergeNode in="SourceGraphic" />
@@ -459,21 +468,30 @@ export function SystemArchitectureFlowChart() {
 
             return (
               <g key={`radial-wire-${sub.id}`}>
+                {/* 1. Underlying Base Wire Line */}
                 <path
                   d={pathD}
                   stroke={sub.colorHex}
                   strokeWidth={isHovered ? "3.5" : "2"}
-                  strokeOpacity={isHovered ? "1" : "0.45"}
+                  strokeOpacity={isHovered ? "0.95" : "0.45"}
                   fill="none"
+                  vectorEffect="non-scaling-stroke"
+                  shapeRendering="geometricPrecision"
                 />
+
+                {/* 2. Flowing Animated Dash Line */}
                 <path
                   d={pathD}
                   stroke={sub.colorHex}
                   strokeWidth="2"
-                  strokeDasharray="5 9"
+                  strokeDasharray="6 10"
                   fill="none"
+                  vectorEffect="non-scaling-stroke"
+                  shapeRendering="geometricPrecision"
                   className="animate-flow-dash-slow"
                 />
+
+                {/* 3. Traveling Glowing Particle Packet */}
                 <circle r="4.5" fill={sub.colorHex} filter="url(#glow-radial)">
                   <animateMotion
                     path={pathD}
@@ -481,6 +499,8 @@ export function SystemArchitectureFlowChart() {
                     repeatCount="indefinite"
                   />
                 </circle>
+
+                {/* 4. Terminal Arrival Contact Dot */}
                 <circle cx={pt.x} cy={pt.y} r={isHovered ? "5" : "4"} fill={sub.colorHex} />
                 <circle
                   cx={pt.x}
@@ -489,6 +509,7 @@ export function SystemArchitectureFlowChart() {
                   fill="none"
                   stroke={sub.colorHex}
                   strokeWidth="1.5"
+                  shapeRendering="geometricPrecision"
                   className="animate-radar-pulse"
                 />
               </g>

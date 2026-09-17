@@ -1,9 +1,21 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Search, Compass, Table, Library, Atom, Sun, Moon, Headphones, Bookmark } from "lucide-react";
+import {
+  Search,
+  Compass,
+  Table,
+  Library,
+  Atom,
+  Sun,
+  Moon,
+  Headphones,
+  Bookmark,
+  Menu,
+  X,
+} from "lucide-react";
 import { useNarrator } from "@/components/narrator/NarratorContext";
 import { useTheme } from "@/components/layout/ThemeProvider";
 
@@ -11,6 +23,12 @@ export function Header({ projectSlug = "hosokawa-afd-freeze-dryer" }: { projectS
   const pathname = usePathname();
   const { isPlaying, currentTrack, togglePlay, selectedPersona, voiceStudioOpen, setVoiceStudioOpen } = useNarrator();
   const { theme, toggleTheme } = useTheme();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Close mobile menu whenever navigation occurs
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
 
   const navLinks = [
     { href: "/", label: "Archive", icon: Atom },
@@ -25,7 +43,7 @@ export function Header({ projectSlug = "hosokawa-afd-freeze-dryer" }: { projectS
 
   return (
     <header
-      className="sticky top-0 z-40 w-full backdrop-blur-md"
+      className="sticky top-0 z-40 w-full backdrop-blur-md transition-colors duration-150"
       style={{
         backgroundColor: 'color-mix(in srgb, var(--bg-panel) 92%, transparent)',
         borderBottom: '1px solid var(--border)',
@@ -183,8 +201,85 @@ export function Header({ projectSlug = "hosokawa-afd-freeze-dryer" }: { projectS
               Ctrl+K
             </kbd>
           </button>
+
+          {/* Mobile Menu Hamburger Toggle */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden h-11 w-11 inline-flex items-center justify-center rounded-lg text-xs font-mono transition-all hover:scale-105 active:scale-95"
+            style={{
+              backgroundColor: mobileMenuOpen ? 'var(--amber-subtle)' : 'var(--bg-surface)',
+              border: `1px solid ${mobileMenuOpen ? 'color-mix(in srgb, var(--amber) 45%, transparent)' : 'var(--border)'}`,
+              color: mobileMenuOpen ? 'var(--amber)' : 'var(--ink-secondary)',
+            }}
+            aria-label="Toggle mobile menu"
+          >
+            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
         </div>
       </div>
+
+      {/* Mobile Navigation Drawer */}
+      {mobileMenuOpen && (
+        <div
+          className="md:hidden border-t px-4 py-4 space-y-3 bg-bg-panel/95 backdrop-blur-xl animate-fade-in shadow-2xl"
+          style={{ borderColor: "var(--border)" }}
+        >
+          <nav className="grid grid-cols-2 gap-2">
+            {navLinks.map((link) => {
+              const isActive =
+                pathname === link.href ||
+                (link.href !== "/" && pathname?.startsWith(link.href));
+              const Icon = link.icon;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="p-3 rounded-xl text-xs font-semibold flex items-center gap-2.5 transition-all"
+                  style={{
+                    backgroundColor: isActive ? "var(--amber-subtle)" : "var(--bg-surface)",
+                    color: isActive ? "var(--amber)" : "var(--ink-secondary)",
+                    border: `1px solid ${isActive ? "color-mix(in srgb, var(--amber) 40%, transparent)" : "var(--border)"}`,
+                  }}
+                >
+                  <Icon className="w-4 h-4 shrink-0" />
+                  <span>{link.label}</span>
+                </Link>
+              );
+            })}
+          </nav>
+
+          <div className="pt-2 border-t border-hairline flex flex-col gap-2">
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                triggerPalette();
+              }}
+              className="w-full p-2.5 rounded-xl bg-bg-surface border border-hairline text-xs font-mono text-ink-secondary flex items-center justify-between"
+            >
+              <span className="flex items-center gap-2">
+                <Search className="w-3.5 h-3.5 text-amber" />
+                <span>Search Dossier</span>
+              </span>
+              <kbd className="text-[10px] px-1.5 py-0.5 rounded bg-bg border border-border">Ctrl+K</kbd>
+            </button>
+
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                window.dispatchEvent(new KeyboardEvent("keydown", { key: "b" }));
+              }}
+              className="w-full p-2.5 rounded-xl bg-bg-surface border border-hairline text-xs font-mono text-ink-secondary flex items-center justify-between"
+            >
+              <span className="flex items-center gap-2">
+                <Bookmark className="w-3.5 h-3.5 text-amber" />
+                <span>Topic Index (Bookmarked Sections)</span>
+              </span>
+              <kbd className="text-[10px] px-1.5 py-0.5 rounded bg-bg border border-border">B</kbd>
+            </button>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

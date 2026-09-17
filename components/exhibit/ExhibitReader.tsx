@@ -866,6 +866,43 @@ export function ExhibitReader({
           </h1>
 
           <div className="h-0.5 w-full bg-gradient-to-r from-amber via-cryo to-transparent opacity-50 rounded-full" />
+
+          {/* Mobile Quick In-Page Table of Contents Dropdown */}
+          <div className="xl:hidden pt-2">
+            <button
+              onClick={() => setTocOpen(!tocOpen)}
+              className="w-full flex items-center justify-between p-3 rounded-xl bg-bg-surface border border-hairline text-xs font-mono text-ink-secondary hover:text-ink-primary transition shadow-xs"
+            >
+              <span className="flex items-center gap-2 font-bold text-amber">
+                <List className="w-4 h-4" />
+                <span>Table of Contents ({chapter.headings.length} Sections)</span>
+              </span>
+              <span className="text-[11px] font-semibold text-ink-dim">
+                {tocOpen ? "▲ Collapse" : "▼ Jump to Section"}
+              </span>
+            </button>
+            {tocOpen && (
+              <nav className="mt-2 p-3 rounded-xl bg-bg-panel border border-hairline space-y-1 animate-fade-in shadow-lg max-h-72 overflow-y-auto">
+                {chapter.headings.map((h) => (
+                  <a
+                    key={h.id}
+                    href={`#${h.id}`}
+                    onClick={() => setTocOpen(false)}
+                    className={`block text-xs leading-snug py-2 px-3 rounded-lg transition-all ${
+                      activeSection === h.id
+                        ? "bg-amber-subtle text-amber font-bold border-l-2 border-amber"
+                        : "text-ink-muted hover:text-ink-primary hover:bg-bg-hover"
+                    }`}
+                    style={{
+                      paddingLeft: h.level === 1 ? "10px" : h.level === 2 ? "16px" : "24px",
+                    }}
+                  >
+                    {h.text}
+                  </a>
+                ))}
+              </nav>
+            )}
+          </div>
         </div>
 
         {/* Chapter Markdown Content */}
@@ -873,41 +910,41 @@ export function ExhibitReader({
           {renderMarkdown(chapter.content)}
         </article>
 
-        {/* Chapter Navigation Footer */}
-        <div className="flex items-center justify-between mt-16 pt-8 border-t border-hairline">
+        {/* Chapter Navigation Footer (Fully Responsive Stack on Mobile) */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mt-16 pt-8 border-t border-hairline">
           {prevChapter ? (
             <a
               href={`/${projectSlug}/${prevChapter.slug}`}
-              className="flex items-center gap-3 p-3 rounded-xl hover:bg-bg-hover border border-hairline transition group"
+              className="flex-1 flex items-center gap-3 p-3.5 rounded-xl hover:bg-bg-hover border border-hairline transition group shadow-xs"
             >
-              <ChevronLeft className="w-5 h-5 text-ink-dim group-hover:text-amber group-hover:-translate-x-1 transition" />
-              <div>
+              <ChevronLeft className="w-5 h-5 text-ink-dim group-hover:text-amber group-hover:-translate-x-1 transition shrink-0" />
+              <div className="truncate">
                 <div className="text-[10px] font-mono uppercase tracking-widest text-ink-dim">
                   Previous Chapter
                 </div>
-                <div className="text-xs sm:text-sm font-bold text-ink-primary">
+                <div className="text-xs sm:text-sm font-bold text-ink-primary truncate">
                   {prevChapter.title}
                 </div>
               </div>
             </a>
           ) : (
-            <div />
+            <div className="hidden sm:block flex-1" />
           )}
 
           {nextChapter && (
             <a
               href={`/${projectSlug}/${nextChapter.slug}`}
-              className="flex items-center gap-3 p-3 rounded-xl hover:bg-bg-hover border border-hairline transition group text-right ml-auto"
+              className="flex-1 flex items-center justify-between sm:justify-end gap-3 p-3.5 rounded-xl hover:bg-bg-hover border border-hairline transition group text-right shadow-xs"
             >
-              <div>
+              <div className="truncate text-left sm:text-right">
                 <div className="text-[10px] font-mono uppercase tracking-widest text-ink-dim">
                   Next Chapter
                 </div>
-                <div className="text-xs sm:text-sm font-bold text-ink-primary">
+                <div className="text-xs sm:text-sm font-bold text-ink-primary truncate">
                   {nextChapter.title}
                 </div>
               </div>
-              <ChevronRight className="w-5 h-5 text-ink-dim group-hover:text-amber group-hover:translate-x-1 transition" />
+              <ChevronRight className="w-5 h-5 text-ink-dim group-hover:text-amber group-hover:translate-x-1 transition shrink-0" />
             </a>
           )}
         </div>
