@@ -35,6 +35,7 @@ export const VOICE_PERSONAS: VoicePersona[] = [
     pauseScale: 1.15,
     voiceKeywords: [
       "en-in",
+      "india",
       "neerja",
       "heera",
       "veena",
@@ -47,6 +48,7 @@ export const VOICE_PERSONAS: VoicePersona[] = [
       "google english (india)",
       "lekha",
       "sangeeta",
+      "isha",
     ],
   },
   {
@@ -62,6 +64,7 @@ export const VOICE_PERSONAS: VoicePersona[] = [
     pauseScale: 1.2,
     voiceKeywords: [
       "en-in",
+      "india",
       "prabhat",
       "rishi",
       "english (india)",
@@ -157,11 +160,10 @@ export interface SpeechChunk {
 export function humanizeEngineeringText(raw: string): string {
   let t = raw;
 
-  // Clean markdown links, images, tables
+  // Clean markdown links, images, code
   t = t.replace(/!\[.*?\]\(.*?\)/g, "");
   t = t.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1");
-  t = t.replace(/```[\s\S]*?```/g, ""); // Code blocks handled separately
-  t = t.replace(/^\|.*\|$/gm, ""); // Remove raw markdown tables
+  t = t.replace(/```[\s\S]*?```/g, "");
 
   // Phonetic expansions
   const substitutions: [RegExp, string][] = [
@@ -186,8 +188,17 @@ export function humanizeEngineeringText(raw: string): string {
     [/\bCh(?:apter)?\s*17\b/gi, "Chapter Seventeen"],
     [/\bCh(?:apter)?\s*18\b/gi, "Chapter Eighteen"],
     [/\bCh(?:apter)?\s*19\b/gi, "Chapter Nineteen"],
-    [/\b0([1-9])\b/g, "$1"], // Convert isolated '03' to '3'
 
+    // Convert isolated leading zeroes in whole integers without distorting decimals (e.g., Chapter 03 -> 3, but 0.04 remains 0.04)
+    [/(?<!\.)\b0([1-9])\b(?!\.\d)/g, "$1"],
+
+    // Standard abbreviations expanded into spoken language
+    [/\bvs\.?(?=[,\s]|$)/gi, " versus "],
+    [/\bapprox\.(?=[,\s]|$)/gi, " approximately "],
+    [/\bi\.e\.(?=[,\s]|$)/gi, " that is to say, "],
+    [/\be\.g\.(?=[,\s]|$)/gi, " for example, "],
+
+    // Industry & Engineering Acronyms
     [/\bAFD\b/g, "A-F-D"],
     [/\bTCU\b/g, "T-C-U"],
     [/\bCIP\/SIP\b/g, "C-I-P and S-I-P"],
@@ -206,7 +217,7 @@ export function humanizeEngineeringText(raw: string): string {
     [/\bSCADA\b/g, "SCADA"],
     [/\bRTD\b/g, "R-T-D"],
 
-    // Scientific Units
+    // Scientific Units & Measurement
     [/(\d+(?:\.\d+)?)\s*mbar\b/gi, "$1 millibars"],
     [/\bmbar\b/gi, "millibars"],
     [/(\d+(?:\.\d+)?)\s*Torr\b/gi, "$1 Torr"],
@@ -217,12 +228,12 @@ export function humanizeEngineeringText(raw: string): string {
     [/(\d+(?:\.\d+)?)\s*W\/m²·K\b/g, "$1 Watts per square meter Kelvin"],
     [/(\d+(?:\.\d+)?)\s*kg\/h\b/g, "$1 kilograms per hour"],
     [/(\d+(?:\.\d+)?)\s*kg\/s\b/g, "$1 kilograms per second"],
-    [/−(\d+)\s*°C/g, "minus $1 degrees Celsius"],
-    [/-(\d+)\s*°C/g, "minus $1 degrees Celsius"],
-    [/(\d+)\s*°C/g, "$1 degrees Celsius"],
-    [/(\d+)\s*K\b/g, "$1 Kelvin"],
+    [/−(\d+(?:\.\d+)?)\s*°C/g, "minus $1 degrees Celsius"],
+    [/-(\d+(?:\.\d+)?)\s*°C/g, "minus $1 degrees Celsius"],
+    [/(\d+(?:\.\d+)?)\s*°C/g, "$1 degrees Celsius"],
+    [/(\d+(?:\.\d+)?)\s*K\b/g, "$1 Kelvin"],
 
-    // Math Formulas
+    // Math Formulas & Relational Symbols
     [/dP\/dT = L \/ \(T·Δv\)/g, "d P by d T equals L divided by T times delta v"],
     [/Q = Kv · Av · \(Ts − Tb\)/g, "Q equals K v times A v times T s minus T b"],
     [/dm\/dt = Q \/ ΔHs/g, "d m by d t equals Q divided by delta H s"],
@@ -253,21 +264,155 @@ export function humanizeEngineeringText(raw: string): string {
 }
 
 /**
- * Splits text into human cadence chunks with breathing pauses
+ * Cleans individual table cell contents for conversational speech synthesis.
+ */
+function cleanTableCell(raw: string): string {
+  return raw
+    .replace(/<br\s*\/?>/gi, ", ")
+    .replace(/•\s*/g, "")
+    .replace(/\$([^$]+)\$/g, "$1")
+    .replace(/[`*]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * Algorithmic generator transforming grid cells into relational speech scripts
+ * following the Dynamic Relational Audio Translation (DRAT) pattern.
+ */
+function convertTableRowsToSpeechScript(rows: string[][]): string {
+  if (!rows || rows.length < 2) return "";
+  const headers = rows[0].map(cleanTableCell);
+  const dataRows = rows.slice(1);
+
+  if (headers.length < 2 || dataRows.length === 0) return "";
+
+  const paramColumnName = headers[0];
+  const dataColumns = headers.slice(1);
+
+  // Introductory anchoring script construction
+  let script = `Reviewing the comparative data for ${paramColumnName} across `;
+  if (dataColumns.length === 1) {
+    script += `${dataColumns[0]}: \n`;
+  } else if (dataColumns.length === 2) {
+    script += `${dataColumns[0]} and ${dataColumns[1]}: \n`;
+  } else {
+    script += `${dataColumns.slice(0, -1).join(", ")}, and ${dataColumns[dataColumns.length - 1]}: \n`;
+  }
+
+  // Row by row relational iteration
+  dataRows.forEach((rawRow, index) => {
+    const row = rawRow.map(cleanTableCell);
+    if (row.length < headers.length) return; // Skip malformed rows
+
+    const parameter = row[0];
+    const values = row.slice(1);
+
+    // Choose appropriate conversational index transitions
+    const transition =
+      index === 0
+        ? "For "
+        : index === dataRows.length - 1
+        ? "Finally, for "
+        : "Next, looking at ";
+
+    script += transition + `**${parameter}**: `;
+
+    if (dataColumns.length === 1) {
+      script += `${dataColumns[0]} is ${values[0]}. \n`;
+    } else if (dataColumns.length === 2) {
+      // Clean relational two-column framework
+      script += `${dataColumns[0]} is ${values[0]}, while ${dataColumns[1]} is ${values[1]}. \n`;
+    } else {
+      // Sequenced scale framework for multi-column structures
+      const details = dataColumns.map((col, vIdx) => `${col} is ${values[vIdx]}`);
+      script += `${details.slice(0, -1).join("; ")}; and ${details[details.length - 1]}. \n`;
+    }
+  });
+
+  return script;
+}
+
+/**
+ * Parses raw markdown table blocks into highly descriptive, comparative sentences
+ * using the Dynamic Relational Audio Translation (DRAT) pattern.
+ */
+export function preProcessTablesToConversationalText(markdownText: string): string {
+  const lines = markdownText.split("\n");
+  const processedLines: string[] = [];
+
+  let inTable = false;
+  let tableRows: string[][] = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+
+    // Detect markdown table rows
+    if (line.startsWith("|")) {
+      if (!inTable) {
+        inTable = true;
+        tableRows = [];
+      }
+
+      // Parse cells and filter out empty edge tokens from split
+      const cells = line
+        .split("|")
+        .map((c) => c.trim())
+        .filter((_, idx, arr) => idx > 0 && idx < arr.length - 1);
+
+      // Skip markdown separator lines (e.g., | :--- | :--- | or |---|---|)
+      const isSeparator = cells.every((cell) => /^:?-+:?$/.test(cell));
+      if (!isSeparator && cells.length > 0) {
+        tableRows.push(cells);
+      }
+      continue;
+    }
+
+    // If we were inside a table block and it just ended
+    if (inTable && !line.startsWith("|")) {
+      inTable = false;
+      if (tableRows.length > 1) {
+        processedLines.push(convertTableRowsToSpeechScript(tableRows));
+      }
+      tableRows = [];
+    }
+
+    // Keep non-table lines as they are
+    if (!inTable) {
+      processedLines.push(lines[i]);
+    }
+  }
+
+  // Handle case where table ends at the very last line of the string
+  if (inTable && tableRows.length > 1) {
+    processedLines.push(convertTableRowsToSpeechScript(tableRows));
+  }
+
+  return processedLines.join("\n");
+}
+
+/**
+ * Splits text into human cadence chunks with breathing pauses,
+ * utilizing lookahead regex to preserve decimal numbers without mid-digit truncation.
  */
 export function chunkTextForHumanSpeech(
   markdownText: string,
   pauseScale: number = 1.0
 ): SpeechChunk[] {
-  const lines = markdownText.split("\n");
+  // Pre-process and translate tables into relational conversational text before chunking
+  const preProcessedText = preProcessTablesToConversationalText(markdownText);
+  const lines = preProcessedText.split("\n");
   const chunks: SpeechChunk[] = [];
+
+  // Lookahead Regex Pattern to preserve decimal numbers and multi-period sequences
+  const sentenceRegex = /(?:[^.!?]|\.(?=\d)|\.{2,})+(?:[.!?]+(?:\s+|$)|$)/g;
 
   for (const rawLine of lines) {
     const line = rawLine.trim();
     if (!line) continue;
 
-    // Skip tables and diagrams
-    if (line.startsWith("|") || line.startsWith("```") || line.startsWith("![") || line.startsWith("<")) {
+    // Skip code blocks, raw image tags, and JSX components
+    if (line.startsWith("```") || line.startsWith("![") || line.startsWith("<")) {
       continue;
     }
 
@@ -325,10 +470,10 @@ export function chunkTextForHumanSpeech(
       continue;
     }
 
-    // Regular paragraphs -> split into individual sentences for natural cadence
-    const rawSentences = line.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [line];
+    // Regular paragraphs -> split into individual sentences using decimal-safe lookahead
+    const rawSentences = line.match(sentenceRegex) || [line];
     const cleanedParagraph = humanizeEngineeringText(line);
-    const sentences = cleanedParagraph.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [cleanedParagraph];
+    const sentences = cleanedParagraph.match(sentenceRegex) || [cleanedParagraph];
 
     for (let sIdx = 0; sIdx < sentences.length; sIdx++) {
       const s = sentences[sIdx].trim();
@@ -353,6 +498,44 @@ export function chunkTextForHumanSpeech(
 }
 
 /**
+ * INTELLIGENT SELECTION BOUNDARY SYNC UTILITY
+ * Locates the index of the SpeechChunk that naturally starts the sentence containing the user's selected text.
+ * Ensures narrator resumes cleanly from the beginning of the sentence rather than mid-word.
+ */
+export function findHumanizedSyncChunkIndex(
+  chunks: SpeechChunk[],
+  selectedText: string,
+  fullTextContext?: string
+): number {
+  const cleanSelection = selectedText.trim();
+  if (!cleanSelection || chunks.length === 0) return 0;
+
+  // 1. Precise Match Strategy: Check if selection maps directly inside an active chunk string
+  for (let i = 0; i < chunks.length; i++) {
+    if (chunks[i].rawText.includes(cleanSelection) || chunks[i].text.includes(cleanSelection)) {
+      return i;
+    }
+  }
+
+  // 2. Fuzzy Context Boundary Strategy: Walk back to the natural beginning of the sentence string
+  let bestMatchIndex = 0;
+  let highestFuzzyScore = 0;
+  const selectionWords = cleanSelection.toLowerCase().split(/\s+/).filter(Boolean);
+
+  for (let i = 0; i < chunks.length; i++) {
+    const chunkWords = chunks[i].text.toLowerCase().split(/\s+/);
+    // Count overlapping word signatures
+    const intersection = chunkWords.filter((word) => selectionWords.includes(word));
+    if (intersection.length > highestFuzzyScore) {
+      highestFuzzyScore = intersection.length;
+      bestMatchIndex = i;
+    }
+  }
+
+  return bestMatchIndex;
+}
+
+/**
  * Finds the highest-fidelity natural voice in browser's SpeechSynthesis matching persona
  */
 export function matchBrowserVoice(
@@ -366,14 +549,7 @@ export function matchBrowserVoice(
     const lang = v.lang.toLowerCase();
     const name = v.name.toLowerCase();
     return (
-      (lang.startsWith("en") ||
-        name.includes("english") ||
-        name.includes("india") ||
-        name.includes("neerja") ||
-        name.includes("heera") ||
-        name.includes("veena") ||
-        name.includes("prabhat") ||
-        name.includes("rishi")) &&
+      (lang.startsWith("en") || name.includes("english") || name.includes("india")) &&
       !lang.startsWith("hi") &&
       !name.includes("hindi") &&
       !name.includes("हिन्दी")
@@ -412,20 +588,21 @@ export function matchBrowserVoice(
       return (
         name.includes("female") ||
         name.includes("woman") ||
+        name.includes("neerja") ||
+        name.includes("isha") ||
         name.includes("zira") ||
         name.includes("aria") ||
-        name.includes("neerja") ||
-        name.includes("heera") ||
-        name.includes("veena")
+        name.includes("veena") ||
+        name.includes("heera")
       );
     } else {
       return (
         name.includes("male") ||
         name.includes("man") ||
-        name.includes("david") ||
-        name.includes("guy") ||
         name.includes("prabhat") ||
-        name.includes("rishi")
+        name.includes("rishi") ||
+        name.includes("david") ||
+        name.includes("guy")
       );
     }
   });
