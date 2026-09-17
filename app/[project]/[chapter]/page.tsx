@@ -66,6 +66,7 @@ export default async function ChapterPage({ params }: PageProps) {
         nextChapter={nextChapter}
         audioUrl={audioUrl}
         manifest={audioManifest}
+        allChapters={allChapters}
       />
     </div>
   );

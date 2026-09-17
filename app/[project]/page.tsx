@@ -2,7 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getProjectBySlug, getProjectChapters } from "@/lib/content";
-import { LawEquationsPlayground } from "@/components/exhibit/LawEquationsPlayground";
+import { MonographExportButton } from "@/components/exhibit/MonographExportButton";
 import {
   Compass,
   ArrowRight,
@@ -14,8 +14,8 @@ import {
   ShieldCheck,
   ChevronRight,
   Layers,
-  Activity,
   CheckCircle2,
+  Download,
 } from "lucide-react";
 
 export const dynamic = 'force-dynamic';
@@ -61,7 +61,7 @@ export default async function LabPage({ params }: { params: Promise<{ project: s
             where product is frozen and dried while being continuously stirred, discharging as loose powder instead of vial cakes.
           </h1>
 
-          <div className="flex flex-wrap items-center gap-4 pt-2">
+          <div className="flex flex-wrap items-center gap-3.5 pt-2">
             <Link
               href={`/${project.slug}/03-hosokawa-afd-vs-generic-lyophilizers`}
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber hover:bg-amber-bright text-[#0e0a02] font-black text-xs uppercase tracking-wider transition shadow-lg shadow-amber/30 hover:scale-105 active:scale-95 border border-amber/40"
@@ -70,12 +70,18 @@ export default async function LabPage({ params }: { params: Promise<{ project: s
               <ArrowRight className="w-4 h-4" />
             </Link>
 
+            <MonographExportButton
+              chapters={chapters}
+              projectSlug={project.slug}
+              variant="hero"
+            />
+
             <Link
               href={`/${project.slug}/bom`}
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-bg-hover border border-hairline text-ink-primary font-mono text-xs hover:bg-bg-hover transition"
             >
               <Table className="w-3.5 h-3.5 text-cryo" />
-              <span>Explore 74-Part BOM</span>
+              <span>74-Part BOM</span>
             </Link>
 
             <Link
@@ -109,52 +115,49 @@ export default async function LabPage({ params }: { params: Promise<{ project: s
               >
                 {/* Act Header */}
                 <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="w-5 h-5 rounded-md bg-amber-subtle text-amber text-xs font-mono font-bold flex items-center justify-center">
-                        {act.roman}
-                      </span>
-                      <h3 className="text-lg font-bold text-ink-primary">
-                        Act {act.roman}. {act.name}
-                      </h3>
+                  <div>
+                    <div className="text-[10px] font-mono uppercase tracking-widest text-amber font-bold mb-1">
+                      Act Station
                     </div>
-                    <p className="text-xs text-ink-muted">{act.description}</p>
+                    <h3 className="text-lg font-bold text-ink-primary flex items-center gap-2">
+                      <span className="font-mono text-amber">{act.roman}</span>
+                      <span>{act.name}</span>
+                    </h3>
+                    <p className="text-xs text-ink-secondary mt-1 max-w-xl">
+                      {act.description}
+                    </p>
                   </div>
-                  <span className="text-[11px] font-mono text-ink-dim bg-bg-hover px-2.5 py-1 rounded-md">
+                  <div className="px-2.5 py-1 rounded-full bg-bg-inset border border-hairline text-[10px] font-mono text-ink-dim">
                     {act.chapters.length} Chapters
-                  </span>
+                  </div>
                 </div>
 
-                {/* Chapters in this Act */}
+                {/* Chapters List */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                   {act.chapters.map((chSlug) => {
-                    const ch = chapterMap.get(chSlug);
-                    if (!ch) return null;
-                    const hasSims = ch.simulators && ch.simulators.length > 0;
-
+                    const chapter = chapterMap.get(chSlug);
+                    if (!chapter) return null;
                     return (
                       <Link
-                        key={ch.slug}
-                        href={`/${project.slug}/${ch.slug}`}
-                        className="group/item p-3 rounded-xl bg-bg-inset border border-hairline hover:border-amber/40 transition flex flex-col justify-between"
+                        key={chapter.slug}
+                        href={`/${project.slug}/${chapter.slug}`}
+                        className="group p-4 rounded-xl bg-bg-surface hover:bg-bg-hover border border-hairline hover:border-amber/40 transition flex flex-col justify-between space-y-3"
                       >
-                        <div>
-                          <div className="flex items-center justify-between text-[10px] font-mono text-ink-dim mb-1">
-                            <span className="text-amber font-bold">CH {ch.chapterNumber}</span>
-                            <span>{ch.readTime}</span>
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between text-[10px] font-mono text-ink-dim">
+                            <span className="text-amber font-semibold">CH {chapter.chapterNumber}</span>
+                            <span>{chapter.readTime}</span>
                           </div>
-                          <h4 className="text-xs font-semibold text-ink-secondary group-hover/item:text-ink-primary transition line-clamp-2">
-                            {ch.title}
+                          <h4 className="text-xs font-bold text-ink-primary group-hover:text-amber-bright transition leading-snug">
+                            {chapter.title}
                           </h4>
                         </div>
-
-                        {/* Simulator indicator badge */}
-                        {hasSims && (
-                          <div className="mt-3 pt-2 border-t border-hairline flex items-center gap-1.5 text-[10px] font-mono text-cryo">
-                            <Cpu className="w-3 h-3" />
-                            <span>{ch.simulators.length} Interactive Simulator{ch.simulators.length > 1 ? "s" : ""}</span>
-                          </div>
-                        )}
+                        <div className="flex items-center justify-between pt-2 border-t border-hairline/50 text-[10px] text-ink-dim font-mono">
+                          <span className="group-hover:text-ink-secondary transition flex items-center gap-1">
+                            Read chapter
+                          </span>
+                          <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition text-amber" />
+                        </div>
                       </Link>
                     );
                   })}
@@ -164,41 +167,42 @@ export default async function LabPage({ params }: { params: Promise<{ project: s
           </div>
         </div>
 
-        {/* Persistent Right-Edge Instrument Rail (4 cols) */}
+        {/* Lab Intelligence Progress Rail (Right 4 cols) */}
         <div className="lg:col-span-4 space-y-6">
-          <div className="sticky top-20 rounded-2xl bg-bg-panel border border-hairline p-5 space-y-6 shadow-xl">
+          <div className="rounded-2xl bg-bg-panel border border-hairline p-6 shadow-lg space-y-6">
             <div className="flex items-center justify-between border-b border-hairline pb-3">
-              <div className="flex items-center gap-2">
-                <Activity className="w-4 h-4 text-cryo animate-pulse" />
-                <h3 className="text-xs font-mono uppercase tracking-widest text-ink-primary font-bold">
-                  Instrument Rail
-                </h3>
-              </div>
-              <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                SYSTEM ONLINE
-              </span>
+              <h3 className="text-xs font-mono uppercase tracking-widest text-ink-primary font-bold">
+                Project Dashboard
+              </h3>
+              <div className="w-2 h-2 rounded-full bg-cryo animate-ping" />
             </div>
 
-            {/* Progress Status Gauges */}
-            <div className="space-y-4">
-              <div>
-                <div className="flex justify-between text-xs font-mono mb-1.5">
-                  <span className="text-ink-secondary">Research Coverage</span>
-                  <span className="text-amber-bright font-bold">19 / 19 Chapters (100%)</span>
-                </div>
-                <div className="h-1.5 w-full bg-bg-hover rounded-full overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-amber to-amber-bright w-full" />
-                </div>
-              </div>
+            {/* Quick Monograph Download / Print Widget */}
+            <MonographExportButton
+              chapters={chapters}
+              projectSlug={project.slug}
+              variant="sidebar"
+            />
 
-              <div>
-                <div className="flex justify-between text-xs font-mono mb-1.5">
-                  <span className="text-ink-secondary">Physics Simulators</span>
-                  <span className="text-cryo font-bold">8 Operational</span>
-                </div>
-                <div className="h-1.5 w-full bg-bg-hover rounded-full overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-cyan-500 to-cryo w-full" />
-                </div>
+            {/* Coverage Meter */}
+            <div className="space-y-2">
+              <div className="flex justify-between text-xs font-mono">
+                <span className="text-ink-dim">Research Coverage</span>
+                <span className="text-amber font-bold">19 / 19 Chapters (100%)</span>
+              </div>
+              <div className="h-2 w-full bg-bg-inset rounded-full overflow-hidden border border-hairline">
+                <div className="h-full bg-gradient-to-r from-amber to-amber-bright w-full" />
+              </div>
+            </div>
+
+            {/* Simulators Active */}
+            <div className="space-y-2">
+              <div className="flex justify-between text-xs font-mono">
+                <span className="text-ink-dim">Physics Simulators</span>
+                <span className="text-cryo font-bold">8 Operational</span>
+              </div>
+              <div className="h-2 w-full bg-bg-inset rounded-full overflow-hidden border border-hairline">
+                <div className="h-full bg-gradient-to-r from-cyan-500 to-cryo w-full" />
               </div>
             </div>
 
@@ -218,14 +222,14 @@ export default async function LabPage({ params }: { params: Promise<{ project: s
               </Link>
 
               <Link
-                href={`/${project.slug}/02-physics-and-thermodynamics`}
+                href={`/${project.slug}/lab`}
                 className="p-3 rounded-xl bg-bg-inset border border-hairline hover:border-cryo/30 transition flex items-center justify-between group"
               >
                 <div>
                   <div className="text-xs font-bold text-ink-primary group-hover:text-cryo transition">
-                    Phase Diagram Plotter
+                    Phase Diagram Plotter &amp; Lab
                   </div>
-                  <div className="text-[10px] text-ink-dim font-mono">Clausius–Clapeyron curves</div>
+                  <div className="text-[10px] text-ink-dim font-mono">Interactive Clausius–Clapeyron curves</div>
                 </div>
                 <ChevronRight className="w-4 h-4 text-ink-dim group-hover:text-cryo transition" />
               </Link>
@@ -243,18 +247,6 @@ export default async function LabPage({ params }: { params: Promise<{ project: s
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Live Law Equations Playground */}
-      <div className="mt-16 mb-8">
-        <div className="flex items-center justify-between mb-6" style={{ borderBottom: '1px solid var(--border)', paddingBottom: '0.75rem' }}>
-          <h2 className="text-xs font-mono uppercase tracking-widest font-bold flex items-center gap-2" style={{ color: 'var(--ink-primary)' }}>
-            <Activity className="w-4 h-4" style={{ color: 'var(--cryo)' }} />
-            <span>Live Physics Playground</span>
-          </h2>
-          <span className="text-xs font-mono" style={{ color: 'var(--ink-dim)' }}>4 interactive law equations</span>
-        </div>
-        <LawEquationsPlayground />
       </div>
     </div>
   );

@@ -28,6 +28,7 @@ interface ExhibitReaderProps {
   nextChapter?: ChapterMeta | null;
   audioUrl?: string | null;
   manifest?: AudioManifest | null;
+  allChapters?: ChapterMeta[];
 }
 
 /**
@@ -135,6 +136,7 @@ export function ExhibitReader({
   nextChapter,
   audioUrl,
   manifest,
+  allChapters = [],
 }: ExhibitReaderProps) {
   const [mounted, setMounted] = useState(false);
   const {
@@ -733,52 +735,6 @@ export function ExhibitReader({
             ))}
           </nav>
         )}
-
-        {/* Narration & Export Buttons in TOC */}
-        <div className="mt-auto pb-6 space-y-2">
-          <div className="h-px mb-4 bg-hairline" />
-          <button
-            onClick={handlePlayNarration}
-            className={`w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all shadow-sm ${
-              isThisPlaying
-                ? "bg-amber text-on-amber shadow-amber-glow animate-pulse"
-                : "bg-bg-surface hover:bg-bg-hover text-ink-primary border border-hairline"
-            }`}
-          >
-            {isThisPlaying ? (
-              <>
-                <VolumeX className="w-4 h-4" />
-                <span>Pause Narration</span>
-              </>
-            ) : (
-              <>
-                <Volume2 className="w-4 h-4 text-amber" />
-                <span>{audioUrl ? "Listen to Audio" : "Listen (AI Voice)"}</span>
-              </>
-            )}
-          </button>
-
-          <button
-            onClick={() => setVoiceStudioOpen(!voiceStudioOpen)}
-            className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] font-mono text-ink-secondary hover:text-ink-primary bg-bg-surface hover:bg-bg-hover border border-hairline transition"
-            title="Configure human narrator persona and pacing"
-          >
-            <span className="flex items-center gap-1.5 truncate">
-              <span>{selectedPersona.avatar}</span>
-              <span className="truncate">{selectedPersona.name.split(" ")[0]} ({selectedPersona.accent})</span>
-            </span>
-            <Sliders className="w-3 h-3 text-amber shrink-0 ml-1" />
-          </button>
-
-          <button
-            onClick={() => setExportOpen(true)}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-mono text-ink-primary bg-bg-surface hover:bg-bg-hover border border-hairline transition shadow-xs"
-            title="Export / Print Chapter (PDF, Word, Markdown)"
-          >
-            <Download className="w-3.5 h-3.5 text-amber" />
-            <span>Export / Print</span>
-          </button>
-        </div>
       </aside>
 
       {/* Main Chapter Content */}
@@ -795,29 +751,19 @@ export function ExhibitReader({
               </span>
             </div>
 
+            {/* Single canonical action group: Export & Listen */}
             <div className="flex items-center gap-2">
               {/* Export / Print Button */}
               <button
                 onClick={() => setExportOpen(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-mono bg-bg-panel hover:bg-bg-hover text-ink-primary border border-hairline transition shadow-sm"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-mono bg-bg-panel hover:bg-bg-hover text-ink-primary border border-hairline transition shadow-sm hover:border-amber/40"
                 title="Export or Print this chapter (PDF, Word, Markdown)"
               >
                 <Download className="w-3.5 h-3.5 text-amber" />
-                <span className="font-semibold hidden sm:inline">Export</span>
+                <span className="font-semibold">Export / Print</span>
               </button>
 
-              {/* Voice Persona Selector */}
-              <button
-                onClick={() => setVoiceStudioOpen(!voiceStudioOpen)}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-mono bg-bg-panel hover:bg-bg-hover text-ink-primary border border-hairline transition shadow-sm"
-                title={`Narrator: ${selectedPersona.name} (${selectedPersona.accent}) - Click to customize`}
-              >
-                <span>{selectedPersona.avatar}</span>
-                <span className="font-semibold hidden sm:inline">{selectedPersona.name.split(" ")[0]}</span>
-                <Sliders className="w-3.5 h-3.5 text-amber" />
-              </button>
-
-              {/* Top Listen Button */}
+              {/* Listen Button */}
               <button
                 onClick={handlePlayNarration}
                 className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md ${
@@ -827,7 +773,7 @@ export function ExhibitReader({
                 }`}
               >
                 {isThisPlaying ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4 text-amber" />}
-                <span>{isThisPlaying ? "Narration Playing" : audioUrl ? "Listen (Studio Audio)" : "Listen (Neural AI Voice)"}</span>
+                <span>{isThisPlaying ? "Narration Playing" : audioUrl ? "Listen (Studio Audio)" : "Listen (AI Voice)"}</span>
               </button>
             </div>
           </div>
@@ -888,6 +834,7 @@ export function ExhibitReader({
           isOpen={exportOpen}
           onClose={() => setExportOpen(false)}
           chapter={chapter}
+          allChapters={allChapters}
           projectSlug={projectSlug}
         />
       </main>

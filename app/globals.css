@@ -452,10 +452,42 @@ input[type="range"]::-moz-range-thumb:hover {
 }
 
 /* ──────────────────────────────────────────────
-   PRINT & MONOGRAPH PUBLISHING RULES
-   Clean, paper-ready black-on-white formatting
+   PRINT & DUPLEX SPIRAL-BINDING RULES (A4)
+   Odd Pages: binding margin on LEFT (28mm)
+   Even Pages: binding margin on RIGHT (28mm)
    ────────────────────────────────────────────── */
+@page {
+  size: A4 portrait;
+  margin-top: 20mm;
+  margin-bottom: 20mm;
+}
+
+@page :left {
+  /* Verso / Even page: spiral binding on right */
+  margin-left: 14mm !important;
+  margin-right: 28mm !important;
+}
+
+@page :right {
+  /* Recto / Odd page: spiral binding on left */
+  margin-left: 28mm !important;
+  margin-right: 14mm !important;
+}
+
+@page :first {
+  /* Cover / First page */
+  margin-left: 28mm !important;
+  margin-right: 14mm !important;
+}
+
 @media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  /* Hide interactive non-print elements */
   header,
   aside,
   nav,
@@ -463,41 +495,94 @@ input[type="range"]::-moz-range-thumb:hover {
   [aria-label="Audio narration controls"],
   .narrator-deck,
   button,
-  .command-palette {
+  .command-palette,
+  #master-bookmark-drawer {
     display: none !important;
   }
 
   body,
   main,
-  article {
+  article,
+  .chapter-body {
     background: #ffffff !important;
     color: #000000 !important;
-    font-size: 11pt !important;
-    line-height: 1.55 !important;
+    font-size: 10.5pt !important;
+    line-height: 1.6 !important;
     max-width: 100% !important;
     padding: 0 !important;
     margin: 0 !important;
+    float: none !important;
+  }
+
+  /* Ensure rich pitch-black crisp readability - NEVER faded */
+  .chapter-body,
+  .chapter-body *,
+  article,
+  article *,
+  p,
+  li,
+  td,
+  th,
+  div,
+  span {
+    color: #000000 !important;
+    -webkit-text-fill-color: #000000 !important;
+    text-shadow: none !important;
+    opacity: 1 !important;
+  }
+
+  p {
+    margin-bottom: 10pt !important;
+    font-size: 10.5pt !important;
+  }
+
+  li {
+    font-size: 10.5pt !important;
+    margin-bottom: 4pt !important;
   }
 
   h1, h2, h3, h4 {
     color: #000000 !important;
     page-break-after: avoid !important;
-    font-weight: 700 !important;
+    break-after: avoid !important;
+    font-weight: 800 !important;
   }
 
-  h1 { font-size: 20pt !important; margin-bottom: 12pt !important; }
-  h2 { font-size: 15pt !important; margin-top: 18pt !important; margin-bottom: 8pt !important; border-bottom: 1px solid #ddd !important; padding-bottom: 4pt !important; }
-  h3 { font-size: 12pt !important; margin-top: 14pt !important; }
+  h1 {
+    font-size: 24pt !important;
+    line-height: 1.2 !important;
+    margin-top: 10pt !important;
+    margin-bottom: 14pt !important;
+    border-bottom: 2pt solid #000000 !important;
+    padding-bottom: 6pt !important;
+  }
+
+  h2 {
+    font-size: 16pt !important;
+    line-height: 1.3 !important;
+    margin-top: 20pt !important;
+    margin-bottom: 8pt !important;
+    border-bottom: 1pt solid #444444 !important;
+    padding-bottom: 4pt !important;
+  }
+
+  h3 {
+    font-size: 13pt !important;
+    margin-top: 14pt !important;
+    margin-bottom: 6pt !important;
+    color: #1a1a1a !important;
+  }
 
   table {
     border-collapse: collapse !important;
     width: 100% !important;
-    margin: 12pt 0 !important;
+    margin: 14pt 0 !important;
     page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
   th, td {
-    border: 1px solid #444444 !important;
+    border: 1pt solid #333333 !important;
     padding: 6pt 8pt !important;
     color: #000000 !important;
     font-size: 9.5pt !important;
@@ -505,12 +590,31 @@ input[type="range"]::-moz-range-thumb:hover {
 
   th {
     background-color: #f0f0f0 !important;
-    font-weight: bold !important;
+    font-weight: 700 !important;
+  }
+
+  blockquote {
+    border-left: 3.5pt solid #c68410 !important;
+    background-color: #f9f7f2 !important;
+    padding: 8pt 12pt !important;
+    margin: 12pt 0 !important;
+    font-style: italic !important;
+    color: #111111 !important;
+    page-break-inside: avoid !important;
+  }
+
+  code, pre {
+    font-family: 'Consolas', 'Courier New', monospace !important;
+    background-color: #f4f4f4 !important;
+    color: #000000 !important;
+    font-size: 9pt !important;
   }
 
   .katex-display {
     page-break-inside: avoid !important;
-    margin: 10pt 0 !important;
+    break-inside: avoid !important;
+    margin: 12pt 0 !important;
+    color: #000000 !important;
   }
 
   a {
@@ -522,7 +626,12 @@ input[type="range"]::-moz-range-thumb:hover {
     content: " (" attr(href) ")";
     font-size: 8pt;
     font-family: monospace;
-    opacity: 0.8;
+    opacity: 0.85;
+  }
+
+  .chapter-page-break {
+    page-break-before: always !important;
+    break-before: page !important;
   }
 }
 
