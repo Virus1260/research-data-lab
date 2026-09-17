@@ -13,6 +13,7 @@ import {
 import { getPersonaPitchHz } from "./RealtimeVoiceGraph";
 
 export type PacingMode = "academic" | "conversational" | "brisk";
+export type SpeechEngine = "neural" | "webspeech";
 
 interface NarratorContextType {
   isPlaying: boolean;
@@ -33,8 +34,11 @@ interface NarratorContextType {
   voiceStudioOpen: boolean;
   selectedPersona: VoicePersona;
   pacingMode: PacingMode;
+  speechEngine: SpeechEngine;
+  vocalWarmth: number; // in dB (-6 to +6)
+  vocalClarity: number; // in dB (-6 to +6)
   audioLevel: number; // 0 - 100 for live audio visualizer
-  frequencyBands: number[]; // 14 live formant spectral frequency bands
+  frequencyBands: number[]; // 16 live formant spectral frequency bands
   livePitchHz: number;
   activeSpokenPhrase: string;
   availableVoices: SpeechSynthesisVoice[];
@@ -57,6 +61,9 @@ interface NarratorContextType {
   setVoiceStudioOpen: (open: boolean) => void;
   setSelectedPersona: (p: VoicePersona) => void;
   setPacingMode: (mode: PacingMode) => void;
+  setSpeechEngine: (engine: SpeechEngine) => void;
+  setVocalWarmth: (db: number) => void;
+  setVocalClarity: (db: number) => void;
   previewPersona: (p: VoicePersona) => void;
   syncToSelection: (overrideText?: string) => boolean;
 }
@@ -82,14 +89,24 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
   const [voiceStudioOpen, setVoiceStudioOpen] = useState(false);
   const [selectedPersona, setSelectedPersona] = useState<VoicePersona>(VOICE_PERSONAS[0]); // Default to Dr. Ananya Sharma
   const [pacingMode, setPacingMode] = useState<PacingMode>("academic");
+  const [speechEngine, setSpeechEngineState] = useState<SpeechEngine>("neural"); // Default to Ultra HD Edge Neural
+  const [vocalWarmth, setVocalWarmthState] = useState<number>(2.0); // +2.0 dB Low-shelf warmth
+  const [vocalClarity, setVocalClarityState] = useState<number>(1.8); // +1.8 dB High-shelf clarity
   const [audioLevel, setAudioLevel] = useState(0);
-  const [frequencyBands, setFrequencyBands] = useState<number[]>(new Array(14).fill(10));
+  const [frequencyBands, setFrequencyBands] = useState<number[]>(new Array(16).fill(6));
   const [activeSpokenPhrase, setActiveSpokenPhrase] = useState("");
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [hasActiveSelection, setHasActiveSelection] = useState(false);
   const [selectedSnippet, setSelectedSnippet] = useState("");
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const neuralAudioRef = useRef<HTMLAudioElement | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const warmthFilterRef = useRef<BiquadFilterNode | null>(null);
+  const clarityFilterRef = useRef<BiquadFilterNode | null>(null);
+  const mediaSourceConnectedRef = useRef<boolean>(false);
+
   const chunksRef = useRef<SpeechChunk[]>([]);
   const currentChunkIndexRef = useRef<number>(0);
   const isPlayingRef = useRef<boolean>(false);
@@ -97,6 +114,9 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
   const playbackRateRef = useRef<number>(0.92);
   const pacingModeRef = useRef<PacingMode>("academic");
   const selectedPersonaRef = useRef<VoicePersona>(selectedPersona);
+  const speechEngineRef = useRef<SpeechEngine>("neural");
+  const vocalWarmthRef = useRef<number>(2.0);
+  const vocalClarityRef = useRef<number>(1.8);
   const pauseTimeoutRef = useRef<any>(null);
   const visualizerRafRef = useRef<number | null>(null);
   const lastSelectedTextRef = useRef<string>("");
@@ -109,6 +129,9 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     playbackRateRef.current = playbackRate;
+    if (neuralAudioRef.current) {
+      neuralAudioRef.current.playbackRate = playbackRate;
+    }
   }, [playbackRate]);
 
   useEffect(() => {
@@ -119,7 +142,25 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
     selectedPersonaRef.current = selectedPersona;
   }, [selectedPersona]);
 
-  // Load browser speech voices
+  useEffect(() => {
+    speechEngineRef.current = speechEngine;
+  }, [speechEngine]);
+
+  useEffect(() => {
+    vocalWarmthRef.current = vocalWarmth;
+    if (warmthFilterRef.current) {
+      warmthFilterRef.current.gain.value = vocalWarmth;
+    }
+  }, [vocalWarmth]);
+
+  useEffect(() => {
+    vocalClarityRef.current = vocalClarity;
+    if (clarityFilterRef.current) {
+      clarityFilterRef.current.gain.value = vocalClarity;
+    }
+  }, [vocalClarity]);
+
+  // Load browser speech voices for local fallback
   useEffect(() => {
     if (typeof window === "undefined" || !window.speechSynthesis) return;
 
@@ -134,7 +175,7 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
     window.speechSynthesis.onvoiceschanged = updateVoices;
   }, []);
 
-  // Track window selection across the article for Intelligent Selection Sync
+  // Selection change listener for intelligent sync
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -143,10 +184,9 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
       const text = selection ? selection.toString().trim() : "";
       if (text.length > 3) {
         lastSelectedTextRef.current = text;
-        setSelectedSnippet(text.slice(0, 60));
+        setSelectedSnippet(text.slice(0, 45));
         setHasActiveSelection(true);
       } else {
-        // Keep lastSelectedTextRef active for 30 seconds so clicking deck SYNC still works
         setHasActiveSelection(false);
       }
     };
@@ -157,7 +197,69 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  // Audio element setup for studio MP3 tracks
+  // Setup Web Audio API DSP Equalizer & Analyser Pipeline for Neural Audio
+  const initWebAudioPipeline = useCallback((audioEl: HTMLAudioElement) => {
+    if (typeof window === "undefined") return;
+    try {
+      if (!audioCtxRef.current) {
+        const AudioCtxClass = window.AudioContext || (window as any).webkitAudioContext;
+        if (!AudioCtxClass) return;
+        audioCtxRef.current = new AudioCtxClass();
+      }
+
+      const ctx = audioCtxRef.current;
+      if (ctx.state === "suspended") {
+        ctx.resume().catch(() => {});
+      }
+
+      if (!mediaSourceConnectedRef.current) {
+        const source = ctx.createMediaElementSource(audioEl);
+
+        // Warmth Biquad Filter (Low-shelf at 250 Hz for rich vocal body)
+        const warmth = ctx.createBiquadFilter();
+        warmth.type = "lowshelf";
+        warmth.frequency.value = 250;
+        warmth.gain.value = vocalWarmthRef.current;
+        warmthFilterRef.current = warmth;
+
+        // Clarity Biquad Filter (High-shelf at 5000 Hz for airy vocal presence)
+        const clarity = ctx.createBiquadFilter();
+        clarity.type = "highshelf";
+        clarity.frequency.value = 5000;
+        clarity.gain.value = vocalClarityRef.current;
+        clarityFilterRef.current = clarity;
+
+        // Analyser Node for 100% genuine real-time FFT spectrum data
+        const analyser = ctx.createAnalyser();
+        analyser.fftSize = 64;
+        analyser.smoothingTimeConstant = 0.8;
+        analyserRef.current = analyser;
+
+        source.connect(warmth);
+        warmth.connect(clarity);
+        clarity.connect(analyser);
+        analyser.connect(ctx.destination);
+
+        mediaSourceConnectedRef.current = true;
+      }
+    } catch (e) {
+      // Audio element may already have a source node attached
+    }
+  }, []);
+
+  // Setup Neural Audio Element
+  useEffect(() => {
+    const neuralAudio = new Audio();
+    neuralAudio.crossOrigin = "anonymous";
+    neuralAudioRef.current = neuralAudio;
+
+    return () => {
+      neuralAudio.pause();
+      neuralAudio.src = "";
+    };
+  }, []);
+
+  // Studio MP3 Audio Element setup
   useEffect(() => {
     const audio = new Audio();
     audioRef.current = audio;
@@ -204,7 +306,7 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
     };
   }, [manifest, syncScroll]);
 
-  // Live Multilayer Acoustic Formant Visualizer Simulator (reactive to speech energy and persona pitch)
+  // Real-time Multilayer Acoustic Spectrum Analyzer (Combines Web Audio FFT + Glottal Simulator)
   useEffect(() => {
     let lastTime = performance.now();
 
@@ -213,29 +315,52 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
       lastTime = now;
 
       if (isPlayingRef.current && !isPausedRef.current) {
+        // If real AnalyserNode is connected and active, use 100% REAL acoustic FFT data
+        if (analyserRef.current) {
+          const bufferLength = analyserRef.current.frequencyBinCount;
+          const dataArray = new Uint8Array(bufferLength);
+          analyserRef.current.getByteFrequencyData(dataArray);
+
+          const bands: number[] = [];
+          const step = Math.max(1, Math.floor(bufferLength / 16));
+          for (let i = 0; i < 16; i++) {
+            let sum = 0;
+            for (let j = 0; j < step; j++) {
+              sum += dataArray[i * step + j] || 0;
+            }
+            const normalized = Math.round((sum / step) * (100 / 255));
+            bands.push(normalized);
+          }
+
+          const overallLevel = Math.round(bands.reduce((acc, v) => acc + v, 0) / bands.length);
+          // If analyser is receiving signal
+          if (overallLevel > 3) {
+            setAudioLevel(overallLevel);
+            setFrequencyBands(bands);
+            visualizerRafRef.current = requestAnimationFrame(updateVisualizer);
+            return;
+          }
+        }
+
+        // High-fidelity speech physics model fallback (for WebSpeech or silence gaps)
         const persona = selectedPersonaRef.current;
         const pitch = getPersonaPitchHz(persona);
         const pitchFactor = pitch / 180;
 
-        // Generate dynamic acoustic frequency bands around vocal formant centers (F1, F2, F3)
-        const bands = new Array(14).fill(0).map((_, i) => {
-          // Acoustic formant peaks: low fundamental (0-3), vowel resonance (4-8), sibilance (9-13)
-          const centerFreq = i < 4 ? 0.9 : i < 9 ? 1.2 : 0.7;
+        const bands = new Array(16).fill(0).map((_, i) => {
+          const centerFreq = i < 4 ? 0.95 : i < 10 ? 1.25 : 0.75;
           const harmonicOsc = Math.sin(now * 0.007 * (i + 1) * pitchFactor);
           const noise = (Math.sin(now * 0.02 + i * 1.5) + 1) * 0.5;
-          const level = Math.max(15, Math.min(95, (harmonicOsc * 35 + noise * 40 + 25) * centerFreq));
+          const level = Math.max(12, Math.min(95, (harmonicOsc * 35 + noise * 40 + 25) * centerFreq));
           return Math.round(level);
         });
 
-        const overallLevel = Math.round(
-          bands.reduce((acc, v) => acc + v, 0) / bands.length
-        );
-
+        const overallLevel = Math.round(bands.reduce((acc, v) => acc + v, 0) / bands.length);
         setAudioLevel(overallLevel);
         setFrequencyBands(bands);
       } else {
         setAudioLevel(0);
-        setFrequencyBands(new Array(14).fill(6));
+        setFrequencyBands(new Array(16).fill(5));
       }
 
       visualizerRafRef.current = requestAnimationFrame(updateVisualizer);
@@ -247,7 +372,7 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  // Smooth live timer ticker during TTS playback so timer progresses second by second
+  // Smooth live timer ticker during TTS playback
   useEffect(() => {
     let timer: any = null;
     if (isPlaying && currentTrack?.isTTS) {
@@ -263,11 +388,57 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
     };
   }, [isPlaying, currentTrack?.isTTS, duration]);
 
-  // Core Speech Synthesis Conductor: speaks a specific chunk cleanly
-  const speakChunk = useCallback(
-    (index: number, overrideRate?: number) => {
+  // Fallback Local WebSpeech Conductor
+  const speakWithWebSpeech = useCallback(
+    (chunk: SpeechChunk, index: number, effectiveRate: number, pacing: PacingMode) => {
       if (typeof window === "undefined" || !window.speechSynthesis) return;
 
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(chunk.text);
+
+      const matchedVoice = matchBrowserVoice(availableVoices, selectedPersonaRef.current);
+      if (matchedVoice) {
+        utterance.voice = matchedVoice;
+      }
+
+      utterance.rate = Math.max(0.5, Math.min(2.0, effectiveRate));
+      utterance.pitch = selectedPersonaRef.current.pitch;
+
+      utterance.onboundary = () => {
+        setAudioLevel(Math.min(95, Math.floor(Math.random() * 30) + 65));
+      };
+
+      utterance.onend = () => {
+        if (!isPlayingRef.current || isPausedRef.current) return;
+        const nextIndex = index + 1;
+        currentChunkIndexRef.current = nextIndex;
+        const pauseScale = pacing === "academic" ? 1.2 : 1.0;
+        const pauseMs = (chunk.pauseAfterMs * pauseScale) / playbackRateRef.current;
+
+        pauseTimeoutRef.current = setTimeout(() => {
+          if (isPlayingRef.current && !isPausedRef.current) {
+            speakChunk(nextIndex);
+          }
+        }, pauseMs);
+      };
+
+      utterance.onerror = (e) => {
+        if (e.error === "interrupted" || e.error === "canceled") return;
+        console.warn("Local SpeechSynthesis error, advancing chunk:", e.error);
+        if (isPlayingRef.current && !isPausedRef.current) {
+          currentChunkIndexRef.current = index + 1;
+          speakChunk(index + 1);
+        }
+      };
+
+      window.speechSynthesis.speak(utterance);
+    },
+    [availableVoices]
+  );
+
+  // Core Speech Conductor: Streams Edge Neural Voice with DSP Mastering, falling back to WebSpeech
+  const speakChunk = useCallback(
+    (index: number, overrideRate?: number) => {
       if (pauseTimeoutRef.current) {
         clearTimeout(pauseTimeoutRef.current);
         pauseTimeoutRef.current = null;
@@ -276,7 +447,7 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
       const chunks = chunksRef.current;
       if (!chunks || chunks.length === 0) return;
 
-      // When reached end of track
+      // Reached end of text
       if (index >= chunks.length) {
         setIsPlaying(false);
         isPlayingRef.current = false;
@@ -295,63 +466,63 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
       const cumulativeTime = index * approxChunkDuration;
       setCurrentTime(+cumulativeTime.toFixed(1));
 
-      // Cancel any ongoing utterance before queuing new one
-      window.speechSynthesis.cancel();
-
-      const utterance = new SpeechSynthesisUtterance(chunk.text);
-
-      // Assign persona voice
-      const matchedVoice = matchBrowserVoice(availableVoices, selectedPersonaRef.current);
-      if (matchedVoice) {
-        utterance.voice = matchedVoice;
-      }
-
-      // Apply pacing and playback rate rule
+      // Calculate effective rate & pacing
       const pacing = pacingModeRef.current;
       const pacingScale = pacing === "academic" ? 0.92 : pacing === "conversational" ? 0.96 : 1.1;
       const effectiveRate = (overrideRate ?? playbackRateRef.current) * pacingScale;
-      utterance.rate = Math.max(0.5, Math.min(2.0, effectiveRate));
-      utterance.pitch = selectedPersonaRef.current.pitch;
 
-      // Word boundary listener for real-time acoustic impulse tracking
-      utterance.onboundary = (e) => {
-        // Trigger realistic vocal amplitude spike
-        setAudioLevel(Math.min(95, Math.floor(Math.random() * 30) + 65));
-      };
-
-      utterance.onend = () => {
-        if (!isPlayingRef.current || isPausedRef.current) return;
-
-        const nextIndex = index + 1;
-        currentChunkIndexRef.current = nextIndex;
-
-        // Structural pause rule (breaths between sentences or headings)
-        const pauseScale = pacing === "academic" ? 1.2 : 1.0;
-        const pauseMs = (chunk.pauseAfterMs * pauseScale) / playbackRateRef.current;
-
-        pauseTimeoutRef.current = setTimeout(() => {
-          if (isPlayingRef.current && !isPausedRef.current) {
-            speakChunk(nextIndex);
-          }
-        }, pauseMs);
-      };
-
-      utterance.onerror = (e) => {
-        // Interrupted or canceled occurs during normal pause/seek/rate change actions; do NOT advance chunk
-        if (e.error === "interrupted" || e.error === "canceled") {
-          return;
+      // ─── ENGINE 1: ULTRA HD MICROSOFT EDGE NEURAL (Human Studio Voice) ───
+      if (speechEngineRef.current === "neural") {
+        // Cancel local speech if any
+        if (typeof window !== "undefined" && window.speechSynthesis) {
+          window.speechSynthesis.cancel();
         }
 
-        console.warn("SpeechSynthesis error:", e.error);
-        if (isPlayingRef.current && !isPausedRef.current) {
-          currentChunkIndexRef.current = index + 1;
-          speakChunk(index + 1);
-        }
-      };
+        const audio = neuralAudioRef.current || new Audio();
+        neuralAudioRef.current = audio;
+        initWebAudioPipeline(audio);
 
-      window.speechSynthesis.speak(utterance);
+        const personaId = selectedPersonaRef.current.id;
+        const encodedText = encodeURIComponent(chunk.text);
+        const ttsUrl = `/api/tts?text=${encodedText}&persona=${personaId}&rate=${effectiveRate}&pitch=${selectedPersonaRef.current.pitch}`;
+
+        audio.src = ttsUrl;
+        audio.playbackRate = playbackRateRef.current;
+
+        audio.onended = () => {
+          if (!isPlayingRef.current || isPausedRef.current) return;
+          const nextIndex = index + 1;
+          currentChunkIndexRef.current = nextIndex;
+          const pauseScale = pacing === "academic" ? 1.2 : 1.0;
+          const pauseMs = (chunk.pauseAfterMs * pauseScale) / playbackRateRef.current;
+
+          pauseTimeoutRef.current = setTimeout(() => {
+            if (isPlayingRef.current && !isPausedRef.current) {
+              speakChunk(nextIndex);
+            }
+          }, pauseMs);
+        };
+
+        audio.onerror = (err) => {
+          console.warn("Neural audio streaming error, falling back to local WebSpeech:", err);
+          speakWithWebSpeech(chunk, index, effectiveRate, pacing);
+        };
+
+        const playPromise = audio.play();
+        if (playPromise) {
+          playPromise.catch((err) => {
+            if (err.name === "AbortError") return;
+            console.warn("Neural audio play failed, falling back to WebSpeech:", err);
+            speakWithWebSpeech(chunk, index, effectiveRate, pacing);
+          });
+        }
+        return;
+      }
+
+      // ─── ENGINE 2: NATIVE WEBSPEECH API (Offline) ───
+      speakWithWebSpeech(chunk, index, effectiveRate, pacing);
     },
-    [availableVoices]
+    [availableVoices, initWebAudioPipeline, speakWithWebSpeech]
   );
 
   // Load and play track
@@ -372,6 +543,9 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
       if (typeof window !== "undefined" && window.speechSynthesis) {
         window.speechSynthesis.cancel();
       }
+      if (neuralAudioRef.current) {
+        neuralAudioRef.current.pause();
+      }
       if (audioRef.current) {
         audioRef.current.src = audioUrl;
         audioRef.current.playbackRate = playbackRateRef.current;
@@ -385,7 +559,6 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
               isPausedRef.current = false;
             })
             .catch((err) => {
-              // AbortError is triggered when user immediately pauses; ignore it
               if (err.name === "AbortError") return;
               console.warn("Studio audio autoplay blocked, starting TTS conductor:", err);
               startTTS(slug, title, fallbackText || title);
@@ -406,6 +579,9 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
   const startTTS = (slug: string, title: string, text: string, startIndex: number = 0) => {
     if (audioRef.current) {
       audioRef.current.pause();
+    }
+    if (neuralAudioRef.current) {
+      neuralAudioRef.current.pause();
     }
     if (typeof window !== "undefined" && window.speechSynthesis) {
       window.speechSynthesis.cancel();
@@ -430,7 +606,7 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
     isPlayingRef.current = true;
     isPausedRef.current = false;
 
-    // Start speaking with human rhythm from specified start index
+    // Start speaking with human cadence from specified start index
     speakChunk(startIndex);
   };
 
@@ -438,20 +614,23 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
     if (!currentTrack) return;
 
     if (currentTrack.isTTS) {
-      if (typeof window === "undefined" || !window.speechSynthesis) return;
-
       if (isPlaying) {
-        // Clean Pause: cancel current utterance, preserve chunk index, set paused flags
+        // Clean Pause
         if (pauseTimeoutRef.current) {
           clearTimeout(pauseTimeoutRef.current);
           pauseTimeoutRef.current = null;
         }
-        window.speechSynthesis.cancel();
+        if (neuralAudioRef.current) {
+          neuralAudioRef.current.pause();
+        }
+        if (typeof window !== "undefined" && window.speechSynthesis) {
+          window.speechSynthesis.cancel();
+        }
         isPausedRef.current = true;
         isPlayingRef.current = false;
         setIsPlaying(false);
       } else {
-        // Clean Resume / Replay: if at the end, replay from beginning; otherwise resume current chunk
+        // Clean Resume / Replay
         if (currentChunkIndexRef.current >= chunksRef.current.length) {
           currentChunkIndexRef.current = 0;
         }
@@ -520,71 +699,97 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
         speakChunk(targetIdx);
       } else {
         setActiveSpokenPhrase(chunks[targetIdx]?.rawText || chunks[targetIdx]?.text || "");
+        const approxChunkDuration = Math.max(2, (chunks[targetIdx]?.text.length || 20) * 0.065);
+        setCurrentTime(+(targetIdx * approxChunkDuration).toFixed(1));
       }
       return;
     }
 
     if (!audioRef.current) return;
-    const newTime = Math.max(0, Math.min(audioRef.current.currentTime + delta, duration));
-    seek(newTime);
+    const newTime = Math.max(0, Math.min(duration, currentTime + delta));
+    audioRef.current.currentTime = newTime;
+    setCurrentTime(newTime);
   };
 
-  // Immediate speed adjustment: instantly recalibrates current speech rate without lag
   const setRate = (rate: number) => {
     setPlaybackRate(rate);
     playbackRateRef.current = rate;
 
-    if (audioRef.current) {
+    if (currentTrack?.isTTS) {
+      if (neuralAudioRef.current) {
+        neuralAudioRef.current.playbackRate = rate;
+      }
+      // Instantly recalibrate ongoing chunk with new rate without restarting sentence
+      if (isPlayingRef.current && !isPausedRef.current) {
+        speakChunk(currentChunkIndexRef.current, rate);
+      }
+    } else if (audioRef.current) {
       audioRef.current.playbackRate = rate;
     }
+  };
 
-    // For TTS: if currently speaking, restart current chunk immediately with new rate
-    if (currentTrack?.isTTS && isPlayingRef.current && !isPausedRef.current) {
-      if (typeof window !== "undefined" && window.speechSynthesis) {
-        if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);
-        window.speechSynthesis.cancel();
-        setTimeout(() => {
-          if (isPlayingRef.current && !isPausedRef.current) {
-            speakChunk(currentChunkIndexRef.current, rate);
-          }
-        }, 35);
-      }
+  const setSpeechEngine = (engine: SpeechEngine) => {
+    setSpeechEngineState(engine);
+    speechEngineRef.current = engine;
+    if (isPlayingRef.current && currentTrack?.isTTS) {
+      speakChunk(currentChunkIndexRef.current);
     }
   };
 
-  // Preview a voice persona with a brief greeting phrase
-  const previewPersona = (persona: VoicePersona) => {
-    if (typeof window === "undefined" || !window.speechSynthesis) return;
-    window.speechSynthesis.cancel();
-
-    const sample = `Hello, I am ${persona.name}. Ready to explore the active freeze dryer research data with you.`;
-    const utterance = new SpeechSynthesisUtterance(sample);
-    const matchedVoice = matchBrowserVoice(availableVoices, persona);
-    if (matchedVoice) utterance.voice = matchedVoice;
-    utterance.pitch = persona.pitch;
-    utterance.rate = persona.rate;
-
-    window.speechSynthesis.speak(utterance);
+  const setVocalWarmth = (db: number) => {
+    setVocalWarmthState(db);
+    vocalWarmthRef.current = db;
+    if (warmthFilterRef.current) {
+      warmthFilterRef.current.gain.value = db;
+    }
   };
 
-  /**
-   * INTELLIGENT SELECTION SYNC
-   * Locates the exact sentence boundary chunk containing the user's highlighted text
-   * and starts reading cleanly from the natural beginning of that sentence forward.
-   */
+  const setVocalClarity = (db: number) => {
+    setVocalClarityState(db);
+    vocalClarityRef.current = db;
+    if (clarityFilterRef.current) {
+      clarityFilterRef.current.gain.value = db;
+    }
+  };
+
+  const previewPersona = (persona: VoicePersona) => {
+    if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);
+    if (neuralAudioRef.current) neuralAudioRef.current.pause();
+    if (typeof window !== "undefined" && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
+
+    setSelectedPersona(persona);
+    selectedPersonaRef.current = persona;
+
+    const sampleText = `Hello. I am ${persona.name}. Ready to walk you through our lyophilization engineering dossiers.`;
+
+    if (speechEngineRef.current === "neural") {
+      const audio = neuralAudioRef.current || new Audio();
+      neuralAudioRef.current = audio;
+      initWebAudioPipeline(audio);
+      audio.src = `/api/tts?text=${encodeURIComponent(sampleText)}&persona=${persona.id}&rate=1.0&pitch=${persona.pitch}`;
+      audio.play().catch(() => {});
+      return;
+    }
+
+    if (typeof window !== "undefined" && window.speechSynthesis) {
+      const utterance = new SpeechSynthesisUtterance(sampleText);
+      const voice = matchBrowserVoice(availableVoices, persona);
+      if (voice) utterance.voice = voice;
+      utterance.rate = persona.rate;
+      utterance.pitch = persona.pitch;
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
   const syncToSelection = (overrideText?: string): boolean => {
-    const rawSelected =
-      overrideText ||
-      (typeof window !== "undefined" ? window.getSelection()?.toString() : "") ||
-      lastSelectedTextRef.current ||
-      "";
+    const textToSync = overrideText || lastSelectedTextRef.current;
+    if (!textToSync || textToSync.trim().length === 0) return false;
 
-    const cleanText = rawSelected.trim();
-    if (!cleanText) return false;
+    const cleanText = textToSync.trim();
 
-    const chunks = chunksRef.current;
-    if (!chunks || chunks.length === 0) {
-      // If chunks aren't initialized yet but we have text content
+    if (!chunksRef.current || chunksRef.current.length === 0) {
       if (fallbackFullTextRef.current) {
         const genChunks = chunkTextForHumanSpeech(
           fallbackFullTextRef.current,
@@ -602,7 +807,6 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
       fallbackFullTextRef.current
     );
 
-    // Switch to TTS mode if on studio audio or paused, and start speech from the natural sentence start
     setCurrentTrack((prev) =>
       prev
         ? { ...prev, isTTS: true }
@@ -636,6 +840,9 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
         voiceStudioOpen,
         selectedPersona,
         pacingMode,
+        speechEngine,
+        vocalWarmth,
+        vocalClarity,
         audioLevel,
         frequencyBands,
         livePitchHz,
@@ -654,6 +861,9 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
         setVoiceStudioOpen,
         setSelectedPersona,
         setPacingMode,
+        setSpeechEngine,
+        setVocalWarmth,
+        setVocalClarity,
         previewPersona,
         syncToSelection,
       }}

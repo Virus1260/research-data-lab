@@ -558,40 +558,32 @@ export function matchBrowserVoice(
 
   const candidates = englishVoices.length > 0 ? englishVoices : voices;
 
-  // 1. Try finding a natural neural online voice matching persona keywords
+  // 1. TOP PRIORITY: Natural / Neural / Online voice matching persona keywords
   for (const kw of persona.voiceKeywords) {
     const match = candidates.find((v) => {
       const name = v.name.toLowerCase();
       const lang = v.lang.toLowerCase();
-      return (
-        (name.includes(kw) || lang.includes(kw)) &&
-        (name.includes("natural") || name.includes("online") || name.includes("neural") || name.includes("google"))
-      );
+      const isNatural = name.includes("natural") || name.includes("online") || name.includes("neural") || name.includes("google");
+      return (name.includes(kw) || lang.includes(kw)) && isNatural;
     });
     if (match) return match;
   }
 
-  // 2. Try any candidate matching keyword
-  for (const kw of persona.voiceKeywords) {
-    const match = candidates.find((v) => {
-      const name = v.name.toLowerCase();
-      const lang = v.lang.toLowerCase();
-      return name.includes(kw) || lang.includes(kw);
-    });
-    if (match) return match;
-  }
-
-  // 3. Fallback to candidate matching gender preference
-  const genderMatch = candidates.find((v) => {
+  // 2. HIGH PRIORITY: Any Natural / Neural / Online English voice matching gender
+  const naturalGenderMatch = candidates.find((v) => {
     const name = v.name.toLowerCase();
+    const isNatural = name.includes("natural") || name.includes("online") || name.includes("neural") || name.includes("google");
+    if (!isNatural) return false;
+
     if (persona.gender === "female") {
       return (
         name.includes("female") ||
         name.includes("woman") ||
         name.includes("neerja") ||
-        name.includes("isha") ||
-        name.includes("zira") ||
         name.includes("aria") ||
+        name.includes("jenny") ||
+        name.includes("sonia") ||
+        name.includes("libby") ||
         name.includes("veena") ||
         name.includes("heera")
       );
@@ -600,13 +592,42 @@ export function matchBrowserVoice(
         name.includes("male") ||
         name.includes("man") ||
         name.includes("prabhat") ||
-        name.includes("rishi") ||
-        name.includes("david") ||
-        name.includes("guy")
+        name.includes("guy") ||
+        name.includes("andrew") ||
+        name.includes("george") ||
+        name.includes("rishi")
       );
     }
   });
-  if (genderMatch) return genderMatch;
+  if (naturalGenderMatch) return naturalGenderMatch;
 
-  return candidates[0] || null;
+  // 3. MEDIUM PRIORITY: Any Natural / Neural voice available in candidates
+  const anyNatural = candidates.find((v) => {
+    const name = v.name.toLowerCase();
+    return name.includes("natural") || name.includes("online") || name.includes("neural") || name.includes("google");
+  });
+  if (anyNatural) return anyNatural;
+
+  // 4. LOWER PRIORITY: Keyword match across non-desktop voices
+  for (const kw of persona.voiceKeywords) {
+    const match = candidates.find((v) => {
+      const name = v.name.toLowerCase();
+      const lang = v.lang.toLowerCase();
+      const isDesktop = name.includes("desktop");
+      return (name.includes(kw) || lang.includes(kw)) && !isDesktop;
+    });
+    if (match) return match;
+  }
+
+  // 5. Fallback candidate matching gender (deprioritizing desktop SAPI voices)
+  const nonDesktopGender = candidates.find((v) => {
+    const name = v.name.toLowerCase();
+    if (name.includes("desktop")) return false;
+    return persona.gender === "female" ? name.includes("female") : name.includes("male");
+  });
+  if (nonDesktopGender) return nonDesktopGender;
+
+  // 6. Final fallback: avoid desktop if possible
+  const nonDesktopAny = candidates.find((v) => !v.name.toLowerCase().includes("desktop"));
+  return nonDesktopAny || candidates[0] || null;
 }

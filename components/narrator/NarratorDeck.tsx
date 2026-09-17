@@ -47,6 +47,9 @@ export function NarratorDeck() {
     voiceStudioOpen,
     selectedPersona,
     pacingMode,
+    speechEngine,
+    vocalWarmth,
+    vocalClarity,
     audioLevel,
     frequencyBands,
     activeSpokenPhrase,
@@ -62,6 +65,9 @@ export function NarratorDeck() {
     setVoiceStudioOpen,
     setSelectedPersona,
     setPacingMode,
+    setSpeechEngine,
+    setVocalWarmth,
+    setVocalClarity,
     previewPersona,
     syncToSelection,
   } = useNarrator();
@@ -158,30 +164,129 @@ export function NarratorDeck() {
               })}
             </div>
 
-            {/* Pacing Rule & Breath Controls */}
-            <div className="flex flex-wrap items-center justify-between gap-4 pt-3 border-t border-hairline text-xs font-mono">
-              <div className="flex items-center gap-2">
-                <span className="text-ink-muted uppercase text-[10px] font-semibold">
-                  Human Pacing Rule:
-                </span>
-                {(["academic", "conversational", "brisk"] as PacingMode[]).map((mode) => (
+            {/* Engine Selection & Acoustic Mastering Equalizer */}
+            <div className="pt-3 border-t border-hairline space-y-3 font-mono text-xs">
+              {/* Row 1: Voice Engine Switcher */}
+              <div className="flex flex-wrap items-center justify-between gap-3 bg-bg-surface/80 p-2.5 rounded-xl border border-hairline">
+                <div className="flex items-center gap-2">
+                  <Activity className="w-3.5 h-3.5 text-amber" />
+                  <span className="text-[11px] font-bold text-ink-primary uppercase tracking-wider">
+                    Voice Synthesis Engine:
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-1.5">
                   <button
-                    key={mode}
-                    onClick={() => setPacingMode(mode)}
-                    className={`px-2.5 py-1 rounded-lg text-xs capitalize transition ${
-                      pacingMode === mode
-                        ? "bg-amber text-on-amber font-bold shadow-sm"
-                        : "bg-bg-surface text-ink-muted hover:text-ink-primary border border-hairline"
+                    onClick={() => setSpeechEngine("neural")}
+                    className={`px-3 py-1 rounded-lg text-xs font-mono transition flex items-center gap-1.5 ${
+                      speechEngine === "neural"
+                        ? "bg-amber text-on-amber font-bold shadow-md shadow-amber/20 ring-1 ring-amber"
+                        : "bg-bg-panel text-ink-dim hover:text-ink-primary border border-hairline"
                     }`}
                   >
-                    {mode === "academic" ? "Academic (1.5s Pauses)" : mode}
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span>Studio Edge Neural (Ultra HD Human)</span>
                   </button>
-                ))}
+
+                  <button
+                    onClick={() => setSpeechEngine("webspeech")}
+                    className={`px-3 py-1 rounded-lg text-xs font-mono transition ${
+                      speechEngine === "webspeech"
+                        ? "bg-amber text-on-amber font-bold shadow-md shadow-amber/20"
+                        : "bg-bg-panel text-ink-dim hover:text-ink-primary border border-hairline"
+                    }`}
+                  >
+                    <span>Browser WebSpeech (Offline)</span>
+                  </button>
+                </div>
               </div>
 
-              <div className="text-[11px] text-ink-dim font-mono flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-amber" />
-                <span>Structural breaths & DRAT table translation active</span>
+              {/* Row 2: Web Audio API DSP Acoustic Equalizer */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-bg-surface/60 p-3 rounded-xl border border-hairline">
+                {/* Vocal Warmth (Low-shelf at 250 Hz) */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="text-ink-secondary flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-amber" />
+                      Vocal Warmth (250 Hz Chest Resonance):
+                    </span>
+                    <span className="text-amber font-bold tabular-nums">
+                      {vocalWarmth >= 0 ? `+${vocalWarmth.toFixed(1)}` : vocalWarmth.toFixed(1)} dB
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min="-6"
+                    max="6"
+                    step="0.5"
+                    value={vocalWarmth}
+                    onChange={(e) => setVocalWarmth(parseFloat(e.target.value))}
+                    className="w-full h-1.5 bg-bg-hover rounded-lg appearance-none cursor-pointer accent-amber"
+                  />
+                  <div className="flex justify-between text-[9px] text-ink-dim">
+                    <span>-6 dB (Lean)</span>
+                    <span>0 dB (Flat)</span>
+                    <span>+6 dB (Warm)</span>
+                  </div>
+                </div>
+
+                {/* Vocal Clarity & Air (High-shelf at 5000 Hz) */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="text-ink-secondary flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-cyan-400" />
+                      Vocal Clarity (5 kHz Open Air):
+                    </span>
+                    <span className="text-cyan-400 font-bold tabular-nums">
+                      {vocalClarity >= 0 ? `+${vocalClarity.toFixed(1)}` : vocalClarity.toFixed(1)} dB
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min="-6"
+                    max="6"
+                    step="0.5"
+                    value={vocalClarity}
+                    onChange={(e) => setVocalClarity(parseFloat(e.target.value))}
+                    className="w-full h-1.5 bg-bg-hover rounded-lg appearance-none cursor-pointer accent-cyan-400"
+                  />
+                  <div className="flex justify-between text-[9px] text-ink-dim">
+                    <span>-6 dB (Soft)</span>
+                    <span>0 dB (Flat)</span>
+                    <span>+6 dB (Crisp)</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Row 3: Pacing Rule & Breath Controls */}
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-ink-muted uppercase text-[10px] font-semibold">
+                    Human Pacing Rule:
+                  </span>
+                  {(["academic", "conversational", "brisk"] as PacingMode[]).map((mode) => (
+                    <button
+                      key={mode}
+                      onClick={() => setPacingMode(mode)}
+                      className={`px-2.5 py-1 rounded-lg text-xs capitalize transition ${
+                        pacingMode === mode
+                          ? "bg-amber text-on-amber font-bold shadow-sm"
+                          : "bg-bg-surface text-ink-muted hover:text-ink-primary border border-hairline"
+                      }`}
+                    >
+                      {mode === "academic" ? "Academic (1.5s Pauses)" : mode}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="text-[11px] text-ink-dim font-mono flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-amber" />
+                  <span>
+                    {speechEngine === "neural"
+                      ? `Active: ${selectedPersona.gender === "female" ? "en-IN-NeerjaNeural" : "en-IN-PrabhatNeural"} (DSP Active)`
+                      : "DRAT relational tables active"}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -474,14 +579,6 @@ export function NarratorDeck() {
                   }
                 >
                   <span className="text-[10px] font-bold">SYNC</span>
-                </button>
-
-                <button
-                  onClick={() => setIsMinimized(true)}
-                  className="p-1.5 rounded-lg bg-bg-surface hover:bg-bg-hover text-ink-dim hover:text-ink-primary transition border border-hairline"
-                  title="Compact into floating button"
-                >
-                  <Minimize2 className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
