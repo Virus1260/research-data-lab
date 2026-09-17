@@ -1,0 +1,37 @@
+# 20 — Control System Architecture
+
+See `diagrams/control_system_architecture.png` for the full diagram this file explains.
+
+## 1. The one idea that makes everything else make sense
+
+A modern industrial control system for equipment like this is really **two separate systems wearing one HMI screen**:
+
+1. **BPCS — Basic Process Control System.** The "normal" PLC. It runs the recipe, holds temperatures and pressures at setpoint, opens and closes valves in sequence, and logs data. If it glitches, the worst case is a ruined batch.
+2. **SIS — Safety Instrumented System.** A separate, simpler, independent system whose *only* job is to force the equipment into a safe state when something specific and dangerous happens — lid opened under vacuum, emergency stop pressed, oxygen depleted in the room. If the BPCS completely fails or freezes, the SIS still works, because it was never depending on the BPCS in the first place.
+
+This split isn't extra bureaucracy — it's the entire point. **IEC 61511**, the international standard for safety instrumented systems in the process industries, exists precisely because history is full of incidents where a single control system was asked to both run the process *and* protect people from it, and a single software bug or logic error took out both jobs at once. Keeping them physically and logically separate means one failure mode can't do that.
+
+Concretely, on this machine: the emergency stop loop (`ESD-001`) is **hardwired** — a physical relay circuit that cuts power to the agitator, heaters, and (where safe to do so) the refrigeration compressor contactors directly. It does not pass through the PLC's software at any point. Even if the BPCS PLC has completely crashed, pressing that button still works.
+
+## 2. The four layers, bottom to top
+
+1. **Field devices** — the actual instruments and valves on the P&ID (file 19): `PIT-101A/B`, `TT-201/202`, `JIT-101`, `PV-102`, `XV-103/104/105/106`, etc. Split cleanly by which system owns them — ordinary process instruments belong to the BPCS; `ZS-101`, `PSH-101`, and the E-stop loop belong to the SIS and nothing else.
+2. **I/O** — where field signals physically land: analog input/output cards for continuous signals (4–20 mA, RTD), digital input/output for on/off signals (limit switches, run feedback, valve open/closed confirmation). The SIS uses its own dedicated, safety-rated I/O — never sharing a card or a rack with BPCS I/O, so a BPCS I/O card fault can't also blind the safety system.
+3. **Controllers** — the BPCS PLC (running the ISA-88 recipe logic from file 21) and the SIS (either a certified safety PLC or, for a smaller/prototype build, simple hardwired safety relays — both are legitimate approaches; a safety PLC is more flexible as the interlock list grows, hardwired relays are simpler to verify and are a very reasonable choice for a first build).
+4. **Supervisory layer** — HMI/SCADA (what the operator actually looks at: live values, trends, alarms, manual controls where permitted), a historian/electronic batch record (every batch's data, logged continuously — this is what a real GMP batch record is built from, file 14), and an engineering workstation for offline recipe/configuration work.
+
+## 3. What talks to what (and, just as importantly, what doesn't)
+
+- The BPCS talks to the HMI/SCADA and the historian freely — that's its whole job.
+- The SIS talks to the HMI **read-only** — an operator can *see* that a safety interlock has tripped and why, but the HMI (and by extension, the BPCS) has no path to override or reset a safety trip through software. Resetting a genuine safety trip is normally a deliberate physical/procedural action, precisely so a software bug can't quietly clear a safety condition on its own.
+- The SIS does not execute any part of the recipe. It only ever watches a small number of specific, safety-relevant signals and forces specific safe-state actions when they occur (file 22's cause-and-effect matrix is the complete list of what those are on this machine).
+
+## 4. Networks
+
+- **Field network for the BPCS**: a standard industrial Ethernet protocol — PROFINET or EtherNet/IP are the two you'll see most often — connecting the PLC to remote I/O, VFDs (like the agitator drive), and the HMI.
+- **Safety network**, if you use a safety PLC rather than hardwired relays: a safety-rated protocol running alongside the standard network (PROFIsafe is the common example on a PROFINET-based system) — designed so that even sharing physical cabling, the safety data is checksummed and validated independently, and a corrupted BPCS message can never be mistaken for a valid safety command.
+- For a first build, it's completely reasonable to skip a safety PLC and safety network entirely and use simple, physically separate hardwired relay logic for the handful of SIS functions in file 22 — this is simpler to build, simpler to verify by testing, and loses none of the core "independent from the BPCS" property that actually matters. Move to a safety PLC later if the interlock list grows enough that relay wiring becomes unwieldy.
+
+## 5. Where the ISA-88 recipe logic (file 21) actually lives
+
+All of it sits inside the BPCS, as software. The SIS never runs a step of the recipe — it only ever watches and, if needed, stops. Keeping this boundary completely clean (recipe logic in the BPCS, protection logic in the SIS, and nothing shared between them) is the single habit most worth building correctly from your very first prototype, because retrofitting the separation into a system that was built without it is far harder than building it in from day one.
