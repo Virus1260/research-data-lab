@@ -128,20 +128,22 @@ export function Header({ projectSlug = "hosokawa-afd-freeze-dryer" }: { projectS
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
-            className="h-11 w-11 inline-flex items-center justify-center rounded-lg transition-all duration-200 hover:scale-105 active:scale-95"
+            className="h-11 inline-flex items-center gap-1.5 px-3 rounded-lg text-xs font-mono transition-all hover:scale-105 active:scale-95"
             style={{
-              color: 'var(--ink-muted)',
+              color: 'var(--ink-secondary)',
               border: '1px solid var(--border)',
               backgroundColor: 'var(--bg-surface)',
             }}
             title={theme === 'dark' ? 'Switch to Light Mode (Press T or Ctrl+Shift+L)' : 'Switch to Dark Mode (Press T or Ctrl+Shift+L)'}
-            aria-label="Toggle theme"
+            aria-label="Toggle theme (T)"
           >
             {theme === 'dark' ? (
-              <Sun className="w-4 h-4 transition-transform hover:rotate-45" />
+              <Sun className="w-3.5 h-3.5 text-amber transition-transform hover:rotate-45" />
             ) : (
-              <Moon className="w-4 h-4 transition-transform hover:-rotate-12" />
+              <Moon className="w-3.5 h-3.5 text-ink-muted transition-transform hover:-rotate-12" />
             )}
+            <span className="hidden sm:inline font-semibold">Theme</span>
+            <kbd className="hidden sm:inline text-[9px] px-1 py-0.5 rounded bg-bg border border-border">T</kbd>
           </button>
 
           {/* Master Topic Index / Bookmark Drawer */}

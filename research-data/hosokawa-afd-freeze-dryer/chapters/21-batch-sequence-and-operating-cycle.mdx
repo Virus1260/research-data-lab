@@ -40,21 +40,7 @@ A **Phase** is the smallest self-contained, independently verifiable unit of con
 
 Every phase in the PLC conforms to the standardized ISA-88 finite state machine (FSM):
 
-```
-┌──────┐  Start Cmd  ┌─────────┐ Done Condition ┌──────────┐
-│ IDLE ├────────────►│ RUNNING ├───────────────►│ COMPLETE │
-└──────┘             └────┬────┘                └──────────┘
-                          │
-          Hold Cmd ┌──────┴──────┐ Fault / SIS Trip
-                   ▼             ▼
-              ┌────────┐    ┌──────────┐
-              │  HELD  │    │ ABORTING │
-              └───┬────┘    └────┬─────┘
-                  │ Resume       ▼
-                  └────────►┌─────────┐
-                            │ ABORTED │
-                            └─────────┘
-```
+<BatchStateTransitionChart />
 
 ### Standard States & Behaviors
 - **IDLE**: The phase is initialized, waiting for the supervisory sequencer to provide setpoint parameters and trigger the `Start` command.

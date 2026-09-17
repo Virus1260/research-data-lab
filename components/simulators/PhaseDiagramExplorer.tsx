@@ -23,11 +23,13 @@ export function PhaseDiagramExplorer() {
   const plotWidth = svgWidth - margin.left - margin.right;
   const plotHeight = svgHeight - margin.top - margin.bottom;
 
-  const tToX = (t: number) => margin.left + ((t - minT) / (maxT - minT)) * plotWidth;
+  const round = (val: number, decimals = 2) => Number(val.toFixed(decimals));
+
+  const tToX = (t: number) => round(margin.left + ((t - minT) / (maxT - minT)) * plotWidth);
   const pToY = (p: number) => {
     const logP = Math.log10(Math.max(0.0005, p));
     const normalized = (logP - minLogP) / (maxLogP - minLogP);
-    return margin.top + (1 - normalized) * plotHeight;
+    return round(margin.top + (1 - normalized) * plotHeight);
   };
 
   const xToT = (x: number) => minT + ((x - margin.left) / plotWidth) * (maxT - minT);
@@ -52,7 +54,7 @@ export function PhaseDiagramExplorer() {
   const subCurvePoints: string[] = [];
   for (let t = -80; t <= 0.01; t += 2) {
     const p = getIceSublimationPressureMbar(t);
-    subCurvePoints.push(`${tToX(t).toFixed(1)},${pToY(p).toFixed(1)}`);
+    subCurvePoints.push(`${tToX(t)},${pToY(p)}`);
   }
   const subCurvePath = `M ${subCurvePoints.join(" L ")}`;
 
@@ -60,14 +62,14 @@ export function PhaseDiagramExplorer() {
   const vapCurvePoints: string[] = [];
   for (let t = 0.01; t <= 80; t += 2) {
     const p = getWaterVaporPressureMbar(t);
-    vapCurvePoints.push(`${tToX(t).toFixed(1)},${pToY(p).toFixed(1)}`);
+    vapCurvePoints.push(`${tToX(t)},${pToY(p)}`);
   }
   const vapCurvePath = `M ${vapCurvePoints.join(" L ")}`;
 
   // Melting line (nearly vertical upward from triple point 0.01°C)
   const tpX = tToX(WATER_CONSTANTS.TRIPLE_POINT_TEMP_C);
   const tpY = pToY(WATER_CONSTANTS.TRIPLE_POINT_PRESS_MBAR);
-  const meltPath = `M ${tpX},${tpY} L ${tpX - 2},${margin.top}`;
+  const meltPath = `M ${tpX},${tpY} L ${round(tpX - 2)},${margin.top}`;
 
   // Freeze drying target box
   const fdBoxX1 = tToX(-55);
@@ -125,6 +127,7 @@ export function PhaseDiagramExplorer() {
           viewBox={`0 0 ${svgWidth} ${svgHeight}`}
           className="w-full h-auto max-h-[280px] cursor-crosshair"
           onPointerDown={handlePointerDown}
+          suppressHydrationWarning
         >
           {/* Background Grid */}
           {[-60, -40, -20, 0, 20, 40, 60].map((t) => (

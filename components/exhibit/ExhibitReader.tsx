@@ -15,11 +15,13 @@ import {
   Sigma,
   Calculator,
   Sliders,
-  Headphones,
   Download,
   ExternalLink,
 } from "lucide-react";
 import { useNarrator } from "@/components/narrator/NarratorContext";
+import { SystemArchitectureFlowChart } from "@/components/diagrams/SystemArchitectureFlowChart";
+import { AutomationHierarchyChart } from "@/components/diagrams/AutomationHierarchyChart";
+import { BatchStateTransitionChart } from "@/components/diagrams/BatchStateTransitionChart";
 
 interface ExhibitReaderProps {
   chapter: ChapterMeta;
@@ -227,9 +229,7 @@ export function ExhibitReader({
     }
   }, [activeSpokenPhrase, activeCue, isThisPlaying, syncScroll, mounted]);
 
-  if (!mounted) {
-    return null;
-  }
+  // Removed if (!mounted) return null; to enable full SSR rendering and eliminate layout shift
 
   const handlePlayNarration = () => {
     loadTrack(chapter.slug, chapter.title, audioUrl || "", manifest, chapter.content);
@@ -248,6 +248,49 @@ export function ExhibitReader({
 
       // Blank line
       if (!line.trim()) {
+        i++;
+        continue;
+      }
+
+      // Custom Dynamic Interactive Diagram Tags
+      if (
+        line.trim() === "<SystemArchitectureFlowChart />" ||
+        line.trim() === "<SystemArchitectureFlowChart/>" ||
+        line.trim() === "::SystemArchitectureFlowChart"
+      ) {
+        elements.push(
+          <div key={key++} className="my-6">
+            <SystemArchitectureFlowChart />
+          </div>
+        );
+        i++;
+        continue;
+      }
+
+      if (
+        line.trim() === "<AutomationHierarchyChart />" ||
+        line.trim() === "<AutomationHierarchyChart/>" ||
+        line.trim() === "::AutomationHierarchyChart"
+      ) {
+        elements.push(
+          <div key={key++} className="my-6">
+            <AutomationHierarchyChart />
+          </div>
+        );
+        i++;
+        continue;
+      }
+
+      if (
+        line.trim() === "<BatchStateTransitionChart />" ||
+        line.trim() === "<BatchStateTransitionChart/>" ||
+        line.trim() === "::BatchStateTransitionChart"
+      ) {
+        elements.push(
+          <div key={key++} className="my-6">
+            <BatchStateTransitionChart />
+          </div>
+        );
         i++;
         continue;
       }
@@ -310,6 +353,46 @@ export function ExhibitReader({
               <div className="mt-2 text-center text-xs font-mono text-ink-dim bg-bg-inset/50 py-1.5 px-3 rounded-lg border border-hairline/60">
                 {fullBlock}
               </div>
+            </div>
+          );
+          continue;
+        }
+
+        // Check if it's a Top-level System Architecture / Subsystems Map
+        if (
+          (fullBlock.includes("Control System (PLC") || fullBlock.includes("TCU") || fullBlock.includes("Subsystem")) &&
+          (fullBlock.includes("Vessel") || fullBlock.includes("Vacuum") || fullBlock.includes("Utility Management Skid") || fullBlock.includes("Bottom Discharge"))
+        ) {
+          elements.push(
+            <div key={key++} className="my-6">
+              <SystemArchitectureFlowChart />
+            </div>
+          );
+          continue;
+        }
+
+        // Check if it's an Automation Hierarchy (ISA-95 Level 3 / Level 2 / Level 1 or Supervisory Tier)
+        if (
+          (fullBlock.includes("Supervisory Tier") || fullBlock.includes("Level 3:") || fullBlock.includes("Automation Hierarchy")) &&
+          (fullBlock.includes("Controller Tier") || fullBlock.includes("Field Device") || fullBlock.includes("BPCS") || fullBlock.includes("Level 1:"))
+        ) {
+          elements.push(
+            <div key={key++} className="my-6">
+              <AutomationHierarchyChart />
+            </div>
+          );
+          continue;
+        }
+
+        // Check if it's an ISA-88 Batch State Machine (IDLE -> RUNNING -> COMPLETE / HELD / ABORTED)
+        if (
+          (fullBlock.includes("IDLE") || fullBlock.includes("STARTING")) &&
+          fullBlock.includes("RUNNING") &&
+          (fullBlock.includes("COMPLETE") || fullBlock.includes("ABORTED") || fullBlock.includes("ABORTING") || fullBlock.includes("HELD") || fullBlock.includes("HOLDING"))
+        ) {
+          elements.push(
+            <div key={key++} className="my-6">
+              <BatchStateTransitionChart />
             </div>
           );
           continue;

@@ -34,7 +34,8 @@ export function ComparativePressureDetector() {
     pointsPir.push(`${x.toFixed(1)},${yPir.toFixed(1)}`);
   }
 
-  const currX = margin.left + progress * plotWidth;
+  const round = (val: number, decimals = 2) => Number(val.toFixed(decimals));
+  const currX = round(margin.left + progress * plotWidth);
 
   return (
     <div className="instrument-card rounded-2xl p-5 my-6 border border-hairline bg-bg-panel backdrop-blur-sm">
@@ -67,7 +68,7 @@ export function ComparativePressureDetector() {
 
       {/* Interactive Plot */}
       <div className="bg-bg-inset p-3 rounded-xl border border-hairline relative">
-        <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} className="w-full h-auto">
+        <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} className="w-full h-auto" suppressHydrationWarning>
           {/* Grid lines */}
           {[0, 0.25, 0.5, 0.75, 1.0].map((p) => (
             <line

@@ -28,14 +28,15 @@ export function VacuumPumpdownSimulator() {
   const minLogP = -3; // 0.001 mbar
   const maxLogP = 3.1; // ~1013 mbar
 
-  const tToX = (t: number) => margin.left + (t / maxTime) * plotWidth;
+  const round = (val: number, decimals = 2) => Number(val.toFixed(decimals));
+  const tToX = (t: number) => round(margin.left + (t / maxTime) * plotWidth);
   const pToY = (p: number) => {
     const logP = Math.log10(Math.max(0.0005, p));
     const norm = (logP - minLogP) / (maxLogP - minLogP);
-    return margin.top + (1 - Math.max(0, Math.min(1, norm))) * plotHeight;
+    return round(margin.top + (1 - Math.max(0, Math.min(1, norm))) * plotHeight);
   };
 
-  const pathPoints = results.curvePoints.map((pt) => `${tToX(pt.timeMin).toFixed(1)},${pToY(pt.pressureMbar).toFixed(1)}`);
+  const pathPoints = results.curvePoints.map((pt) => `${tToX(pt.timeMin)},${pToY(pt.pressureMbar)}`);
   const curvePath = pathPoints.length > 0 ? `M ${pathPoints.join(" L ")}` : "";
 
   return (
@@ -138,7 +139,7 @@ export function VacuumPumpdownSimulator() {
         {/* Live SVG Pumpdown Curve (6 cols) */}
         <div className="lg:col-span-6 flex flex-col justify-between">
           <div className="bg-bg-inset rounded-xl border border-hairline p-2 relative">
-            <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} className="w-full h-auto">
+            <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} className="w-full h-auto" suppressHydrationWarning>
               {/* Target Line */}
               <line
                 x1={margin.left}

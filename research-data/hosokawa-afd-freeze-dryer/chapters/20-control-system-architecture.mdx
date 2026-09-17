@@ -46,23 +46,7 @@ On this freeze dryer, emergency shutdown circuits are **electromechanically hard
 
 ## 3. The Four-Tier Automation Hierarchy
 
-```
-┌────────────────────────────────────────────────────────┐
-│ 4. Supervisory Tier: HMI/SCADA, Audit Trail, Historian  │
-└───────────────────────────┬────────────────────────────┘
-                            │ Industrial Ethernet
-┌───────────────────────────┴────────────────────────────┐
-│ 3. Controller Tier: BPCS (Recipe PLC) + SIS (Safety)   │
-└───────────────────────────┬────────────────────────────┘
-                            │ Fieldbus (PROFINET / PROFIsafe)
-┌───────────────────────────┴────────────────────────────┐
-│ 2. I/O Signal Tier: Isolated Analog & Digital I/O Modules│
-└───────────────────────────┬────────────────────────────┘
-                            │ 4–20 mA, 24 VDC, RTD Leads
-┌───────────────────────────┴────────────────────────────┐
-│ 1. Field Device Tier: Transmitters, Motors, Control Valves│
-└────────────────────────────────────────────────────────┘
-```
+<AutomationHierarchyChart />
 
 ### Layer 1: Field Devices
 Physical sensors, transmitters, and motorized actuators situated across the skid:
