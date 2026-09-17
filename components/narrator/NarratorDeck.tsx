@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useNarrator, type PacingMode } from "./NarratorContext";
 import { VOICE_PERSONAS, type VoicePersona } from "@/lib/voice-engine";
+import { RealtimeVoiceGraph } from "./RealtimeVoiceGraph";
 import {
   Play,
   Pause,
@@ -21,6 +22,7 @@ import {
   Gauge,
   Minimize2,
   Maximize2,
+  BookmarkCheck,
 } from "lucide-react";
 
 function formatTime(seconds: number): string {
@@ -46,7 +48,10 @@ export function NarratorDeck() {
     selectedPersona,
     pacingMode,
     audioLevel,
+    frequencyBands,
     activeSpokenPhrase,
+    hasActiveSelection,
+    selectedSnippet,
     togglePlay,
     seek,
     skip,
@@ -58,6 +63,7 @@ export function NarratorDeck() {
     setSelectedPersona,
     setPacingMode,
     previewPersona,
+    syncToSelection,
   } = useNarrator();
 
   if (!currentTrack && !voiceStudioOpen) {
@@ -66,6 +72,14 @@ export function NarratorDeck() {
 
   const rates = [0.8, 0.9, 1.0, 1.15, 1.25];
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
+
+  const handleSyncClick = () => {
+    const success = syncToSelection();
+    if (!success) {
+      // If no text was highlighted, toggle auto-scroll
+      setSyncScroll(!syncScroll);
+    }
+  };
 
   return (
     <aside
@@ -97,34 +111,34 @@ export function NarratorDeck() {
             </div>
 
             {/* Persona Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-5">
               {VOICE_PERSONAS.map((persona) => {
                 const isSelected = selectedPersona.id === persona.id;
                 return (
                   <div
                     key={persona.id}
                     onClick={() => setSelectedPersona(persona)}
-                    className={`cursor-pointer rounded-xl p-3.5 border transition-all flex flex-col justify-between ${
+                    className={`cursor-pointer rounded-xl p-3 border transition-all flex flex-col justify-between ${
                       isSelected
                         ? "bg-amber-subtle border-amber shadow-md shadow-amber/10 ring-1 ring-amber"
                         : "bg-bg-surface hover:bg-bg-hover border-hairline"
                     }`}
                   >
-                    <div className="space-y-2">
+                    <div className="space-y-1.5">
                       <div className="flex items-center justify-between">
                         <span className="text-2xl">{persona.avatar}</span>
                         <div className="flex items-center gap-1">
-                          <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-bg-panel border border-hairline text-ink-muted">
-                            {persona.accent}
+                          <span className="text-[8px] font-mono px-1.5 py-0.5 rounded bg-bg-panel border border-hairline text-ink-muted">
+                            {persona.accent.split(" ")[0]}
                           </span>
-                          {isSelected && <Check className="w-3.5 h-3.5 text-amber" />}
+                          {isSelected && <Check className="w-3 h-3 text-amber" />}
                         </div>
                       </div>
                       <div>
-                        <div className="text-xs font-bold text-ink-primary">{persona.name}</div>
-                        <div className="text-[10px] text-ink-muted font-mono">{persona.role}</div>
+                        <div className="text-xs font-bold text-ink-primary truncate">{persona.name}</div>
+                        <div className="text-[9px] text-ink-muted font-mono truncate">{persona.role}</div>
                       </div>
-                      <p className="text-[11px] text-ink-secondary leading-snug line-clamp-2">
+                      <p className="text-[10px] text-ink-secondary leading-snug line-clamp-2">
                         {persona.description}
                       </p>
                     </div>
@@ -134,7 +148,7 @@ export function NarratorDeck() {
                         e.stopPropagation();
                         previewPersona(persona);
                       }}
-                      className="mt-3 w-full py-1 text-[10px] font-mono rounded bg-bg-panel hover:bg-amber hover:text-on-amber text-ink-primary border border-hairline transition flex items-center justify-center gap-1"
+                      className="mt-2.5 w-full py-1 text-[10px] font-mono rounded bg-bg-panel hover:bg-amber hover:text-on-amber text-ink-primary border border-hairline transition flex items-center justify-center gap-1"
                     >
                       <Volume2 className="w-3 h-3" />
                       <span>Test Voice</span>
@@ -167,7 +181,7 @@ export function NarratorDeck() {
 
               <div className="text-[11px] text-ink-dim font-mono flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-amber" />
-                <span>Structural breaths & phonetic unit expansion active</span>
+                <span>Structural breaths & DRAT table translation active</span>
               </div>
             </div>
           </div>
@@ -262,200 +276,217 @@ export function NarratorDeck() {
         {/* Main Deck Console Bar */}
         {currentTrack && !isMinimized && (
           <div className="bg-bg-panel/95 backdrop-blur-xl border border-hairline rounded-3xl p-3 sm:p-4 shadow-2xl flex flex-col gap-2.5">
-          {/* Top Row: Track & Persona Info + Dynamic Visualizer */}
-          <div className="flex items-center justify-between px-2 gap-4">
-            <div className="flex items-center gap-3 min-w-0">
-              {/* Persona Avatar Badge */}
-              <button
-                onClick={() => setVoiceStudioOpen(!voiceStudioOpen)}
-                className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-bg-surface hover:bg-bg-hover border border-hairline transition shadow-sm group"
-                title="Change Voice Persona"
-              >
-                <span className="text-lg">{selectedPersona.avatar}</span>
-                <div className="text-left hidden sm:block">
-                  <div className="text-[11px] font-bold text-ink-primary group-hover:text-amber transition leading-none">
-                    {selectedPersona.name}
-                  </div>
-                  <div className="text-[9px] font-mono text-ink-dim">{selectedPersona.role}</div>
-                </div>
-                <Sliders className="w-3 h-3 text-ink-dim group-hover:text-amber ml-1" />
-              </button>
-
-              {/* Title & Type */}
-              <div className="truncate">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-amber font-bold">
-                    {currentTrack.isTTS ? "Neural Voice Cadence" : "Studio Audio Master"}
-                  </span>
-                  <span className="text-ink-dim font-mono text-[10px]">•</span>
-                  <span className="text-xs text-ink-primary font-semibold truncate">
-                    {currentTrack.title}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Dynamic Sound Waveform Visualizer & Minimize Button */}
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-bg-surface border border-hairline shrink-0">
-                <Activity className="w-3.5 h-3.5 text-cryo mr-1" />
-                {[20, 50, 80, 40, 90, 60, 30].map((baseHeight, idx) => {
-                  const height = isPlaying
-                    ? Math.max(15, Math.min(100, baseHeight * (audioLevel / 50)))
-                    : 20;
-                  return (
-                    <span
-                      key={idx}
-                      className="w-1 rounded-full transition-all duration-150"
-                      style={{
-                        height: `${Math.round(height * 0.16)}px`,
-                        backgroundColor: isPlaying ? "var(--amber)" : "var(--border-strong)",
-                      }}
-                    />
-                  );
-                })}
-              </div>
-
-              <button
-                onClick={() => setIsMinimized(true)}
-                className="p-1.5 rounded-lg bg-bg-surface hover:bg-bg-hover text-ink-dim hover:text-ink-primary transition border border-hairline"
-                title="Minimize player to floating corner pill"
-              >
-                <Minimize2 className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          </div>
-
-          {/* Active Spoken Phrase Spotlight */}
-          {activeSpokenPhrase && (
-            <div className="px-3 py-1.5 rounded-xl bg-bg-surface/70 border border-hairline/60 text-xs text-ink-secondary line-clamp-1 italic font-mono flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber shrink-0 animate-ping" />
-              <span className="truncate">"{activeSpokenPhrase}"</span>
-            </div>
-          )}
-
-          {/* Progress Bar */}
-          <div className="flex items-center gap-3 px-2">
-            <span className="text-[10px] font-mono text-ink-dim tabular-nums">
-              {formatTime(currentTime)}
-            </span>
-            <div
-              className="flex-1 h-1.5 bg-bg-hover rounded-full overflow-hidden cursor-pointer relative group"
-              onClick={(e) => {
-                const rect = e.currentTarget.getBoundingClientRect();
-                const pos = (e.clientX - rect.left) / rect.width;
-                seek(pos * duration);
-              }}
-            >
-              <div
-                className="absolute top-0 left-0 bottom-0 bg-gradient-to-r from-amber to-amber-bright rounded-full transition-all duration-150"
-                style={{ width: `${progressPercent}%` }}
-              />
-            </div>
-            <span className="text-[10px] font-mono text-ink-dim tabular-nums">
-              {formatTime(duration)}
-            </span>
-          </div>
-
-          {/* Controls Row */}
-          <div className="flex items-center justify-between px-2 pt-1 border-t border-hairline">
-            {/* Left Tools */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setVoiceStudioOpen(!voiceStudioOpen)}
-                className="px-2.5 py-1 rounded-lg text-xs font-mono border border-hairline bg-bg-surface hover:bg-bg-hover text-ink-secondary flex items-center gap-1.5 transition"
-              >
-                <Headphones className="w-3.5 h-3.5 text-amber" />
-                <span className="hidden sm:inline">Voice Studio</span>
-              </button>
-
-              {manifest && (
+            {/* Top Row: Track & Persona Info + Real-time Multilayer Voice Graph */}
+            <div className="flex items-center justify-between px-2 gap-3 sm:gap-4">
+              <div className="flex items-center gap-3 min-w-0">
+                {/* Persona Avatar Badge */}
                 <button
-                  onClick={() => setTranscriptOpen(!transcriptOpen)}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-mono border transition flex items-center gap-1.5 ${
-                    transcriptOpen
-                      ? "bg-amber-subtle text-amber border-amber/40 font-bold"
-                      : "bg-bg-surface hover:bg-bg-hover text-ink-secondary border-hairline"
-                  }`}
+                  onClick={() => setVoiceStudioOpen(!voiceStudioOpen)}
+                  className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-bg-surface hover:bg-bg-hover border border-hairline transition shadow-sm group shrink-0"
+                  title="Change Voice Persona & Pacing Profile"
                 >
-                  <FileText className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Transcript</span>
+                  <span className="text-lg">{selectedPersona.avatar}</span>
+                  <div className="text-left hidden sm:block">
+                    <div className="text-[11px] font-bold text-ink-primary group-hover:text-amber transition leading-none">
+                      {selectedPersona.name}
+                    </div>
+                    <div className="text-[9px] font-mono text-ink-dim">{selectedPersona.role}</div>
+                  </div>
+                  <Sliders className="w-3 h-3 text-ink-dim group-hover:text-amber ml-1" />
                 </button>
-              )}
+
+                {/* Title & Cadence Mode */}
+                <div className="truncate">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-amber font-bold shrink-0">
+                      {currentTrack.isTTS ? "Neural Voice Cadence" : "Studio Master"}
+                    </span>
+                    <span className="text-ink-dim font-mono text-[10px]">•</span>
+                    <span className="text-xs text-ink-primary font-semibold truncate">
+                      {currentTrack.title}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Real-time Voice Representation Graph (Acoustic Pitch Waveform + Formants) */}
+              <div className="flex items-center gap-2 shrink-0">
+                <RealtimeVoiceGraph
+                  isPlaying={isPlaying}
+                  selectedPersona={selectedPersona}
+                  pacingMode={pacingMode}
+                  playbackRate={playbackRate}
+                  audioLevel={audioLevel}
+                  frequencyBands={frequencyBands}
+                  activePhrase={activeSpokenPhrase}
+                  isTTS={!!currentTrack?.isTTS}
+                />
+
+                <button
+                  onClick={() => setIsMinimized(true)}
+                  className="p-1.5 rounded-lg bg-bg-surface hover:bg-bg-hover text-ink-dim hover:text-ink-primary transition border border-hairline"
+                  title="Minimize player to floating pill"
+                >
+                  <Minimize2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
 
-            {/* Center Playback Controls */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => skip(-10)}
-                className="p-1.5 rounded-lg hover:bg-bg-hover text-ink-muted hover:text-ink-primary transition"
-                title="Rewind 10 seconds"
-              >
-                <RotateCcw className="w-4 h-4" />
-              </button>
+            {/* Active Highlight Context Notice or Selection Banner */}
+            {hasActiveSelection && (
+              <div className="px-3 py-1.5 rounded-xl bg-amber-subtle/80 border border-amber/30 text-[11px] text-ink-primary font-mono flex items-center justify-between gap-2 animate-fade-in">
+                <div className="flex items-center gap-2 truncate">
+                  <BookmarkCheck className="w-3.5 h-3.5 text-amber shrink-0" />
+                  <span className="truncate">
+                    Selected: <span className="font-semibold text-amber">"{selectedSnippet}..."</span>
+                  </span>
+                </div>
+                <button
+                  onClick={handleSyncClick}
+                  className="px-2.5 py-0.5 rounded-md bg-amber text-on-amber font-bold text-[10px] uppercase tracking-wider hover:brightness-110 shrink-0 transition"
+                >
+                  Sync & Read From Here
+                </button>
+              </div>
+            )}
 
-              <button
-                onClick={togglePlay}
-                className="p-2.5 rounded-full bg-amber text-on-amber hover:scale-105 active:scale-95 transition shadow-lg shadow-amber-glow"
-                title={isPlaying ? "Pause" : "Play"}
-              >
-                {isPlaying ? (
-                  <Pause className="w-4 h-4 fill-current" />
-                ) : (
-                  <Play className="w-4 h-4 fill-current ml-0.5" />
-                )}
-              </button>
+            {/* Active Spoken Phrase Spotlight */}
+            {activeSpokenPhrase && !hasActiveSelection && (
+              <div className="px-3 py-1.5 rounded-xl bg-bg-surface/70 border border-hairline/60 text-xs text-ink-secondary line-clamp-1 italic font-mono flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber shrink-0 animate-ping" />
+                <span className="truncate">"{activeSpokenPhrase}"</span>
+              </div>
+            )}
 
-              <button
-                onClick={() => skip(10)}
-                className="p-1.5 rounded-lg hover:bg-bg-hover text-ink-muted hover:text-ink-primary transition"
-                title="Fast forward 10 seconds"
+            {/* Progress Bar & Live Ticking Timer */}
+            <div className="flex items-center gap-3 px-2">
+              <span className="text-[10px] font-mono text-ink-dim tabular-nums">
+                {formatTime(currentTime)}
+              </span>
+              <div
+                className="flex-1 h-1.5 bg-bg-hover rounded-full overflow-hidden cursor-pointer relative group"
+                onClick={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const pos = (e.clientX - rect.left) / rect.width;
+                  seek(pos * duration);
+                }}
               >
-                <RotateCw className="w-4 h-4" />
-              </button>
+                <div
+                  className="absolute top-0 left-0 bottom-0 bg-gradient-to-r from-amber to-amber-bright rounded-full transition-all duration-150"
+                  style={{ width: `${Math.min(100, Math.max(0, progressPercent))}%` }}
+                />
+              </div>
+              <span className="text-[10px] font-mono text-ink-dim tabular-nums">
+                {formatTime(duration)}
+              </span>
             </div>
 
-            {/* Right Speed & Sync Controls */}
-            <div className="flex items-center gap-1.5">
-              <div className="hidden sm:flex items-center rounded-lg bg-bg-surface border border-hairline p-0.5">
-                {rates.map((r) => (
+            {/* Controls Row */}
+            <div className="flex items-center justify-between px-2 pt-1 border-t border-hairline">
+              {/* Left Tools */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setVoiceStudioOpen(!voiceStudioOpen)}
+                  className="px-2.5 py-1 rounded-lg text-xs font-mono border border-hairline bg-bg-surface hover:bg-bg-hover text-ink-secondary flex items-center gap-1.5 transition"
+                >
+                  <Headphones className="w-3.5 h-3.5 text-amber" />
+                  <span className="hidden sm:inline">Voice Studio</span>
+                </button>
+
+                {manifest && (
                   <button
-                    key={r}
-                    onClick={() => setRate(r)}
-                    className={`px-2 py-0.5 rounded text-[10px] font-mono transition ${
-                      playbackRate === r
-                        ? "bg-amber text-on-amber font-bold"
-                        : "text-ink-dim hover:text-ink-primary"
+                    onClick={() => setTranscriptOpen(!transcriptOpen)}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-mono border transition flex items-center gap-1.5 ${
+                      transcriptOpen
+                        ? "bg-amber-subtle text-amber border-amber/40 font-bold"
+                        : "bg-bg-surface hover:bg-bg-hover text-ink-secondary border-hairline"
                     }`}
                   >
-                    {r}x
+                    <FileText className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Transcript</span>
                   </button>
-                ))}
+                )}
               </div>
 
-              <button
-                onClick={() => setSyncScroll(!syncScroll)}
-                className={`p-1.5 rounded-lg text-xs font-mono border transition ${
-                  syncScroll
-                    ? "bg-amber-subtle text-amber border-amber/40"
-                    : "bg-bg-surface text-ink-dim border-hairline"
-                }`}
-                title="Auto-scroll to active sentence"
-              >
-                <span className="text-[10px]">SYNC</span>
-              </button>
+              {/* Center Playback Controls */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => skip(-10)}
+                  className="p-1.5 rounded-lg hover:bg-bg-hover text-ink-muted hover:text-ink-primary transition"
+                  title="Rewind previous sentence"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </button>
 
-              <button
-                onClick={() => setIsMinimized(true)}
-                className="p-1.5 rounded-lg bg-bg-surface hover:bg-bg-hover text-ink-dim hover:text-ink-primary transition border border-hairline"
-                title="Compact into floating button"
-              >
-                <Minimize2 className="w-3.5 h-3.5" />
-              </button>
+                <button
+                  onClick={togglePlay}
+                  className="p-2.5 rounded-full bg-amber text-on-amber hover:scale-105 active:scale-95 transition shadow-lg shadow-amber-glow"
+                  title={isPlaying ? "Pause" : "Play / Resume"}
+                >
+                  {isPlaying ? (
+                    <Pause className="w-4 h-4 fill-current" />
+                  ) : (
+                    <Play className="w-4 h-4 fill-current ml-0.5" />
+                  )}
+                </button>
+
+                <button
+                  onClick={() => skip(10)}
+                  className="p-1.5 rounded-lg hover:bg-bg-hover text-ink-muted hover:text-ink-primary transition"
+                  title="Advance next sentence"
+                >
+                  <RotateCw className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Right Speed & Intelligent Selection Sync Controls */}
+              <div className="flex items-center gap-1.5">
+                <div className="hidden sm:flex items-center rounded-lg bg-bg-surface border border-hairline p-0.5">
+                  {rates.map((r) => (
+                    <button
+                      key={r}
+                      onClick={() => setRate(r)}
+                      className={`px-2 py-0.5 rounded text-[10px] font-mono transition ${
+                        playbackRate === r
+                          ? "bg-amber text-on-amber font-bold shadow-sm"
+                          : "text-ink-dim hover:text-ink-primary hover:bg-bg-hover"
+                      }`}
+                      title={`Set playback speed to ${r}x`}
+                    >
+                      {r}x
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  onClick={handleSyncClick}
+                  className={`px-2 py-1 rounded-lg text-xs font-mono border transition flex items-center gap-1 ${
+                    hasActiveSelection
+                      ? "bg-amber text-on-amber font-bold shadow-md shadow-amber/20 ring-2 ring-amber/50 animate-pulse"
+                      : syncScroll
+                      ? "bg-amber-subtle text-amber border-amber/40"
+                      : "bg-bg-surface text-ink-dim border-hairline"
+                  }`}
+                  title={
+                    hasActiveSelection
+                      ? `Sync to Selection: starts naturally at beginning of selected sentence`
+                      : "Click to sync playback to highlighted text or toggle auto-scroll"
+                  }
+                >
+                  <span className="text-[10px] font-bold">SYNC</span>
+                </button>
+
+                <button
+                  onClick={() => setIsMinimized(true)}
+                  className="p-1.5 rounded-lg bg-bg-surface hover:bg-bg-hover text-ink-dim hover:text-ink-primary transition border border-hairline"
+                  title="Compact into floating button"
+                >
+                  <Minimize2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
       </div>
     </aside>
   );

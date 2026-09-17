@@ -151,14 +151,60 @@ export function ExhibitReader({
     activeSpokenPhrase,
     activeCue,
     syncScroll,
+    syncToSelection,
   } = useNarrator();
   const [tocOpen, setTocOpen] = useState(true);
   const [activeSection, setActiveSection] = useState("");
   const [exportOpen, setExportOpen] = useState(false);
+  const [selectionPopupPos, setSelectionPopupPos] = useState<{ top: number; left: number } | null>(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Floating selection boundary sync popover listener
+  useEffect(() => {
+    if (!mounted) return;
+
+    const handleMouseUp = () => {
+      const sel = window.getSelection();
+      if (!sel || sel.isCollapsed) {
+        setSelectionPopupPos(null);
+        return;
+      }
+      const text = sel.toString().trim();
+      if (text.length < 3) {
+        setSelectionPopupPos(null);
+        return;
+      }
+
+      try {
+        const range = sel.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+        if (rect && rect.width > 0 && rect.height > 0) {
+          setSelectionPopupPos({
+            top: Math.max(12, rect.top - 46),
+            left: Math.max(12, rect.left + rect.width / 2 - 110),
+          });
+        }
+      } catch {
+        setSelectionPopupPos(null);
+      }
+    };
+
+    const handleMouseDown = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target?.closest(".narrator-selection-pill")) return;
+      setSelectionPopupPos(null);
+    };
+
+    document.addEventListener("mouseup", handleMouseUp);
+    document.addEventListener("mousedown", handleMouseDown);
+    return () => {
+      document.removeEventListener("mouseup", handleMouseUp);
+      document.removeEventListener("mousedown", handleMouseDown);
+    };
+  }, [mounted]);
 
   // Intersection observer for TOC highlighting
   useEffect(() => {
@@ -948,6 +994,37 @@ export function ExhibitReader({
             </a>
           )}
         </div>
+
+        {/* Floating Selection Sync Pill */}
+        {selectionPopupPos && (
+          <div
+            style={{
+              position: "fixed",
+              top: `${selectionPopupPos.top}px`,
+              left: `${selectionPopupPos.left}px`,
+              zIndex: 9999,
+            }}
+            className="narrator-selection-pill animate-fade-in pointer-events-auto"
+          >
+            <button
+              onClick={() => {
+                if (currentTrack?.slug !== chapter.slug) {
+                  loadTrack(chapter.slug, chapter.title, audioUrl || "", manifest, chapter.content);
+                }
+                syncToSelection();
+                setSelectionPopupPos(null);
+              }}
+              className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber text-on-amber font-mono text-xs font-bold shadow-2xl hover:scale-105 active:scale-95 transition border border-amber-bright cursor-pointer"
+              title="Start narration cleanly from the beginning of this selected sentence"
+            >
+              <Volume2 className="w-3.5 h-3.5 fill-current" />
+              <span>Read from this sentence</span>
+              <span className="opacity-75 text-[10px] hidden sm:inline">
+                ({selectedPersona.name.split(" ")[0]})
+              </span>
+            </button>
+          </div>
+        )}
 
         {/* Export & Print Monograph Modal */}
         <ExportModal
