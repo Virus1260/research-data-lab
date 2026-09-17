@@ -232,9 +232,9 @@ export function VesselCrossSection3D() {
     const container = mountRef.current;
     if (!container) return;
 
-    // Dimensions
-    const width = container.clientWidth || 600;
-    const height = container.clientHeight || 450;
+    // Dimensions (guard against 0 size on initial mount)
+    const width = Math.max(10, container.clientWidth || 600);
+    const height = Math.max(10, container.clientHeight || 450);
 
     // Scene
     const scene = new THREE.Scene();
@@ -620,23 +620,42 @@ export function VesselCrossSection3D() {
       }
 
       controls.update();
-      renderer.render(scene, camera);
+
+      // Guard against zero-sized framebuffer operations
+      if (container.clientWidth > 0 && container.clientHeight > 0) {
+        renderer.render(scene, camera);
+      }
     };
     animate(performance.now());
 
-    // Window Resize Handler
+    // Window and Container Resize Handler with zero-dimension protection
+    const updateSize = (w: number, h: number) => {
+      if (w > 0 && h > 0 && camera && renderer) {
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        renderer.setSize(w, h);
+      }
+    };
+
     const handleResize = () => {
-      if (!container || !camera || !renderer) return;
-      const newW = container.clientWidth;
-      const newH = container.clientHeight;
-      camera.aspect = newW / newH;
-      camera.updateProjectionMatrix();
-      renderer.setSize(newW, newH);
+      if (!container) return;
+      updateSize(container.clientWidth, container.clientHeight);
     };
     window.addEventListener("resize", handleResize);
 
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width: w, height: h } = entry.contentRect;
+        if (w > 0 && h > 0) {
+          updateSize(w, h);
+        }
+      }
+    });
+    resizeObserver.observe(container);
+
     return () => {
       themeObserver.disconnect();
+      resizeObserver.disconnect();
       cancelAnimationFrame(animId);
       window.removeEventListener("resize", handleResize);
       controls.dispose();

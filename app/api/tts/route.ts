@@ -48,6 +48,7 @@ export async function GET(req: NextRequest) {
           "Content-Type": "audio/mpeg",
           "Content-Length": cachedBuffer.length.toString(),
           "Cache-Control": "public, max-age=86400, immutable",
+          "Access-Control-Allow-Origin": "*",
           "X-Audio-Source": "edge-neural-cache",
         },
       });
@@ -110,6 +111,7 @@ export async function GET(req: NextRequest) {
         "Content-Type": "audio/mpeg",
         "Content-Length": fullBuffer.length.toString(),
         "Cache-Control": "public, max-age=86400, immutable",
+        "Access-Control-Allow-Origin": "*",
         "X-Audio-Source": "edge-neural-live",
       },
     });

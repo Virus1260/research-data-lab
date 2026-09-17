@@ -388,11 +388,14 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
     };
   }, [isPlaying, currentTrack?.isTTS, duration]);
 
-  // Fallback Local WebSpeech Conductor
+  // Fallback Local WebSpeech Conductor with Chrome watchdog
   const speakWithWebSpeech = useCallback(
     (chunk: SpeechChunk, index: number, effectiveRate: number, pacing: PacingMode) => {
       if (typeof window === "undefined" || !window.speechSynthesis) return;
 
+      if (window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+      }
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(chunk.text);
 
@@ -432,6 +435,13 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
       };
 
       window.speechSynthesis.speak(utterance);
+
+      // Chrome SpeechSynthesis unpause watchdog
+      setTimeout(() => {
+        if (typeof window !== "undefined" && window.speechSynthesis.speaking && window.speechSynthesis.paused) {
+          window.speechSynthesis.resume();
+        }
+      }, 50);
     },
     [availableVoices]
   );
@@ -442,6 +452,13 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
       if (pauseTimeoutRef.current) {
         clearTimeout(pauseTimeoutRef.current);
         pauseTimeoutRef.current = null;
+      }
+
+      // Ensure chunks are available
+      if (!chunksRef.current || chunksRef.current.length === 0) {
+        if (fallbackFullTextRef.current) {
+          chunksRef.current = chunkTextForHumanSpeech(fallbackFullTextRef.current, selectedPersonaRef.current.pauseScale);
+        }
       }
 
       const chunks = chunksRef.current;
@@ -473,7 +490,6 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
 
       // ─── ENGINE 1: ULTRA HD MICROSOFT EDGE NEURAL (Human Studio Voice) ───
       if (speechEngineRef.current === "neural") {
-        // Cancel local speech if any
         if (typeof window !== "undefined" && window.speechSynthesis) {
           window.speechSynthesis.cancel();
         }
@@ -489,7 +505,29 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
         audio.src = ttsUrl;
         audio.playbackRate = playbackRateRef.current;
 
+        let hasFallenBack = false;
+        const fallbackToWeb = (reason: string) => {
+          if (!hasFallenBack && isPlayingRef.current && !isPausedRef.current) {
+            hasFallenBack = true;
+            console.warn(`Falling back to WebSpeech (${reason})`);
+            speakWithWebSpeech(chunk, index, effectiveRate, pacing);
+          }
+        };
+
+        // Safety timeout: if streaming takes >1800ms, fallback to instant WebSpeech
+        const loadTimeout = setTimeout(() => {
+          if (audio.readyState < 2 && !hasFallenBack) {
+            audio.pause();
+            fallbackToWeb("Stream timeout >1800ms");
+          }
+        }, 1800);
+
+        audio.onplaying = () => {
+          clearTimeout(loadTimeout);
+        };
+
         audio.onended = () => {
+          clearTimeout(loadTimeout);
           if (!isPlayingRef.current || isPausedRef.current) return;
           const nextIndex = index + 1;
           currentChunkIndexRef.current = nextIndex;
@@ -503,17 +541,17 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
           }, pauseMs);
         };
 
-        audio.onerror = (err) => {
-          console.warn("Neural audio streaming error, falling back to local WebSpeech:", err);
-          speakWithWebSpeech(chunk, index, effectiveRate, pacing);
+        audio.onerror = () => {
+          clearTimeout(loadTimeout);
+          fallbackToWeb("Audio element error");
         };
 
         const playPromise = audio.play();
         if (playPromise) {
           playPromise.catch((err) => {
+            clearTimeout(loadTimeout);
             if (err.name === "AbortError") return;
-            console.warn("Neural audio play failed, falling back to WebSpeech:", err);
-            speakWithWebSpeech(chunk, index, effectiveRate, pacing);
+            fallbackToWeb("play() promise rejected");
           });
         }
         return;
@@ -535,6 +573,16 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
   ) => {
     if (fallbackText) {
       fallbackFullTextRef.current = fallbackText;
+    }
+
+    // Synchronously resume audio hardware on user gesture
+    if (typeof window !== "undefined") {
+      if (audioCtxRef.current && audioCtxRef.current.state === "suspended") {
+        audioCtxRef.current.resume().catch(() => {});
+      }
+      if (window.speechSynthesis && window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+      }
     }
 
     const hasStudioAudio = !!audioUrl;
@@ -577,6 +625,16 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
   };
 
   const startTTS = (slug: string, title: string, text: string, startIndex: number = 0) => {
+    // Synchronously resume audio hardware on user gesture
+    if (typeof window !== "undefined") {
+      if (audioCtxRef.current && audioCtxRef.current.state === "suspended") {
+        audioCtxRef.current.resume().catch(() => {});
+      }
+      if (window.speechSynthesis && window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+      }
+    }
+
     if (audioRef.current) {
       audioRef.current.pause();
     }
@@ -611,7 +669,22 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
   };
 
   const togglePlay = () => {
-    if (!currentTrack) return;
+    // Synchronously resume audio hardware on user gesture
+    if (typeof window !== "undefined") {
+      if (audioCtxRef.current && audioCtxRef.current.state === "suspended") {
+        audioCtxRef.current.resume().catch(() => {});
+      }
+      if (window.speechSynthesis && window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+      }
+    }
+
+    if (!currentTrack) {
+      if (fallbackFullTextRef.current) {
+        startTTS("chapter", "Narration", fallbackFullTextRef.current);
+      }
+      return;
+    }
 
     if (currentTrack.isTTS) {
       if (isPlaying) {
@@ -631,6 +704,9 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
         setIsPlaying(false);
       } else {
         // Clean Resume / Replay
+        if (chunksRef.current.length === 0 && fallbackFullTextRef.current) {
+          chunksRef.current = chunkTextForHumanSpeech(fallbackFullTextRef.current, selectedPersonaRef.current.pauseScale);
+        }
         if (currentChunkIndexRef.current >= chunksRef.current.length) {
           currentChunkIndexRef.current = 0;
         }
@@ -649,6 +725,10 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
       setIsPlaying(false);
       isPlayingRef.current = false;
     } else {
+      if (!audioRef.current.src || audioRef.current.src.endsWith("/") || audioRef.current.error) {
+        startTTS(currentTrack.slug, currentTrack.title, fallbackFullTextRef.current || currentTrack.title);
+        return;
+      }
       audioRef.current
         .play()
         .then(() => {
@@ -656,7 +736,10 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
           isPlayingRef.current = true;
         })
         .catch((e) => {
-          if (e.name !== "AbortError") console.warn(e);
+          if (e.name !== "AbortError") {
+            console.warn("Studio audio play failed, falling back to TTS:", e);
+            startTTS(currentTrack.slug, currentTrack.title, fallbackFullTextRef.current || currentTrack.title);
+          }
         });
     }
   };

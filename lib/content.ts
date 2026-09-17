@@ -162,7 +162,6 @@ export function getChapterAudioManifest(projectSlug: string, chapterSlug: string
   const possibleNames = [
     `${chapterSlug}.manifest.json`,
     `chapter-${chNum}.manifest.json`,
-    `chapter-03.manifest.json`,
   ];
 
   for (const name of possibleNames) {
@@ -187,7 +186,6 @@ export function getChapterAudioUrl(projectSlug: string, chapterSlug: string): st
   const possibleAudioFiles = [
     `${chapterSlug}.mp3`,
     `chapter-${chNum}.mp3`,
-    `chapter-03.mp3`,
   ];
 
   const publicAudioDir = path.join(process.cwd(), "public", "research-data", projectSlug, "audio");
