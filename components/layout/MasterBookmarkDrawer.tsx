@@ -16,21 +16,7 @@ import {
   Compass,
 } from "lucide-react";
 
-interface TopicHeading {
-  level: number;
-  text: string;
-  id: string;
-}
-
-interface ChapterTopic {
-  slug: string;
-  chapterNumber: string;
-  title: string;
-  act: string;
-  actId: string;
-  readTime: string;
-  headings: TopicHeading[];
-}
+import { STATIC_CHAPTER_TOPICS, type ChapterTopic, type TopicHeading } from "@/lib/topics-data";
 
 export function MasterBookmarkDrawer({
   projectSlug = "hosokawa-afd-freeze-dryer",
@@ -39,30 +25,25 @@ export function MasterBookmarkDrawer({
 }) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
-  const [topics, setTopics] = useState<ChapterTopic[]>([]);
+  // Synchronous static data load: zero latency, 120 FPS instant rendering
+  const [topics, setTopics] = useState<ChapterTopic[]>(STATIC_CHAPTER_TOPICS);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"all" | "bookmarks">("all");
   const [savedBookmarks, setSavedBookmarks] = useState<string[]>([]);
   const [expandedChapters, setExpandedChapters] = useState<Record<string, boolean>>({});
 
-  // Load topics from API on first open
+  // Auto-expand currently active chapter when drawer opens
   useEffect(() => {
-    if (!isOpen || topics.length > 0) return;
-    setLoading(true);
-    fetch("/api/topics")
-      .then((res) => res.json())
-      .then((data: ChapterTopic[]) => {
-        setTopics(data);
-        // Expand currently active chapter
-        const current = data.find((c) => pathname?.includes(c.slug));
-        if (current) {
-          setExpandedChapters({ [current.slug]: true });
-        }
-      })
-      .catch((err) => console.error("Failed to load topics:", err))
-      .finally(() => setLoading(false));
-  }, [isOpen, topics.length, pathname]);
+    if (!isOpen) return;
+    const current = topics.find((c) => pathname?.includes(c.slug));
+    if (current) {
+      setExpandedChapters((prev) => ({
+        ...prev,
+        [current.slug]: true,
+      }));
+    }
+  }, [isOpen, pathname, topics]);
 
   // Load bookmarks from localStorage
   useEffect(() => {
