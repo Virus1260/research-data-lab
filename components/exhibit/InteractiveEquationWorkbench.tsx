@@ -1137,6 +1137,681 @@ export function PikalHeatMassWorkbench() {
 // ============================================================================
 // 7. UNIVERSAL INTERACTIVE EQUATION CARD (For all generic mathematical formulations)
 // ============================================================================
+// ============================================================================
+// 7. MASS TRANSFER RESISTANCE WORKBENCH (Tang & Pikal 2004 Formulation)
+// dm/dt = Ap · (Pice - Pchamber) / Rp
+// ============================================================================
+export function MassTransferResistanceWorkbench() {
+  const [apAreaM2, setApAreaM2] = useState(0.2); // m²
+  const [tempIceC, setTempIceC] = useState(-30); // °C
+  const [pChamberMbar, setPChamberMbar] = useState(0.05); // mbar
+  const [rpCake, setRpCake] = useState(3.5); // 10^5 Pa·s·m²/kg
+  const [copied, setCopied] = useState(false);
+
+  // Saturation vapor pressure of ice at tempIceC (mbar)
+  // Huang (2018) / Goff-Gratch empirical formula for ice:
+  const pIceMbar = 6.11 * Math.pow(10, (9.5 * tempIceC) / (265.5 + tempIceC));
+  const pIcePa = pIceMbar * 100;
+  const pChamberPa = pChamberMbar * 100;
+
+  const deltaP_Pa = Math.max(0, pIcePa - pChamberPa);
+  const deltaP_Mbar = Math.max(0, pIceMbar - pChamberMbar);
+
+  // Rp in Pa·s·m²/kg (rpCake * 10^5)
+  const rpActual = rpCake * 1e5;
+  // Sublimation flux J = ΔP / Rp in kg/(m²·s)
+  const massFluxKgM2S = deltaP_Pa / rpActual;
+  // Total mass flow rate dm/dt in kg/h
+  const massRateKgH = massFluxKgM2S * apAreaM2 * 3600;
+  const massRateGMin = (massRateKgH * 1000) / 60;
+
+  const isStalled = pChamberMbar >= pIceMbar;
+  const isNearCollapse = tempIceC > -25;
+
+  const copyFormula = () => {
+    navigator.clipboard.writeText(
+      `dm/dt = Ap * (Pice - Pchamber) / Rp: Ap=${apAreaM2}m², Tice=${tempIceC}°C (Pice=${pIceMbar.toFixed(3)}mbar), Pch=${pChamberMbar}mbar, Rp=${rpCake}e5 -> dm/dt=${massRateKgH.toFixed(3)}kg/h`
+    );
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="my-8 rounded-2xl border-2 border-amber/40 bg-bg-panel shadow-xl overflow-hidden transition-all duration-300">
+      {/* Header */}
+      <div className="p-4 sm:p-5 border-b border-hairline bg-bg-surface/70 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-amber-subtle text-amber flex items-center justify-center border border-amber/30 shrink-0">
+            <Wind className="w-4 h-4" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 rounded bg-amber text-on-amber text-[10px] font-mono font-bold tracking-wider uppercase">
+                Interactive Mass-Transfer Workbench
+              </span>
+              <span className="text-[10px] font-mono text-ink-dim hidden sm:inline">
+                Tang &amp; Pikal (2004) Model
+              </span>
+            </div>
+            <h3 className="text-sm sm:text-base font-bold text-ink-primary mt-1">
+              Dried-Product Cake Resistance &amp; Vapor Flow (dm/dt = Ap · [Pice − Pchamber] / Rp)
+            </h3>
+          </div>
+        </div>
+
+        <button
+          onClick={copyFormula}
+          className="p-2 rounded-lg border border-hairline text-ink-muted hover:text-amber hover:bg-bg-surface transition cursor-pointer text-xs font-mono flex items-center gap-1"
+          title="Copy calculation"
+        >
+          {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+          <span className="hidden sm:inline">{copied ? 'Copied' : 'Copy'}</span>
+        </button>
+      </div>
+
+      {/* Equations */}
+      <div className="p-4 sm:p-6 bg-bg-surface/40 border-b border-hairline">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
+          <div className="p-4 rounded-xl bg-bg-panel border border-hairline flex flex-col justify-center items-center text-center">
+            <span className="text-[10px] font-mono uppercase tracking-widest text-ink-dim font-bold mb-1">
+              Tang &amp; Pikal Mass Flow Law
+            </span>
+            <div className="py-1 overflow-x-auto w-full">
+              <KatexEquation expression="\frac{dm}{dt} = \frac{A_p \cdot (P_{ice} - P_{chamber})}{R_p}" displayMode />
+            </div>
+          </div>
+
+          <div className="p-4 rounded-xl bg-amber-subtle/20 dark:bg-amber-subtle/30 border-2 border-amber/40 flex flex-col justify-center items-center text-center">
+            <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-amber font-bold mb-1">
+              <span className="w-2 h-2 rounded-full bg-amber animate-pulse" />
+              <span>Live Calculated Sublimation Flux</span>
+            </div>
+            <div className="py-1 overflow-x-auto w-full text-ink-primary font-bold">
+              <KatexEquation
+                expression={`\\frac{dm}{dt} = \\frac{${apAreaM2.toFixed(2)} \\cdot (${pIcePa.toFixed(1)} - ${pChamberPa.toFixed(1)})}{${rpCake.toFixed(1)} \\times 10^5} \\implies \\mathbf{${massRateKgH.toFixed(3)}\\text{ kg/h}}`}
+                displayMode
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Sliders & Readouts */}
+      <div className="p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="lg:col-span-7 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="bg-bg-surface p-3.5 rounded-xl border border-hairline">
+              <div className="flex justify-between items-center text-xs mb-1.5">
+                <span className="font-semibold text-ink-primary">Sublimation Front Area (Ap)</span>
+                <span className="font-mono text-amber font-bold">{apAreaM2.toFixed(2)} m²</span>
+              </div>
+              <input
+                type="range"
+                min="0.05"
+                max="1.0"
+                step="0.05"
+                value={apAreaM2}
+                onChange={(e) => setApAreaM2(Number(e.target.value))}
+                className="w-full accent-amber cursor-pointer"
+              />
+              <div className="flex justify-between text-[10px] text-ink-dim mt-1 font-mono">
+                <span>0.05 m² (Lab)</span>
+                <span>0.20 m² (AFD 20L)</span>
+                <span>1.00 m² (Pilot)</span>
+              </div>
+            </div>
+
+            <div className="bg-bg-surface p-3.5 rounded-xl border border-hairline">
+              <div className="flex justify-between items-center text-xs mb-1.5">
+                <span className="font-semibold text-ink-primary">Front Temp (Tice)</span>
+                <span className="font-mono text-cryo font-bold">{tempIceC} °C</span>
+              </div>
+              <input
+                type="range"
+                min="-45"
+                max="-10"
+                step="1"
+                value={tempIceC}
+                onChange={(e) => setTempIceC(Number(e.target.value))}
+                className="w-full accent-[#7FD4FF] cursor-pointer"
+              />
+              <div className="flex justify-between text-[10px] text-ink-dim mt-1 font-mono">
+                <span>-45 °C</span>
+                <span>Pice = {pIceMbar.toFixed(3)} mbar</span>
+                <span>-10 °C</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="bg-bg-surface p-3.5 rounded-xl border border-hairline">
+              <div className="flex justify-between items-center text-xs mb-1.5">
+                <span className="font-semibold text-ink-primary">Chamber Pressure (Pch)</span>
+                <span className="font-mono text-ink-primary font-bold">{pChamberMbar.toFixed(3)} mbar</span>
+              </div>
+              <input
+                type="range"
+                min="0.01"
+                max="0.50"
+                step="0.01"
+                value={pChamberMbar}
+                onChange={(e) => setPChamberMbar(Number(e.target.value))}
+                className="w-full cursor-pointer"
+              />
+              <div className="flex justify-between text-[10px] text-ink-dim mt-1 font-mono">
+                <span>0.010 mbar</span>
+                <span>{pChamberPa.toFixed(0)} Pa</span>
+                <span>0.500 mbar</span>
+              </div>
+            </div>
+
+            <div className="bg-bg-surface p-3.5 rounded-xl border border-hairline">
+              <div className="flex justify-between items-center text-xs mb-1.5">
+                <span className="font-semibold text-ink-primary">Cake Resistance (Rp)</span>
+                <span className="font-mono text-amber font-bold">{rpCake.toFixed(1)} × 10⁵ Pa·s/m</span>
+              </div>
+              <input
+                type="range"
+                min="1.0"
+                max="15.0"
+                step="0.5"
+                value={rpCake}
+                onChange={(e) => setRpCake(Number(e.target.value))}
+                className="w-full accent-amber cursor-pointer"
+              />
+              <div className="flex justify-between text-[10px] text-ink-dim mt-1 font-mono">
+                <span>1.0 (Early)</span>
+                <span>3.5 (Mid-cycle)</span>
+                <span>15.0 (Thick crust)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Readouts (5 cols) */}
+        <div className="lg:col-span-5 flex flex-col justify-between space-y-3">
+          <div className="p-4 rounded-xl bg-amber-subtle/25 border-2 border-amber/40 shadow-xs">
+            <div className="text-[11px] font-mono uppercase tracking-wider text-amber font-bold">
+              Calculated Sublimation Flow Rate
+            </div>
+            <div className="my-2">
+              <span className="text-3xl sm:text-4xl font-extrabold font-mono text-ink-primary">
+                {isStalled ? "0.000" : massRateKgH.toFixed(3)}
+              </span>
+              <span className="text-sm font-bold text-amber ml-1">kg/h</span>
+              <span className="text-xs font-mono text-ink-dim ml-2">
+                ({isStalled ? "0.0" : massRateGMin.toFixed(1)} g/min)
+              </span>
+            </div>
+            <div className="text-[11px] text-ink-secondary leading-relaxed">
+              Driving pressure gradient ΔP = {deltaP_Mbar.toFixed(3)} mbar ({deltaP_Pa.toFixed(1)} Pa).
+            </div>
+          </div>
+
+          {/* Diagnostic status banner */}
+          <div className="space-y-1.5">
+            {isStalled ? (
+              <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs font-mono flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 shrink-0" />
+                <span>Sublimation Stalled! Chamber pressure exceeds ice vapor pressure.</span>
+              </div>
+            ) : isNearCollapse ? (
+              <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-400 text-xs font-mono flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 shrink-0" />
+                <span>Warning: Tice &gt; -25°C approaches typical cake collapse temperature (Tc).</span>
+              </div>
+            ) : (
+              <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-mono flex items-center gap-2">
+                <Check className="w-4 h-4 shrink-0" />
+                <span>Active sublimation driving force within safe design margin.</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// 8. SUBLIMATION MASS FLOW FROM HEAT INPUT WORKBENCH
+// dm/dt = Q / ΔHs
+// ============================================================================
+export function SublimationMassFlowWorkbench() {
+  const [heatDutyW, setHeatDutyW] = useState(631); // W (Hosokawa 20L spec)
+  const [batchWaterKg, setBatchWaterKg] = useState(9.0); // kg
+  const [dHSubKjKg] = useState(2838); // kJ/kg
+  const [copied, setCopied] = useState(false);
+
+  // dm/dt = Q / ΔHs
+  const massRateKgS = heatDutyW / (dHSubKjKg * 1000);
+  const massRateKgH = massRateKgS * 3600;
+  const massRateGMin = (massRateKgH * 1000) / 60;
+  const primaryHours = massRateKgH > 0 ? batchWaterKg / massRateKgH : 0;
+
+  const copyFormula = () => {
+    navigator.clipboard.writeText(
+      `dm/dt = Q / ΔHs: Q=${heatDutyW}W, ΔHs=${dHSubKjKg}kJ/kg -> dm/dt=${massRateKgH.toFixed(3)}kg/h, batch=${batchWaterKg}kg -> t=${primaryHours.toFixed(2)}h`
+    );
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="my-8 rounded-2xl border-2 border-amber/40 bg-bg-panel shadow-xl overflow-hidden transition-all duration-300">
+      <div className="p-4 sm:p-5 border-b border-hairline bg-bg-surface/70 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-amber-subtle text-amber flex items-center justify-center border border-amber/30 shrink-0">
+            <Flame className="w-4 h-4" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 rounded bg-amber text-on-amber text-[10px] font-mono font-bold tracking-wider uppercase">
+                Interactive Mass Flux Solver
+              </span>
+              <span className="text-[10px] font-mono text-ink-dim hidden sm:inline">
+                Energy-to-Mass Conservation
+              </span>
+            </div>
+            <h3 className="text-sm sm:text-base font-bold text-ink-primary mt-1">
+              Sublimation Mass Flow from Heat Input (dm/dt = Q / ΔHs)
+            </h3>
+          </div>
+        </div>
+
+        <button
+          onClick={copyFormula}
+          className="p-2 rounded-lg border border-hairline text-ink-muted hover:text-amber hover:bg-bg-surface transition cursor-pointer text-xs font-mono flex items-center gap-1"
+          title="Copy calculation"
+        >
+          {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+          <span className="hidden sm:inline">{copied ? 'Copied' : 'Copy'}</span>
+        </button>
+      </div>
+
+      <div className="p-4 sm:p-6 bg-bg-surface/40 border-b border-hairline">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
+          <div className="p-4 rounded-xl bg-bg-panel border border-hairline flex flex-col justify-center items-center text-center">
+            <span className="text-[10px] font-mono uppercase tracking-widest text-ink-dim font-bold mb-1">
+              Energy Conservation Law
+            </span>
+            <div className="py-1 overflow-x-auto w-full">
+              <KatexEquation expression="\frac{dm}{dt} = \frac{Q}{\Delta H_s} \quad (\Delta H_s \approx 2{,}838\text{ kJ/kg})" displayMode />
+            </div>
+          </div>
+
+          <div className="p-4 rounded-xl bg-amber-subtle/20 dark:bg-amber-subtle/30 border-2 border-amber/40 flex flex-col justify-center items-center text-center">
+            <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-amber font-bold mb-1">
+              <span className="w-2 h-2 rounded-full bg-amber animate-pulse" />
+              <span>Live Evaluated Sublimation Rate</span>
+            </div>
+            <div className="py-1 overflow-x-auto w-full text-ink-primary font-bold">
+              <KatexEquation
+                expression={`\\frac{dm}{dt} = \\frac{\\mathbf{${heatDutyW}\\text{ W}}}{2{,}838{,}000\\text{ J/kg}} \\times 3600 = \\mathbf{${massRateKgH.toFixed(3)}\\text{ kg/h}}`}
+                displayMode
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="lg:col-span-7 space-y-4">
+          <div className="bg-bg-surface p-3.5 rounded-xl border border-hairline">
+            <div className="flex justify-between items-center text-xs mb-1.5">
+              <span className="font-semibold text-ink-primary">Jacket Heat Transfer Duty (Q)</span>
+              <span className="font-mono text-amber font-bold">{heatDutyW} W</span>
+            </div>
+            <input
+              type="range"
+              min="100"
+              max="2500"
+              step="25"
+              value={heatDutyW}
+              onChange={(e) => setHeatDutyW(Number(e.target.value))}
+              className="w-full accent-amber cursor-pointer"
+            />
+            <div className="flex justify-between text-[10px] text-ink-dim mt-1 font-mono">
+              <span>100 W</span>
+              <span>631 W (Hosokawa 20L spec)</span>
+              <span>2,500 W (Pilot scale)</span>
+            </div>
+          </div>
+
+          <div className="bg-bg-surface p-3.5 rounded-xl border border-hairline">
+            <div className="flex justify-between items-center text-xs mb-1.5">
+              <span className="font-semibold text-ink-primary">Batch Water Mass to Sublime</span>
+              <span className="font-mono text-ink-primary font-bold">{batchWaterKg.toFixed(1)} kg</span>
+            </div>
+            <input
+              type="range"
+              min="1.0"
+              max="20.0"
+              step="0.5"
+              value={batchWaterKg}
+              onChange={(e) => setBatchWaterKg(Number(e.target.value))}
+              className="w-full cursor-pointer"
+            />
+            <div className="flex justify-between text-[10px] text-ink-dim mt-1 font-mono">
+              <span>1.0 kg</span>
+              <span>9.0 kg (90% of 10kg batch)</span>
+              <span>20.0 kg</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="lg:col-span-5 flex flex-col justify-between space-y-3">
+          <div className="p-4 rounded-xl bg-amber-subtle/25 border-2 border-amber/40 shadow-xs">
+            <div className="text-[11px] font-mono uppercase tracking-wider text-amber font-bold">
+              Sublimation Rate &amp; Drying Duration
+            </div>
+            <div className="my-2">
+              <span className="text-3xl sm:text-4xl font-extrabold font-mono text-ink-primary">
+                {massRateKgH.toFixed(2)}
+              </span>
+              <span className="text-sm font-bold text-amber ml-1">kg/h</span>
+              <span className="text-xs font-mono text-ink-dim ml-2">({massRateGMin.toFixed(1)} g/min)</span>
+            </div>
+            <div className="text-xs font-mono text-ink-primary font-bold mt-2">
+              Primary Drying Duration: <span className="text-amber">{primaryHours.toFixed(1)} hours</span>
+            </div>
+          </div>
+
+          {Math.abs(heatDutyW - 631) < 20 && (
+            <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-mono flex items-center gap-2">
+              <Check className="w-4 h-4 shrink-0" />
+              <span>Exact match to Hosokawa AFD-20 benchmark (0.8 kg/h at ~630 W, 11.25 h drying).</span>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// 9. IDEAL GAS VAPOR EXPANSION WORKBENCH (Deep Vacuum Volumetric Expansion)
+// V = nRT / P
+// ============================================================================
+export function IdealGasVacuumVolumeWorkbench() {
+  const [gasType, setGasType] = useState<'co2' | 'water'>('co2');
+  const [massKg, setMassKg] = useState(1.0);
+  const [tempC, setTempC] = useState(0);
+  const [pressureMbar, setPressureMbar] = useState(0.04); // Chapter 23 reference: 0.04 mbar
+  const [copied, setCopied] = useState(false);
+
+  // Molar masses in g/mol
+  const molarMass = gasType === 'co2' ? 44.01 : 18.015;
+  const gasName = gasType === 'co2' ? 'Carbon Dioxide (CO₂)' : 'Water Vapor (H₂O)';
+  const moles = (massKg * 1000) / molarMass;
+  const tempK = tempC + 273.15;
+  const pressurePa = pressureMbar * 100;
+
+  // V = nRT / P (m³)
+  const R = 8.314; // J/(mol·K)
+  const volumeM3 = pressurePa > 0 ? (moles * R * tempK) / pressurePa : 0;
+  const volumeLiters = volumeM3 * 1000;
+
+  // Volume at STP (1013.25 mbar, 0°C)
+  const volumeStpLiters = ((moles * R * 273.15) / 101325) * 1000;
+  const expansionRatio = volumeStpLiters > 0 ? volumeLiters / volumeStpLiters : 0;
+
+  const copyFormula = () => {
+    navigator.clipboard.writeText(
+      `Ideal Gas Law V = nRT/P: ${massKg}kg of ${gasName}, T=${tempC}°C, P=${pressureMbar}mbar -> V=${Math.round(volumeLiters).toLocaleString()} Liters (${expansionRatio.toFixed(0)}x expansion)`
+    );
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="my-8 rounded-2xl border-2 border-amber/40 bg-bg-panel shadow-xl overflow-hidden transition-all duration-300">
+      <div className="p-4 sm:p-5 border-b border-hairline bg-bg-surface/70 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-amber-subtle text-amber flex items-center justify-center border border-amber/30 shrink-0">
+            <Gauge className="w-4 h-4" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 rounded bg-amber text-on-amber text-[10px] font-mono font-bold tracking-wider uppercase">
+                Interactive Vacuum Physics Workbench
+              </span>
+              <span className="text-[10px] font-mono text-ink-dim hidden sm:inline">
+                Ideal Gas Law Under Deep Vacuum
+              </span>
+            </div>
+            <h3 className="text-sm sm:text-base font-bold text-ink-primary mt-1">
+              Gas Volumetric Expansion at Deep Vacuum (V = nRT / P)
+            </h3>
+          </div>
+        </div>
+
+        <button
+          onClick={copyFormula}
+          className="p-2 rounded-lg border border-hairline text-ink-muted hover:text-amber hover:bg-bg-surface transition cursor-pointer text-xs font-mono flex items-center gap-1"
+          title="Copy calculation"
+        >
+          {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+          <span className="hidden sm:inline">{copied ? 'Copied' : 'Copy'}</span>
+        </button>
+      </div>
+
+      <div className="p-4 sm:p-6 bg-bg-surface/40 border-b border-hairline">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
+          <div className="p-4 rounded-xl bg-bg-panel border border-hairline flex flex-col justify-center items-center text-center">
+            <span className="text-[10px] font-mono uppercase tracking-widest text-ink-dim font-bold mb-1">
+              Ideal Gas Law (Vacuum Form)
+            </span>
+            <div className="py-1 overflow-x-auto w-full">
+              <KatexEquation expression="V = \frac{n \cdot R \cdot T}{P} \quad \left(n = \frac{m}{M}\right)" displayMode />
+            </div>
+          </div>
+
+          <div className="p-4 rounded-xl bg-amber-subtle/20 dark:bg-amber-subtle/30 border-2 border-amber/40 flex flex-col justify-center items-center text-center">
+            <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-amber font-bold mb-1">
+              <span className="w-2 h-2 rounded-full bg-amber animate-pulse" />
+              <span>Expanded Vapor Volume</span>
+            </div>
+            <div className="py-1 overflow-x-auto w-full text-ink-primary font-bold">
+              <KatexEquation
+                expression={`V = \\frac{${moles.toFixed(1)}\\text{ mol} \\times 8.314 \\times ${tempK.toFixed(0)}\\text{ K}}{${pressurePa.toFixed(1)}\\text{ Pa}} \\implies \\mathbf{${Math.round(volumeLiters).toLocaleString()}\\text{ Liters}}`}
+                displayMode
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="lg:col-span-7 space-y-4">
+          <div className="flex items-center gap-2 bg-bg-surface p-2.5 rounded-xl border border-hairline">
+            <span className="text-xs font-semibold text-ink-primary">Substance:</span>
+            <button
+              onClick={() => setGasType('co2')}
+              className={`px-3 py-1 rounded-lg text-xs font-mono transition ${
+                gasType === 'co2' ? 'bg-amber text-on-amber font-bold' : 'bg-bg-panel text-ink-secondary border border-hairline'
+              }`}
+            >
+              CO₂ (Dry Ice / Direct Injection)
+            </button>
+            <button
+              onClick={() => setGasType('water')}
+              className={`px-3 py-1 rounded-lg text-xs font-mono transition ${
+                gasType === 'water' ? 'bg-amber text-on-amber font-bold' : 'bg-bg-panel text-ink-secondary border border-hairline'
+              }`}
+            >
+              Water Vapor (Sublimation)
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="bg-bg-surface p-3.5 rounded-xl border border-hairline">
+              <div className="flex justify-between items-center text-xs mb-1.5">
+                <span className="font-semibold text-ink-primary">Sublimed Mass (m)</span>
+                <span className="font-mono text-amber font-bold">{massKg.toFixed(1)} kg ({moles.toFixed(1)} mol)</span>
+              </div>
+              <input
+                type="range"
+                min="0.1"
+                max="5.0"
+                step="0.1"
+                value={massKg}
+                onChange={(e) => setMassKg(Number(e.target.value))}
+                className="w-full accent-amber cursor-pointer"
+              />
+            </div>
+
+            <div className="bg-bg-surface p-3.5 rounded-xl border border-hairline">
+              <div className="flex justify-between items-center text-xs mb-1.5">
+                <span className="font-semibold text-ink-primary">Vacuum Pressure (P)</span>
+                <span className="font-mono text-cryo font-bold">{pressureMbar.toFixed(3)} mbar ({pressurePa.toFixed(1)} Pa)</span>
+              </div>
+              <input
+                type="range"
+                min="0.01"
+                max="1.0"
+                step="0.01"
+                value={pressureMbar}
+                onChange={(e) => setPressureMbar(Number(e.target.value))}
+                className="w-full accent-[#7FD4FF] cursor-pointer"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="lg:col-span-5 flex flex-col justify-between space-y-3">
+          <div className="p-4 rounded-xl bg-amber-subtle/25 border-2 border-amber/40 shadow-xs">
+            <div className="text-[11px] font-mono uppercase tracking-wider text-amber font-bold">
+              Calculated Volume at Vacuum
+            </div>
+            <div className="my-2">
+              <span className="text-2xl sm:text-3xl font-extrabold font-mono text-ink-primary">
+                {Math.round(volumeLiters / 1000).toLocaleString()}k
+              </span>
+              <span className="text-sm font-bold text-amber ml-1">Liters</span>
+              <span className="text-xs font-mono text-ink-dim block mt-1">
+                ({volumeM3.toFixed(0)} m³ of gas)
+              </span>
+            </div>
+            <div className="text-xs font-mono text-ink-primary font-bold">
+              Expansion vs. Atmospheric: <span className="text-amber">{Math.round(expansionRatio).toLocaleString()}× larger</span>
+            </div>
+          </div>
+
+          <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-400 text-xs font-mono">
+            Directly confirms Chapter 23: 1 kg CO₂ at 0.04 mbar occupies ~13 million liters of gas, illustrating why direct cryogen injection overloads freeze dryer vacuum systems.
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// 10. SUBLIMATION THEORETICAL FORMULA CARD (Interactive Formula Explorer)
+// Q = (dm/dt) × ΔHs
+// ============================================================================
+export function SublimationTheoreticalFormulaCard() {
+  const [copied, setCopied] = useState(false);
+  const [selectedVar, setSelectedVar] = useState<'q' | 'm' | 'dh'>('q');
+
+  const varDetails = {
+    q: {
+      symbol: 'Q',
+      name: 'Heat Duty / Energy Input Rate',
+      units: 'Watts (W) or Joules/sec (J/s)',
+      explanation: 'The rate of thermal energy delivered across the vessel jacket wall to supply the latent heat required to sustain continuous sublimation without product temperature drop.',
+      benchmark: '631 W for Hosokawa 20L model at 0.8 kg/h sublimation.',
+    },
+    m: {
+      symbol: 'ṁ or (dm/dt)',
+      name: 'Sublimation Mass Flow Rate',
+      units: 'kg/h or kg/s',
+      explanation: 'The mass of ice converted directly into water vapor per unit time. Governed strictly by the rate of heat conduction to the sublimation front.',
+      benchmark: '0.80 kg/h (2.222 × 10⁻⁴ kg/s) published spec for Hosokawa AFD-20.',
+    },
+    dh: {
+      symbol: 'ΔHs',
+      name: 'Latent Heat of Sublimation of Ice',
+      units: 'kJ/kg or J/kg',
+      explanation: 'Thermodynamic enthalpy required to sublimate ice directly to vapor. Equal to latent heat of fusion (334 kJ/kg) + latent heat of vaporization (2,504 kJ/kg).',
+      benchmark: '≈ 2,838 kJ/kg (2,838,000 J/kg) at typical lyophilization vacuum.',
+    },
+  };
+
+  const copyLatex = () => {
+    navigator.clipboard.writeText('Q = \\dot{m} \\cdot \\Delta H_s');
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="my-6 rounded-2xl p-4 sm:p-5 border-2 border-amber/40 bg-bg-panel shadow-lg overflow-hidden transition-all duration-300">
+      <div className="flex items-center justify-between pb-3 mb-3 border-b border-hairline">
+        <div className="flex items-center gap-2">
+          <span className="w-2.5 h-2.5 rounded-full bg-amber shadow-sm animate-pulse" />
+          <span className="text-[11px] font-mono uppercase tracking-widest text-amber font-bold flex items-center gap-1.5">
+            <Flame className="w-3.5 h-3.5" />
+            <span>Fundamental Sublimation Enthalpy Law</span>
+          </span>
+        </div>
+
+        <button
+          onClick={copyLatex}
+          className="p-1.5 rounded-lg border border-hairline text-ink-muted hover:text-amber hover:bg-bg-surface transition cursor-pointer text-xs font-mono flex items-center gap-1"
+          title="Copy LaTeX"
+        >
+          {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+          <span className="hidden sm:inline">{copied ? 'Copied' : 'Copy LaTeX'}</span>
+        </button>
+      </div>
+
+      <div className="py-4 text-center overflow-x-auto bg-bg-surface/50 rounded-xl my-2 border border-hairline">
+        <KatexEquation expression="Q = \dot{m} \cdot \Delta H_s \iff \dot{m} = \frac{Q}{\Delta H_s}" displayMode />
+      </div>
+
+      {/* Interactive Variable Selector */}
+      <div className="mt-4 pt-3 border-t border-hairline">
+        <div className="text-[11px] font-mono text-ink-dim uppercase tracking-wider mb-2 font-semibold">
+          Click any variable to inspect engineering definition:
+        </div>
+        <div className="flex flex-wrap gap-2 mb-3">
+          {(['q', 'm', 'dh'] as const).map((key) => (
+            <button
+              key={key}
+              onClick={() => setSelectedVar(key)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-mono transition cursor-pointer flex items-center gap-1.5 ${
+                selectedVar === key
+                  ? 'bg-amber text-on-amber font-bold shadow-sm ring-1 ring-amber'
+                  : 'bg-bg-surface text-ink-secondary hover:text-ink-primary border border-hairline'
+              }`}
+            >
+              <span>{varDetails[key].symbol}</span>
+              <span className="text-[10px] opacity-80">({varDetails[key].name.split(' ')[0]})</span>
+            </button>
+          ))}
+        </div>
+
+        <div className="p-3.5 rounded-xl bg-bg-surface border border-hairline space-y-1.5 text-xs font-mono animate-fade-in">
+          <div className="flex items-center justify-between text-ink-primary font-bold">
+            <span>{varDetails[selectedVar].name} ({varDetails[selectedVar].symbol})</span>
+            <span className="text-amber text-[11px]">{varDetails[selectedVar].units}</span>
+          </div>
+          <p className="text-ink-secondary text-[11px] leading-relaxed font-sans">
+            {varDetails[selectedVar].explanation}
+          </p>
+          <div className="text-[10px] text-cryo font-mono pt-1">
+            <strong>Hosokawa Benchmark:</strong> {varDetails[selectedVar].benchmark}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// 11. UNIVERSAL INTERACTIVE EQUATION CARD (For all generic mathematical formulations)
+// ============================================================================
 interface UniversalEquationCardProps {
   latexFormula: string;
   originalBlock?: string;
@@ -1201,3 +1876,4 @@ export function UniversalInteractiveEquationCard({
     </div>
   );
 }
+

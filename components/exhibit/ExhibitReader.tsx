@@ -37,6 +37,10 @@ import {
   VacuumPumpdownWorkbench,
   ClausiusClapeyronWorkbench,
   PikalHeatMassWorkbench,
+  MassTransferResistanceWorkbench,
+  SublimationMassFlowWorkbench,
+  IdealGasVacuumVolumeWorkbench,
+  SublimationTheoreticalFormulaCard,
   UniversalInteractiveEquationCard,
 } from "@/components/exhibit/InteractiveEquationWorkbench";
 
@@ -432,6 +436,48 @@ export function ExhibitReader({
         continue;
       }
 
+      if (
+        line.trim() === "<IdealGasVacuumVolumeWorkbench />" ||
+        line.trim() === "<IdealGasVacuumVolumeWorkbench/>" ||
+        line.trim() === "::IdealGasVacuumVolumeWorkbench"
+      ) {
+        elements.push(
+          <div key={key++} className="my-6">
+            <IdealGasVacuumVolumeWorkbench />
+          </div>
+        );
+        i++;
+        continue;
+      }
+
+      if (
+        line.trim() === "<MassTransferResistanceWorkbench />" ||
+        line.trim() === "<MassTransferResistanceWorkbench/>" ||
+        line.trim() === "::MassTransferResistanceWorkbench"
+      ) {
+        elements.push(
+          <div key={key++} className="my-6">
+            <MassTransferResistanceWorkbench />
+          </div>
+        );
+        i++;
+        continue;
+      }
+
+      if (
+        line.trim() === "<SublimationMassFlowWorkbench />" ||
+        line.trim() === "<SublimationMassFlowWorkbench/>" ||
+        line.trim() === "::SublimationMassFlowWorkbench"
+      ) {
+        elements.push(
+          <div key={key++} className="my-6">
+            <SublimationMassFlowWorkbench />
+          </div>
+        );
+        i++;
+        continue;
+      }
+
       // Single-line display equation: $$ ... $$
       if (line.trim().startsWith("$$") && line.trim().endsWith("$$") && line.trim().length > 4) {
         const expr = line.trim().slice(2, -2).trim();
@@ -476,12 +522,8 @@ export function ExhibitReader({
         const fullBlock = codeLines.join("\n").trim();
         const latexFormula = formulaToLatex(fullBlock);
 
-        // 1. Sublimation Rate ↔ Heat Duty Interactive Workbench
-        if (
-          fullBlock.includes("Q = (dm/dt) × ΔHs") ||
-          fullBlock.includes("Q = (dm/dt) x dHs") ||
-          (fullBlock.includes("dm/dt = 0.8 kg/h") && fullBlock.includes("631 W"))
-        ) {
+        // 1. Sublimation Heat Duty: Worked Numerical Solution vs. Theoretical Formula
+        if (fullBlock.includes("dm/dt = 0.8 kg/h") && fullBlock.includes("631 W")) {
           elements.push(
             <div key={key++} className="my-6">
               <SublimationHeatDutyWorkbench />
@@ -490,7 +532,61 @@ export function ExhibitReader({
           continue;
         }
 
-        // 2. Jacket Heat-Transfer Surface Area Workbench
+        if (
+          fullBlock.includes("Q = (dm/dt) × ΔHs") ||
+          fullBlock.includes("Q = (dm/dt) x dHs")
+        ) {
+          elements.push(
+            <div key={key++} className="my-6">
+              <SublimationTheoreticalFormulaCard />
+            </div>
+          );
+          continue;
+        }
+
+        // 2. Sublimation Mass Flow Rate from Heat Input
+        if (
+          fullBlock.includes("dm/dt = Q / ΔHs") ||
+          fullBlock.includes("dm/dt = Q / dHs")
+        ) {
+          elements.push(
+            <div key={key++} className="my-6">
+              <SublimationMassFlowWorkbench />
+            </div>
+          );
+          continue;
+        }
+
+        // 3. Mass Transfer Resistance through Dried Cake Layer (Tang & Pikal 2004)
+        if (
+          fullBlock.includes("dm/dt = Ap · (Pice − Pchamber) / Rp") ||
+          fullBlock.includes("Pice − Pchamber") ||
+          fullBlock.includes("Pice - Pchamber") ||
+          (fullBlock.includes("Ap") && fullBlock.includes("Rp") && (fullBlock.includes("Pice") || fullBlock.includes("Pchamber")))
+        ) {
+          elements.push(
+            <div key={key++} className="my-6">
+              <MassTransferResistanceWorkbench />
+            </div>
+          );
+          continue;
+        }
+
+        // 4. Ideal Gas Law / Deep Vacuum Volumetric Expansion
+        if (
+          fullBlock.includes("PV = nRT") ||
+          fullBlock.includes("V = nRT/P") ||
+          fullBlock.includes("13 million liters")
+        ) {
+          elements.push(
+            <div key={key++} className="my-6">
+              <IdealGasVacuumVolumeWorkbench />
+            </div>
+          );
+          continue;
+        }
+
+        // 5. Jacket Heat-Transfer Surface Area Workbench
         if (
           fullBlock.includes("Q = U × A × ΔT") ||
           fullBlock.includes("A = Q / (U × ΔT)") ||
@@ -504,11 +600,12 @@ export function ExhibitReader({
           continue;
         }
 
-        // 3. Freezing-Stage 3-Step Refrigeration Load Workbench
+        // 6. Freezing-Stage 3-Step Refrigeration Load Workbench
         if (
           fullBlock.includes("Q1 (cool liquid") ||
+          fullBlock.includes("Q_total = m × cp_liquid") ||
           (fullBlock.includes("Q1") && fullBlock.includes("Q2") && fullBlock.includes("4,476 kJ")) ||
-          (fullBlock.includes("cp_liquid") && fullBlock.includes("cp_ice") && fullBlock.includes("ΔHf"))
+          (fullBlock.includes("cp_liquid") && (fullBlock.includes("cp_ice") || fullBlock.includes("cp_solid")) && (fullBlock.includes("ΔHf") || fullBlock.includes("ΔH_fusion")))
         ) {
           elements.push(
             <div key={key++} className="my-6">
@@ -518,7 +615,7 @@ export function ExhibitReader({
           continue;
         }
 
-        // 4. Vacuum Pumpdown Evacuation Workbench
+        // 7. Vacuum Pumpdown Evacuation Workbench
         if (
           fullBlock.includes("t = (V / S) × ln(P1 / P2)") ||
           (fullBlock.includes("t = (V / S)") && fullBlock.includes("ln("))
@@ -531,7 +628,7 @@ export function ExhibitReader({
           continue;
         }
 
-        // 5. Clausius-Clapeyron Vapor Pressure Workbench
+        // 8. Clausius-Clapeyron Vapor Pressure Workbench
         if (
           fullBlock.includes("dP/dT = L / (T·Δv)") ||
           fullBlock.includes("dP/dT = L / (T.Δv)") ||
@@ -545,11 +642,11 @@ export function ExhibitReader({
           continue;
         }
 
-        // 6. Pikal Heat & Mass Transfer Workbench
+        // 9. Pikal Heat Transfer Workbench
         if (
           fullBlock.includes("Q = Kv · Av · (Ts − Tb)") ||
           fullBlock.includes("Q = Kv . Av . (Ts - Tb)") ||
-          (fullBlock.includes("dm/dt = Q / ΔHs") && !fullBlock.includes("dm/dt = 0.8"))
+          (fullBlock.includes("Kv") && fullBlock.includes("Av") && (fullBlock.includes("Ts") || fullBlock.includes("Tb")))
         ) {
           elements.push(
             <div key={key++} className="my-6">
@@ -559,7 +656,7 @@ export function ExhibitReader({
           continue;
         }
 
-        // 7. Universal Interactive Equation Card for other recognized physical laws
+        // 10. Universal Interactive Equation Card for any other recognized physical law
         if (latexFormula) {
           elements.push(
             <div key={key++} className="my-6">
