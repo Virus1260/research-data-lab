@@ -14,6 +14,15 @@ interface DiagramCard {
 
 const DIAGRAMS: DiagramCard[] = [
   {
+    id: "pfd-drawing",
+    title: "Stirred Freeze Dryer Process Flow Diagram (PFD)",
+    category: "Architecture",
+    src: "/diagrams/pfd_stirred_freeze_dryer.jpg",
+    description:
+      "Authentic published literature Process Flow Diagram showing product feed, freezing medium mixing, stirred freeze dryer vessel, filter dust retention, vapor condenser, and vacuum pumping train.",
+    tags: ["PFD", "Process Flow", "Hosokawa Architecture"],
+  },
+  {
     id: "system-block",
     title: "System Architecture & Subsystem Bus",
     category: "Architecture",
@@ -23,6 +32,60 @@ const DIAGRAMS: DiagramCard[] = [
     tags: ["ISA Architecture", "Subsystems", "I/O Bus"],
   },
   {
+    id: "hosokawa-afd-hero",
+    title: "Hosokawa Active Freeze Dryer (AFD) Integrated Machine Skid",
+    category: "Equipment Photos",
+    src: "/photos/hosokawa_afd_full_skid_4k.png",
+    description:
+      "Ultra-high resolution 4K photograph of the complete Hosokawa Active Freeze Dryer production machine showing conical vessel, top drive motor, utility manifold, and Siemens touch HMI console.",
+    tags: ["Hosokawa AFD", "4K Production Skid", "Pharma Machine"],
+  },
+  {
+    id: "vacuum-skid-photo",
+    title: "Industrial Pharmaceutical Vacuum Pump Skid",
+    category: "Equipment Photos",
+    src: "/photos/vacuum_pump_skid_pharma.webp",
+    description:
+      "Industrial pharmaceutical multi-stage vacuum pumping skid featuring oil-free dry screw backing pump, Roots booster blower, interstage condenser, and automated isolation valves.",
+    tags: ["Vacuum Skid", "Roots Booster", "Dry Screw"],
+  },
+  {
+    id: "nauta-skid-photo",
+    title: "Hosokawa Nauta Conical Vacuum Dryer Production Plant",
+    category: "Equipment Photos",
+    src: "/photos/nauta_vacuum_dryer_skid.webp",
+    description:
+      "Production-scale Hosokawa Nauta conical vacuum drying system installation featuring mezzanine operator platform, stairs, top filter column, and bottom discharge canister.",
+    tags: ["Nauta Lineage", "Conical Vessel", "Production Plant"],
+  },
+  {
+    id: "scada-hmi-mimic",
+    title: "Hosokawa Micron SCADA HMI Mimic Screen",
+    category: "P&ID / Controls",
+    src: "/photos/hosokawa_scada_hmi_mimic.webp",
+    description:
+      "Authentic Hosokawa Micron SCADA HMI touchscreen graphic showing full equipment mimic, agitator motor state, vessel temperatures, vacuum setpoint, and recipe control.",
+    tags: ["SCADA", "HMI Mimic", "Hosokawa Micron"],
+  },
+  {
+    id: "pilot-conical-dryer",
+    title: "Pilot-Scale Mobile Conical Agitated Vacuum Dryer",
+    category: "Equipment Photos",
+    src: "/photos/pilot_conical_dryer_unit.jpg",
+    description:
+      "Pilot R&D mobile conical vacuum dryer unit featuring top swing-bolt lid, sanitary sight glass, orbiting agitator motor, and bottom ball-segment discharge valve.",
+    tags: ["Pilot Scale", "Conical Dryer", "R&D Unit"],
+  },
+  {
+    id: "test-centre-photo",
+    title: "Hosokawa Micron Test Centre Pilot Facility",
+    category: "Equipment Photos",
+    src: "/photos/hosokawa_test_centre_pilot.webp",
+    description:
+      "Hosokawa Micron multi-level test centre and pilot trial facility used for process development, customer trials, and factory acceptance testing (FAT).",
+    tags: ["Test Centre", "Pilot Trials", "Hosokawa"],
+  },
+  {
     id: "pid-drawing",
     title: "Complete Process & Instrumentation Diagram",
     category: "P&ID / Controls",
@@ -30,6 +93,15 @@ const DIAGRAMS: DiagramCard[] = [
     description:
       "ANSI/ISA-5.1 compliant instrumentation drawing with tag loops, control valves, safety relief valves, and vacuum manifold.",
     tags: ["ANSI/ISA-5.1", "P&ID", "Loop Tags"],
+  },
+  {
+    id: "water-phase-kpa",
+    title: "Water Phase Diagram & Triple Point (kPa Reference)",
+    category: "Thermodynamics",
+    src: "/diagrams/water_phase_diagram_kpa.jpg",
+    description:
+      "Literature thermodynamic reference diagram of water phase equilibrium with triple point (611 Pa / 0.01 °C), critical point, and logarithmic sublimation boundary in kPa.",
+    tags: ["Phase Diagram", "Triple Point", "Thermodynamics"],
   },
   {
     id: "water-phase",
@@ -90,7 +162,16 @@ const DIAGRAMS: DiagramCard[] = [
 export function EngineeringDiagramsGallery() {
   const [selectedFilter, setSelectedFilter] = useState<string>("All");
 
-  const categories = ["All", "Architecture", "P&ID / Controls", "Mechanical CAD", "Thermal / Fluid", "Process Data"];
+  const categories = [
+    "All",
+    "Architecture",
+    "Equipment Photos",
+    "P&ID / Controls",
+    "Mechanical CAD",
+    "Thermal / Fluid",
+    "Thermodynamics",
+    "Process Data",
+  ];
 
   const filteredDiagrams =
     selectedFilter === "All"

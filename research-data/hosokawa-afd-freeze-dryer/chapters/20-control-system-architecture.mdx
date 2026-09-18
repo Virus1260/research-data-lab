@@ -10,8 +10,6 @@ simulators: []
 
 # 20 — Control System Architecture
 
-See `diagrams/control_system_architecture.png` for the full diagram this file explains.
-
 ![Control System Architecture — BPCS vs SIS](/diagrams/control_system_architecture.png)
 
 <AutomationHierarchyChart />
@@ -33,6 +31,8 @@ Concretely, on this machine: the emergency stop loop (`ESD-001`) is **hardwired*
 2. **I/O** — where field signals physically land: analog input/output cards for continuous signals (4–20 mA, RTD), digital input/output for on/off signals (limit switches, run feedback, valve open/closed confirmation). The SIS uses its own dedicated, safety-rated I/O — never sharing a card or a rack with BPCS I/O, so a BPCS I/O card fault can't also blind the safety system.
 3. **Controllers** — the BPCS PLC (running the ISA-88 recipe logic from file 21) and the SIS (either a certified safety PLC or, for a smaller/prototype build, simple hardwired safety relays — both are legitimate approaches; a safety PLC is more flexible as the interlock list grows, hardwired relays are simpler to verify and are a very reasonable choice for a first build).
 4. **Supervisory layer** — HMI/SCADA (what the operator actually looks at: live values, trends, alarms, manual controls where permitted), a historian/electronic batch record (every batch's data, logged continuously — this is what a real GMP batch record is built from, file 14), and an engineering workstation for offline recipe/configuration work.
+
+![Hosokawa Micron SCADA HMI Mimic Screen — Main Process Overview & Motor Controls](/photos/hosokawa_scada_hmi_mimic.webp)
 
 ## 3. What talks to what (and, just as importantly, what doesn't)
 
