@@ -8,6 +8,9 @@ import { ExportModal } from "./ExportModal";
 import {
   Volume2,
   VolumeX,
+  Headphones,
+  Play,
+  Pause,
   List,
   ChevronLeft,
   ChevronRight,
@@ -26,6 +29,7 @@ import { IsaTagAnatomyChart } from "@/components/diagrams/IsaTagAnatomyChart";
 import { FullBatchProcedureChart } from "@/components/diagrams/FullBatchProcedureChart";
 import { Isa88HierarchyChart } from "@/components/diagrams/Isa88HierarchyChart";
 import { EngineeringDiagramsGallery } from "@/components/diagrams/EngineeringDiagramsGallery";
+import { StickyMarkdownTable } from "@/components/tables/StickyMarkdownTable";
 
 interface ExhibitReaderProps {
   chapter: ChapterMeta;
@@ -156,8 +160,10 @@ export function ExhibitReader({
   const [mounted, setMounted] = useState(false);
   const {
     loadTrack,
+    togglePlay,
     currentTrack,
     isPlaying,
+    isMinimized,
     selectedPersona,
     voiceStudioOpen,
     setVoiceStudioOpen,
@@ -291,7 +297,13 @@ export function ExhibitReader({
   // Removed if (!mounted) return null; to enable full SSR rendering and eliminate layout shift
 
   const handlePlayNarration = () => {
-    loadTrack(chapter.slug, chapter.title, audioUrl || "", manifest, chapter.content);
+    if (isThisPlaying) {
+      togglePlay();
+    } else if (currentTrack?.slug === chapter.slug) {
+      togglePlay();
+    } else {
+      loadTrack(chapter.slug, chapter.title, audioUrl || "", manifest, chapter.content);
+    }
   };
 
   // Enhanced markdown renderer with KaTeX, tables, and code blocks
@@ -632,42 +644,12 @@ export function ExhibitReader({
         if (parsedRows.length > 0) {
           const [headerRow, ...bodyRows] = parsedRows;
           elements.push(
-            <div
+            <StickyMarkdownTable
               key={key++}
-              className="overflow-x-auto my-6 rounded-2xl border border-hairline shadow-md bg-bg-panel"
-            >
-              <table className="w-full border-collapse text-left">
-                <thead>
-                  <tr className="bg-bg-surface border-b border-hairline">
-                    {headerRow.map((cell, colIdx) => (
-                      <th
-                        key={colIdx}
-                        className="px-4 py-3 text-xs font-mono font-bold uppercase tracking-wider text-ink-primary whitespace-nowrap"
-                      >
-                        {renderInline(cell)}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-hairline">
-                  {bodyRows.map((row, rowIdx) => (
-                    <tr
-                      key={rowIdx}
-                      className="hover:bg-bg-hover transition-colors even:bg-bg-surface/30"
-                    >
-                      {row.map((cell, cellIdx) => (
-                        <td
-                          key={cellIdx}
-                          className="px-4 py-3 text-xs sm:text-sm text-ink-secondary font-mono-data leading-relaxed"
-                        >
-                          {renderInline(cell)}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+              headerRow={headerRow}
+              bodyRows={bodyRows}
+              renderInline={renderInline}
+            />
           );
           continue;
         }
@@ -1057,7 +1039,12 @@ export function ExhibitReader({
       </aside>
 
       {/* Main Chapter Content */}
-      <main id="monograph-reader-main" className="flex-1 min-w-0 px-4 sm:px-10 py-10 max-w-4xl">
+      <main
+        id="monograph-reader-main"
+        className={`flex-1 min-w-0 px-4 sm:px-10 pt-10 max-w-4xl transition-all duration-300 ${
+          currentTrack && !isMinimized ? "pb-48 sm:pb-60" : "pb-16"
+        }`}
+      >
         {/* Chapter Header */}
         <div className="mb-10 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -1070,29 +1057,15 @@ export function ExhibitReader({
               </span>
             </div>
 
-            {/* Single canonical action group: Export & Listen */}
+            {/* Export / Print Action */}
             <div className="flex items-center gap-2">
-              {/* Export / Print Button */}
               <button
                 onClick={() => setExportOpen(true)}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-mono bg-bg-panel hover:bg-bg-hover text-ink-primary border border-hairline transition shadow-sm hover:border-amber/40"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-mono bg-bg-panel hover:bg-bg-hover text-ink-primary border border-hairline transition shadow-sm hover:border-amber/40 cursor-pointer"
                 title="Export or Print this chapter (PDF, Word, Markdown)"
               >
                 <Download className="w-3.5 h-3.5 text-amber" />
                 <span className="font-semibold">Export / Print</span>
-              </button>
-
-              {/* Listen Button */}
-              <button
-                onClick={handlePlayNarration}
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md ${
-                  isThisPlaying
-                    ? "bg-amber text-on-amber shadow-amber-glow animate-pulse"
-                    : "bg-amber/10 hover:bg-amber/20 text-amber border border-amber/30"
-                }`}
-              >
-                {isThisPlaying ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4 text-amber" />}
-                <span>{isThisPlaying ? "Narration Playing" : audioUrl ? "Listen (Studio Audio)" : "Listen (AI Voice)"}</span>
               </button>
             </div>
           </div>
@@ -1147,16 +1120,21 @@ export function ExhibitReader({
         </article>
 
         {/* Chapter Navigation Footer (Fully Responsive Stack on Mobile) */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mt-16 pt-8 border-t border-hairline">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mt-16 pt-8 border-t border-hairline mb-8">
           {prevChapter ? (
             <a
               href={`/${projectSlug}/${prevChapter.slug}`}
-              className="flex-1 flex items-center gap-3 p-3.5 rounded-xl hover:bg-bg-hover border border-hairline transition group shadow-xs"
+              className="flex-1 flex items-center gap-3 p-3.5 rounded-xl hover:bg-bg-hover border border-hairline transition group shadow-xs cursor-pointer"
             >
               <ChevronLeft className="w-5 h-5 text-ink-dim group-hover:text-amber group-hover:-translate-x-1 transition shrink-0" />
               <div className="truncate">
-                <div className="text-[10px] font-mono uppercase tracking-widest text-ink-dim">
-                  Previous Chapter
+                <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-ink-dim mb-0.5">
+                  <span>Previous Chapter</span>
+                  {prevChapter.chapterNumber && (
+                    <span className="px-1.5 py-0.5 rounded bg-amber-subtle text-amber font-bold border border-amber/30">
+                      Ch {prevChapter.chapterNumber}
+                    </span>
+                  )}
                 </div>
                 <div className="text-xs sm:text-sm font-bold text-ink-primary truncate">
                   {prevChapter.title}
@@ -1170,11 +1148,16 @@ export function ExhibitReader({
           {nextChapter && (
             <a
               href={`/${projectSlug}/${nextChapter.slug}`}
-              className="flex-1 flex items-center justify-between sm:justify-end gap-3 p-3.5 rounded-xl hover:bg-bg-hover border border-hairline transition group text-right shadow-xs"
+              className="flex-1 flex items-center justify-between sm:justify-end gap-3 p-3.5 rounded-xl hover:bg-bg-hover border border-hairline transition group text-right shadow-xs cursor-pointer"
             >
               <div className="truncate text-left sm:text-right">
-                <div className="text-[10px] font-mono uppercase tracking-widest text-ink-dim">
-                  Next Chapter
+                <div className="flex items-center justify-start sm:justify-end gap-2 text-[10px] font-mono uppercase tracking-widest text-ink-dim mb-0.5">
+                  {nextChapter.chapterNumber && (
+                    <span className="px-1.5 py-0.5 rounded bg-amber-subtle text-amber font-bold border border-amber/30">
+                      Ch {nextChapter.chapterNumber}
+                    </span>
+                  )}
+                  <span>Next Chapter</span>
                 </div>
                 <div className="text-xs sm:text-sm font-bold text-ink-primary truncate">
                   {nextChapter.title}
@@ -1224,6 +1207,44 @@ export function ExhibitReader({
           allChapters={allChapters}
           projectSlug={projectSlug}
         />
+
+        {/* Floating Listen AI Voice Button */}
+        <button
+          onClick={handlePlayNarration}
+          className={`fixed z-40 w-13 h-13 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all duration-300 shadow-2xl hover:scale-110 active:scale-95 cursor-pointer backdrop-blur-xl group ${
+            currentTrack && !isMinimized ? "bottom-24 right-6" : "bottom-6 right-6"
+          } ${
+            isThisPlaying
+              ? "bg-amber text-on-amber border-2 border-amber-bright shadow-amber-glow animate-pulse ring-2 ring-amber/50"
+              : isCurrentTrack
+              ? "bg-amber/20 text-amber border-2 border-amber hover:bg-amber/30"
+              : "bg-bg-panel/95 hover:bg-bg-surface text-amber border border-amber/40 hover:border-amber hover:shadow-amber/20"
+          }`}
+          title={
+            isThisPlaying
+              ? `Pause Narration (${selectedPersona.name.split(" ")[0]})`
+              : isCurrentTrack
+              ? `Resume Narration (${selectedPersona.name.split(" ")[0]})`
+              : audioUrl
+              ? `Listen to Chapter (${selectedPersona.name.split(" ")[0]} - Studio Audio)`
+              : `Listen to Chapter (${selectedPersona.name.split(" ")[0]} - AI Voice)`
+          }
+          aria-label={isThisPlaying ? "Pause Narration" : "Listen to Chapter with AI Voice"}
+        >
+          {isThisPlaying ? (
+            <Volume2 className="w-6 h-6 text-on-amber transition-transform group-hover:scale-110" />
+          ) : isCurrentTrack ? (
+            <Play className="w-5 h-5 text-amber fill-current ml-0.5 transition-transform group-hover:scale-110" />
+          ) : (
+            <Headphones className="w-6 h-6 text-amber transition-transform group-hover:scale-110" />
+          )}
+          {!isThisPlaying && !isCurrentTrack && (
+            <span className="absolute -top-0.5 -right-0.5 flex h-3.5 w-3.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber opacity-75" />
+              <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-amber" />
+            </span>
+          )}
+        </button>
       </main>
     </div>
   );
