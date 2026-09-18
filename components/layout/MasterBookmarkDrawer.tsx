@@ -259,10 +259,10 @@ export function MasterBookmarkDrawer({
               return (
                 <div
                   key={chapter.slug}
-                  className={`rounded-xl border transition-all ${
+                  className={`rounded-xl transition-all ${
                     isCurrentChapter
-                      ? "bg-amber-subtle/30 border-amber/40 shadow-sm"
-                      : "bg-bg-panel border-hairline hover:border-hairline-strong"
+                      ? "bg-bg-panel border-2 border-amber ring-2 ring-amber/25 shadow-md border-l-4 border-l-amber"
+                      : "bg-bg-panel border border-hairline hover:border-hairline-strong hover:shadow-xs"
                   }`}
                 >
                   {/* Chapter Header Row */}
@@ -271,21 +271,44 @@ export function MasterBookmarkDrawer({
                       onClick={() => toggleChapter(chapter.slug)}
                       className="flex items-start gap-2.5 text-left min-w-0 flex-1 group"
                     >
-                      <span className="p-1 rounded bg-bg-surface border border-hairline text-ink-dim group-hover:text-amber transition mt-0.5 shrink-0">
+                      <span className={`p-1 rounded border transition mt-0.5 shrink-0 ${
+                        isCurrentChapter
+                          ? "bg-amber/15 border-amber/40 text-amber"
+                          : "bg-bg-surface border-hairline text-ink-dim group-hover:text-amber"
+                      }`}>
                         {isExpanded ? (
-                          <ChevronDown className="w-3 h-3" />
+                          <ChevronDown className="w-3.5 h-3.5" />
                         ) : (
-                          <ChevronRight className="w-3 h-3" />
+                          <ChevronRight className="w-3.5 h-3.5" />
                         )}
                       </span>
 
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-1.5 text-[10px] font-mono text-ink-dim">
-                          <span className="text-amber font-bold">Ch {chapter.chapterNumber}</span>
-                          <span>•</span>
-                          <span className="truncate">{chapter.act}</span>
-                        </div>
-                        <div className="text-xs font-bold text-ink-primary group-hover:text-amber transition leading-snug line-clamp-2 mt-0.5">
+                        {isCurrentChapter ? (
+                          <div className="flex items-center gap-1.5 flex-wrap mb-1">
+                            <span className="px-2 py-0.5 rounded bg-amber text-on-amber font-mono font-bold text-[10px] shadow-xs">
+                              Ch {chapter.chapterNumber}
+                            </span>
+                            <span className="inline-flex items-center gap-1 text-[9px] font-mono font-bold uppercase tracking-wider text-amber bg-amber/15 px-1.5 py-0.5 rounded-full border border-amber/30">
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber animate-pulse" />
+                              Active Chapter
+                            </span>
+                            <span className="text-[10px] font-mono text-ink-secondary truncate">
+                              • {chapter.act}
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1.5 text-[10px] font-mono text-ink-muted mb-0.5">
+                            <span className="text-amber font-bold">Ch {chapter.chapterNumber}</span>
+                            <span>•</span>
+                            <span className="truncate">{chapter.act}</span>
+                          </div>
+                        )}
+                        <div className={`text-xs sm:text-sm font-bold leading-snug line-clamp-2 transition mt-0.5 ${
+                          isCurrentChapter
+                            ? "text-ink-primary font-extrabold"
+                            : "text-ink-primary group-hover:text-amber"
+                        }`}>
                           {chapter.title}
                         </div>
                       </div>
@@ -295,7 +318,7 @@ export function MasterBookmarkDrawer({
                       {/* Bookmark Button */}
                       <button
                         onClick={(e) => toggleBookmark(chapter.slug, e)}
-                        className={`p-1.5 rounded-lg border transition ${
+                        className={`p-1.5 rounded-lg border transition cursor-pointer ${
                           isBookmarked
                             ? "bg-amber-subtle border-amber/40 text-amber"
                             : "border-transparent text-ink-dim hover:text-amber hover:bg-bg-surface"
@@ -309,7 +332,7 @@ export function MasterBookmarkDrawer({
                       <Link
                         href={`/${projectSlug}/${chapter.slug}`}
                         onClick={() => setIsOpen(false)}
-                        className="p-1.5 rounded-lg border border-hairline text-ink-muted hover:text-ink-primary hover:bg-bg-surface transition"
+                        className="p-1.5 rounded-lg border border-hairline text-ink-muted hover:text-ink-primary hover:bg-bg-surface transition cursor-pointer"
                         title="Jump to Chapter"
                       >
                         <ExternalLink className="w-3.5 h-3.5" />
@@ -319,9 +342,16 @@ export function MasterBookmarkDrawer({
 
                   {/* Expandable Subtopics List */}
                   {isExpanded && chapter.headings.length > 0 && (
-                    <div className="px-3 pb-3 pt-1 border-t border-hairline space-y-1">
-                      <div className="text-[10px] font-mono text-ink-dim uppercase tracking-wider mb-1.5 pl-5">
-                        Key Subtopics & Deep Anchors
+                    <div className={`px-3 pb-3 pt-2 space-y-1.5 ${
+                      isCurrentChapter
+                        ? "border-t border-amber/25 bg-amber-subtle/15 dark:bg-amber-subtle/25 rounded-b-xl"
+                        : "border-t border-hairline"
+                    }`}>
+                      <div className={`text-[10px] font-mono uppercase tracking-wider mb-2 pl-2 font-bold flex items-center gap-1.5 ${
+                        isCurrentChapter ? "text-amber font-extrabold" : "text-ink-secondary"
+                      }`}>
+                        <Compass className="w-3 h-3 text-amber" />
+                        <span>Key Subtopics & Deep Anchors</span>
                       </div>
                       {chapter.headings.map((heading) => {
                         const headingId = `${chapter.slug}#${heading.id}`;
@@ -330,23 +360,33 @@ export function MasterBookmarkDrawer({
                         return (
                           <div
                             key={heading.id}
-                            className="flex items-center justify-between gap-2 py-1 px-2 rounded-lg hover:bg-bg-hover transition group text-xs"
+                            className={`flex items-center justify-between gap-2 py-1.5 px-2.5 rounded-lg transition group text-xs ${
+                              isCurrentChapter
+                                ? "hover:bg-amber-subtle/40 bg-bg-surface/50"
+                                : "hover:bg-bg-hover"
+                            }`}
                           >
                             <Link
                               href={`/${projectSlug}/${chapter.slug}#${heading.id}`}
                               onClick={() => setIsOpen(false)}
-                              className="flex items-center gap-1.5 text-ink-secondary hover:text-amber transition truncate flex-1"
-                              style={{ paddingLeft: heading.level === 3 ? "12px" : "4px" }}
+                              className={`flex items-center gap-2 transition truncate flex-1 font-medium ${
+                                isCurrentChapter
+                                  ? "text-ink-primary hover:text-amber font-semibold"
+                                  : "text-ink-secondary hover:text-ink-primary"
+                              }`}
+                              style={{ paddingLeft: heading.level === 3 ? "14px" : "4px" }}
                             >
-                              <Hash className="w-3 h-3 text-ink-dim shrink-0 opacity-60" />
-                              <span className="truncate text-[11px] leading-relaxed">
+                              <Hash className={`w-3.5 h-3.5 shrink-0 transition ${
+                                isCurrentChapter ? "text-amber opacity-90" : "text-ink-dim opacity-70 group-hover:text-amber"
+                              }`} />
+                              <span className="truncate text-xs leading-relaxed">
                                 {heading.text}
                               </span>
                             </Link>
 
                             <button
                               onClick={(e) => toggleBookmark(headingId, e)}
-                              className={`p-1 rounded transition shrink-0 ${
+                              className={`p-1 rounded transition shrink-0 cursor-pointer ${
                                 isSubBookmarked
                                   ? "text-amber"
                                   : "opacity-0 group-hover:opacity-100 text-ink-dim hover:text-amber"

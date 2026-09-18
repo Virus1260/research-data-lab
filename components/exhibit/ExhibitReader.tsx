@@ -30,6 +30,15 @@ import { FullBatchProcedureChart } from "@/components/diagrams/FullBatchProcedur
 import { Isa88HierarchyChart } from "@/components/diagrams/Isa88HierarchyChart";
 import { EngineeringDiagramsGallery } from "@/components/diagrams/EngineeringDiagramsGallery";
 import { StickyMarkdownTable } from "@/components/tables/StickyMarkdownTable";
+import {
+  SublimationHeatDutyWorkbench,
+  JacketSurfaceAreaWorkbench,
+  FreezingRefrigerationLoadWorkbench,
+  VacuumPumpdownWorkbench,
+  ClausiusClapeyronWorkbench,
+  PikalHeatMassWorkbench,
+  UniversalInteractiveEquationCard,
+} from "@/components/exhibit/InteractiveEquationWorkbench";
 
 interface ExhibitReaderProps {
   chapter: ChapterMeta;
@@ -166,6 +175,7 @@ export function ExhibitReader({
     isMinimized,
     selectedPersona,
     voiceStudioOpen,
+    transcriptOpen,
     setVoiceStudioOpen,
     activeSpokenPhrase,
     activeCue,
@@ -422,7 +432,19 @@ export function ExhibitReader({
         continue;
       }
 
-      // Display equation block: $$ ... $$
+      // Single-line display equation: $$ ... $$
+      if (line.trim().startsWith("$$") && line.trim().endsWith("$$") && line.trim().length > 4) {
+        const expr = line.trim().slice(2, -2).trim();
+        elements.push(
+          <div key={key++} className="my-6">
+            <UniversalInteractiveEquationCard latexFormula={expr} />
+          </div>
+        );
+        i++;
+        continue;
+      }
+
+      // Multi-line display equation block: $$ ... $$
       if (line.trim() === "$$" || (line.trim().startsWith("$$") && !line.trim().endsWith("$$"))) {
         const eqLines: string[] = [];
         i++;
@@ -433,11 +455,8 @@ export function ExhibitReader({
         i++; // skip closing $$
         const expr = eqLines.join("\n").trim();
         elements.push(
-          <div
-            key={key++}
-            className="my-6 p-6 rounded-2xl bg-bg-panel border border-hairline shadow-lg text-center overflow-x-auto"
-          >
-            <KatexEquation expression={expr} displayMode />
+          <div key={key++} className="my-6">
+            <UniversalInteractiveEquationCard latexFormula={expr} />
           </div>
         );
         continue;
@@ -457,29 +476,94 @@ export function ExhibitReader({
         const fullBlock = codeLines.join("\n").trim();
         const latexFormula = formulaToLatex(fullBlock);
 
-        // If it's a recognized physical law / equation
+        // 1. Sublimation Rate ↔ Heat Duty Interactive Workbench
+        if (
+          fullBlock.includes("Q = (dm/dt) × ΔHs") ||
+          fullBlock.includes("Q = (dm/dt) x dHs") ||
+          (fullBlock.includes("dm/dt = 0.8 kg/h") && fullBlock.includes("631 W"))
+        ) {
+          elements.push(
+            <div key={key++} className="my-6">
+              <SublimationHeatDutyWorkbench />
+            </div>
+          );
+          continue;
+        }
+
+        // 2. Jacket Heat-Transfer Surface Area Workbench
+        if (
+          fullBlock.includes("Q = U × A × ΔT") ||
+          fullBlock.includes("A = Q / (U × ΔT)") ||
+          (fullBlock.includes("Q = U . A . ΔT") && fullBlock.includes("A = Q / (U . ΔT)"))
+        ) {
+          elements.push(
+            <div key={key++} className="my-6">
+              <JacketSurfaceAreaWorkbench />
+            </div>
+          );
+          continue;
+        }
+
+        // 3. Freezing-Stage 3-Step Refrigeration Load Workbench
+        if (
+          fullBlock.includes("Q1 (cool liquid") ||
+          (fullBlock.includes("Q1") && fullBlock.includes("Q2") && fullBlock.includes("4,476 kJ")) ||
+          (fullBlock.includes("cp_liquid") && fullBlock.includes("cp_ice") && fullBlock.includes("ΔHf"))
+        ) {
+          elements.push(
+            <div key={key++} className="my-6">
+              <FreezingRefrigerationLoadWorkbench />
+            </div>
+          );
+          continue;
+        }
+
+        // 4. Vacuum Pumpdown Evacuation Workbench
+        if (
+          fullBlock.includes("t = (V / S) × ln(P1 / P2)") ||
+          (fullBlock.includes("t = (V / S)") && fullBlock.includes("ln("))
+        ) {
+          elements.push(
+            <div key={key++} className="my-6">
+              <VacuumPumpdownWorkbench />
+            </div>
+          );
+          continue;
+        }
+
+        // 5. Clausius-Clapeyron Vapor Pressure Workbench
+        if (
+          fullBlock.includes("dP/dT = L / (T·Δv)") ||
+          fullBlock.includes("dP/dT = L / (T.Δv)") ||
+          (fullBlock.includes("dP/dT") && fullBlock.includes("Δv"))
+        ) {
+          elements.push(
+            <div key={key++} className="my-6">
+              <ClausiusClapeyronWorkbench />
+            </div>
+          );
+          continue;
+        }
+
+        // 6. Pikal Heat & Mass Transfer Workbench
+        if (
+          fullBlock.includes("Q = Kv · Av · (Ts − Tb)") ||
+          fullBlock.includes("Q = Kv . Av . (Ts - Tb)") ||
+          (fullBlock.includes("dm/dt = Q / ΔHs") && !fullBlock.includes("dm/dt = 0.8"))
+        ) {
+          elements.push(
+            <div key={key++} className="my-6">
+              <PikalHeatMassWorkbench />
+            </div>
+          );
+          continue;
+        }
+
+        // 7. Universal Interactive Equation Card for other recognized physical laws
         if (latexFormula) {
           elements.push(
-            <div
-              key={key++}
-              className="my-6 rounded-2xl p-5 border border-hairline bg-bg-panel shadow-lg overflow-hidden relative"
-            >
-              <div className="flex items-center justify-between pb-3 mb-3 border-b border-hairline">
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-amber shadow-sm animate-pulse" />
-                  <span className="text-[11px] font-mono uppercase tracking-widest text-amber font-bold flex items-center gap-1.5">
-                    <Sigma className="w-3.5 h-3.5" />
-                    <span>Governing Physics Law</span>
-                  </span>
-                </div>
-                <span className="text-[10px] font-mono text-ink-dim">Mathematical Formulation</span>
-              </div>
-              <div className="py-4 text-center overflow-x-auto">
-                <KatexEquation expression={latexFormula} displayMode />
-              </div>
-              <div className="mt-2 text-center text-xs font-mono text-ink-dim bg-bg-inset/50 py-1.5 px-3 rounded-lg border border-hairline/60">
-                {fullBlock}
-              </div>
+            <div key={key++} className="my-6">
+              <UniversalInteractiveEquationCard latexFormula={latexFormula} originalBlock={fullBlock} />
             </div>
           );
           continue;
@@ -581,15 +665,33 @@ export function ExhibitReader({
           (fullBlock.includes("=") && fullBlock.includes("kg"));
 
         if (isCalc) {
+          if (fullBlock.includes("Q1") || fullBlock.includes("Total ≈ 4,476") || fullBlock.includes("4,476 kJ")) {
+            elements.push(
+              <div key={key++} className="my-6">
+                <FreezingRefrigerationLoadWorkbench />
+              </div>
+            );
+            continue;
+          }
+
+          if (fullBlock.includes("dm/dt = 0.8 kg/h") && fullBlock.includes("631 W")) {
+            elements.push(
+              <div key={key++} className="my-6">
+                <SublimationHeatDutyWorkbench />
+              </div>
+            );
+            continue;
+          }
+
           elements.push(
             <div
               key={key++}
-              className="my-6 rounded-2xl p-5 border border-hairline bg-bg-panel shadow-lg overflow-hidden"
+              className="my-6 rounded-2xl p-5 border-2 border-amber/30 bg-bg-panel shadow-lg overflow-hidden"
             >
               <div className="flex items-center justify-between pb-3 mb-3 border-b border-hairline">
                 <div className="flex items-center gap-2">
-                  <Calculator className="w-3.5 h-3.5 text-cryo" />
-                  <span className="text-[11px] font-mono uppercase tracking-widest text-cryo font-bold">
+                  <Calculator className="w-3.5 h-3.5 text-amber" />
+                  <span className="text-[11px] font-mono uppercase tracking-widest text-amber font-bold">
                     Engineering Sizing Calculation
                   </span>
                 </div>
@@ -1024,8 +1126,8 @@ export function ExhibitReader({
                 href={`#${h.id}`}
                 className={`block text-xs leading-snug py-1.5 px-2 rounded-lg transition-all ${
                   activeSection === h.id
-                    ? "bg-amber-subtle text-amber font-bold border-l-2 border-amber"
-                    : "text-ink-muted hover:text-ink-primary hover:bg-bg-hover"
+                    ? "bg-amber/15 text-ink-primary font-extrabold border-l-3 border-amber shadow-xs ring-1 ring-amber/25"
+                    : "text-ink-secondary hover:text-ink-primary hover:bg-bg-hover font-medium"
                 }`}
                 style={{
                   paddingLeft: h.level === 1 ? "8px" : h.level === 2 ? "14px" : "22px",
@@ -1042,17 +1144,23 @@ export function ExhibitReader({
       <main
         id="monograph-reader-main"
         className={`flex-1 min-w-0 px-4 sm:px-10 pt-10 max-w-4xl transition-all duration-300 ${
-          currentTrack && !isMinimized ? "pb-48 sm:pb-60" : "pb-16"
+          voiceStudioOpen
+            ? "pb-[560px]"
+            : transcriptOpen
+            ? "pb-[380px]"
+            : currentTrack && !isMinimized
+            ? "pb-72 sm:pb-96"
+            : "pb-28"
         }`}
       >
         {/* Chapter Header */}
         <div className="mb-10 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-mono uppercase tracking-widest px-2.5 py-1 rounded-full bg-amber-subtle text-amber border border-amber/30 font-bold">
+              <span className="text-[10px] font-mono uppercase tracking-widest px-2.5 py-1 rounded-full bg-amber text-on-amber font-bold shadow-xs">
                 {chapter.act}
               </span>
-              <span className="text-xs font-mono text-ink-dim">
+              <span className="text-xs font-mono text-ink-secondary font-semibold">
                 Ch {chapter.chapterNumber} • {chapter.readTime}
               </span>
             </div>
@@ -1099,8 +1207,8 @@ export function ExhibitReader({
                     onClick={() => setTocOpen(false)}
                     className={`block text-xs leading-snug py-2 px-3 rounded-lg transition-all ${
                       activeSection === h.id
-                        ? "bg-amber-subtle text-amber font-bold border-l-2 border-amber"
-                        : "text-ink-muted hover:text-ink-primary hover:bg-bg-hover"
+                        ? "bg-amber/15 text-ink-primary font-extrabold border-l-3 border-amber shadow-xs ring-1 ring-amber/25"
+                        : "text-ink-secondary hover:text-ink-primary hover:bg-bg-hover font-medium"
                     }`}
                     style={{
                       paddingLeft: h.level === 1 ? "10px" : h.level === 2 ? "16px" : "24px",
@@ -1120,23 +1228,23 @@ export function ExhibitReader({
         </article>
 
         {/* Chapter Navigation Footer (Fully Responsive Stack on Mobile) */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mt-16 pt-8 border-t border-hairline mb-8">
+        <div className="relative z-20 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mt-16 pt-8 border-t border-hairline mb-4">
           {prevChapter ? (
             <a
               href={`/${projectSlug}/${prevChapter.slug}`}
-              className="flex-1 flex items-center gap-3 p-3.5 rounded-xl hover:bg-bg-hover border border-hairline transition group shadow-xs cursor-pointer"
+              className="flex-1 flex items-center gap-3 p-4 rounded-2xl bg-bg-panel hover:bg-bg-surface border border-hairline hover:border-amber/50 hover:shadow-lg transition-all group shadow-xs cursor-pointer"
             >
               <ChevronLeft className="w-5 h-5 text-ink-dim group-hover:text-amber group-hover:-translate-x-1 transition shrink-0" />
               <div className="truncate">
-                <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-ink-dim mb-0.5">
+                <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-ink-secondary mb-1">
                   <span>Previous Chapter</span>
                   {prevChapter.chapterNumber && (
-                    <span className="px-1.5 py-0.5 rounded bg-amber-subtle text-amber font-bold border border-amber/30">
+                    <span className="px-2 py-0.5 rounded bg-amber text-on-amber font-mono font-bold text-[10px] shadow-xs">
                       Ch {prevChapter.chapterNumber}
                     </span>
                   )}
                 </div>
-                <div className="text-xs sm:text-sm font-bold text-ink-primary truncate">
+                <div className="text-xs sm:text-sm font-extrabold text-ink-primary truncate group-hover:text-amber transition">
                   {prevChapter.title}
                 </div>
               </div>
@@ -1148,18 +1256,18 @@ export function ExhibitReader({
           {nextChapter && (
             <a
               href={`/${projectSlug}/${nextChapter.slug}`}
-              className="flex-1 flex items-center justify-between sm:justify-end gap-3 p-3.5 rounded-xl hover:bg-bg-hover border border-hairline transition group text-right shadow-xs cursor-pointer"
+              className="flex-1 flex items-center justify-between sm:justify-end gap-3 p-4 rounded-2xl bg-bg-panel hover:bg-bg-surface border border-hairline hover:border-amber/50 hover:shadow-lg transition-all group text-right shadow-xs cursor-pointer"
             >
               <div className="truncate text-left sm:text-right">
-                <div className="flex items-center justify-start sm:justify-end gap-2 text-[10px] font-mono uppercase tracking-widest text-ink-dim mb-0.5">
+                <div className="flex items-center justify-start sm:justify-end gap-2 text-[10px] font-mono uppercase tracking-widest text-ink-secondary mb-1">
                   {nextChapter.chapterNumber && (
-                    <span className="px-1.5 py-0.5 rounded bg-amber-subtle text-amber font-bold border border-amber/30">
+                    <span className="px-2 py-0.5 rounded bg-amber text-on-amber font-mono font-bold text-[10px] shadow-xs">
                       Ch {nextChapter.chapterNumber}
                     </span>
                   )}
                   <span>Next Chapter</span>
                 </div>
-                <div className="text-xs sm:text-sm font-bold text-ink-primary truncate">
+                <div className="text-xs sm:text-sm font-extrabold text-ink-primary truncate group-hover:text-amber transition">
                   {nextChapter.title}
                 </div>
               </div>
@@ -1167,6 +1275,21 @@ export function ExhibitReader({
             </a>
           )}
         </div>
+
+        {/* Guaranteed scrollable clearance ensuring chapter buttons never hide behind the audio console, voice studio, or transcript */}
+        <div
+          className="w-full pointer-events-none transition-all duration-300"
+          style={{
+            height: voiceStudioOpen
+              ? "560px"
+              : transcriptOpen
+              ? "360px"
+              : currentTrack && !isMinimized
+              ? "180px"
+              : "64px",
+          }}
+          aria-hidden="true"
+        />
 
         {/* Floating Selection Sync Pill */}
         {selectionPopupPos && (
