@@ -22,6 +22,10 @@ import { useNarrator } from "@/components/narrator/NarratorContext";
 import { SystemArchitectureFlowChart } from "@/components/diagrams/SystemArchitectureFlowChart";
 import { AutomationHierarchyChart } from "@/components/diagrams/AutomationHierarchyChart";
 import { BatchStateTransitionChart } from "@/components/diagrams/BatchStateTransitionChart";
+import { IsaTagAnatomyChart } from "@/components/diagrams/IsaTagAnatomyChart";
+import { FullBatchProcedureChart } from "@/components/diagrams/FullBatchProcedureChart";
+import { Isa88HierarchyChart } from "@/components/diagrams/Isa88HierarchyChart";
+import { EngineeringDiagramsGallery } from "@/components/diagrams/EngineeringDiagramsGallery";
 
 interface ExhibitReaderProps {
   chapter: ChapterMeta;
@@ -127,6 +131,15 @@ function formulaToLatex(formula: string): string | null {
   }
   if (t.includes("R_p = (P_sub") || t.includes("R_p = (Pice")) {
     return "R_p = \\frac{P_{sub} - P_{ch}}{\\dot{m} / A_p}";
+  }
+  if (t.includes("Q_total =") || t.includes("Q_total") || t.includes("ΔH_fusion")) {
+    return "Q_{total} = m \\cdot c_{p,liq} \\cdot \\Delta T_{cool} + m_{water} \\cdot \\Delta H_{fus} + m \\cdot c_{p,ice} \\cdot \\Delta T_{freeze}";
+  }
+  if (t.includes("t = (V / S) × ln(P1 / P2)") || t.includes("t = (V / S)") || (t.includes("ln(P1 / P2)") && t.includes("V / S"))) {
+    return "t = \\frac{V}{S} \\cdot \\ln\\left(\\frac{P_1}{P_2}\\right)";
+  }
+  if (t.includes("dm/dt = Ap · (Pice − Pchamber) / Rp") || t.includes("dm/dt = Ap . (Pice - Pchamber)")) {
+    return "\\frac{dm}{dt} = \\frac{A_p \\cdot (P_{ice} - P_{chamber})}{R_p}";
   }
   return null;
 }
@@ -341,6 +354,62 @@ export function ExhibitReader({
         continue;
       }
 
+      if (
+        line.trim() === "<IsaTagAnatomyChart />" ||
+        line.trim() === "<IsaTagAnatomyChart/>" ||
+        line.trim() === "::IsaTagAnatomyChart"
+      ) {
+        elements.push(
+          <div key={key++} className="my-6">
+            <IsaTagAnatomyChart />
+          </div>
+        );
+        i++;
+        continue;
+      }
+
+      if (
+        line.trim() === "<FullBatchProcedureChart />" ||
+        line.trim() === "<FullBatchProcedureChart/>" ||
+        line.trim() === "::FullBatchProcedureChart"
+      ) {
+        elements.push(
+          <div key={key++} className="my-6">
+            <FullBatchProcedureChart />
+          </div>
+        );
+        i++;
+        continue;
+      }
+
+      if (
+        line.trim() === "<Isa88HierarchyChart />" ||
+        line.trim() === "<Isa88HierarchyChart/>" ||
+        line.trim() === "::Isa88HierarchyChart"
+      ) {
+        elements.push(
+          <div key={key++} className="my-6">
+            <Isa88HierarchyChart />
+          </div>
+        );
+        i++;
+        continue;
+      }
+
+      if (
+        line.trim() === "<EngineeringDiagramsGallery />" ||
+        line.trim() === "<EngineeringDiagramsGallery/>" ||
+        line.trim() === "::EngineeringDiagramsGallery"
+      ) {
+        elements.push(
+          <div key={key++} className="my-6">
+            <EngineeringDiagramsGallery />
+          </div>
+        );
+        i++;
+        continue;
+      }
+
       // Display equation block: $$ ... $$
       if (line.trim() === "$$" || (line.trim().startsWith("$$") && !line.trim().endsWith("$$"))) {
         const eqLines: string[] = [];
@@ -430,6 +499,41 @@ export function ExhibitReader({
           continue;
         }
 
+        // Check if it's the Full Batch State Machine (Mermaid stateDiagram-v2 or full batch procedure)
+        if (
+          lang === "mermaid" ||
+          fullBlock.includes("stateDiagram") ||
+          (fullBlock.includes("IDLE") &&
+            (fullBlock.includes("PRE_STERILIZE") ||
+              fullBlock.includes("LEAK_TEST") ||
+              fullBlock.includes("VACUUM_INDUCED_FREEZING") ||
+              fullBlock.includes("PRIMARY_DRYING") ||
+              fullBlock.includes("SECONDARY_DRYING") ||
+              fullBlock.includes("STERILE_DISCHARGE")))
+        ) {
+          elements.push(
+            <div key={key++} className="my-6">
+              <FullBatchProcedureChart />
+            </div>
+          );
+          continue;
+        }
+
+        // Check if it's the ISA-88 4-Tier Hierarchy
+        if (
+          fullBlock.includes("Procedure") &&
+          fullBlock.includes("Unit Procedure") &&
+          fullBlock.includes("Operation") &&
+          fullBlock.includes("Phase")
+        ) {
+          elements.push(
+            <div key={key++} className="my-6">
+              <Isa88HierarchyChart />
+            </div>
+          );
+          continue;
+        }
+
         // Check if it's an ISA-88 Batch State Machine (IDLE -> RUNNING -> COMPLETE / HELD / ABORTED)
         if (
           (fullBlock.includes("IDLE") || fullBlock.includes("STARTING")) &&
@@ -439,6 +543,19 @@ export function ExhibitReader({
           elements.push(
             <div key={key++} className="my-6">
               <BatchStateTransitionChart />
+            </div>
+          );
+          continue;
+        }
+
+        // Check if it's an ISA-5.1 Instrument Tag Syntax ASCII diagram ([First letter] ... WHAT it measures)
+        if (
+          fullBlock.includes("[First letter]") &&
+          (fullBlock.includes("WHAT it measures") || fullBlock.includes("more letters") || fullBlock.includes("loop number"))
+        ) {
+          elements.push(
+            <div key={key++} className="my-6">
+              <IsaTagAnatomyChart />
             </div>
           );
           continue;
@@ -554,6 +671,53 @@ export function ExhibitReader({
           );
           continue;
         }
+      }
+
+      // Embedded Image Block: ![alt](url)
+      const imageBlockMatch = line.trim().match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
+      if (imageBlockMatch) {
+        const [, altText, srcUrl] = imageBlockMatch;
+        elements.push(
+          <figure
+            key={key++}
+            className="my-8 rounded-3xl border border-hairline bg-bg-panel overflow-hidden shadow-xl group transition-all duration-200 hover:border-amber/40 hover:shadow-2xl"
+          >
+            <div
+              className="relative bg-bg-surface/50 p-3 sm:p-6 flex items-center justify-center cursor-pointer overflow-hidden group/img"
+              onClick={() => {
+                if (typeof window !== "undefined") {
+                  window.open(srcUrl, "_blank");
+                }
+              }}
+              title="Click to open full-resolution image in a new tab"
+            >
+              <img
+                src={srcUrl}
+                alt={altText || "Engineering Diagram"}
+                className="max-h-[580px] w-auto max-w-full rounded-2xl object-contain shadow-md transition-transform duration-300 group-hover/img:scale-[1.01]"
+                loading="lazy"
+              />
+              <div className="absolute top-4 right-4 px-3 py-1.5 rounded-xl bg-bg-panel/90 backdrop-blur-md border border-hairline text-xs font-mono font-semibold text-ink-primary opacity-0 group-hover/img:opacity-100 transition-all duration-200 flex items-center gap-1.5 shadow-lg">
+                <span>Open Full Image</span>
+                <ExternalLink className="w-3.5 h-3.5 text-amber" />
+              </div>
+            </div>
+            {altText && (
+              <figcaption className="px-5 py-3 bg-bg-surface border-t border-hairline flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-mono">
+                <span className="font-bold text-ink-primary flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-amber" />
+                  {altText}
+                </span>
+                <span className="text-[11px] text-ink-dim flex items-center gap-1">
+                  <span>Click image to inspect in full resolution</span>
+                  <ExternalLink className="w-3 h-3 text-amber" />
+                </span>
+              </figcaption>
+            )}
+          </figure>
+        );
+        i++;
+        continue;
       }
 
       // Headings
@@ -731,9 +895,9 @@ export function ExhibitReader({
   function renderInline(text: string): React.ReactNode {
     if (!text) return null;
 
-    // Matches: KaTeX $...$, Markdown links [text](url), Raw URLs (https?:// or www.), **bold**, *italic*, `code`
+    // Matches: KaTeX $...$, Markdown images ![alt](url), Markdown links [text](url), Raw URLs (https?:// or www.), **bold**, *italic*, `code`
     const TOKEN_REGEX =
-      /(\$[^$]+\$|\[[^\]]+\]\([^\s)]+\)|(?:https?:\/\/|www\.)[^\s<>)"]+|\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g;
+      /(\$[^$]+\$|!\[[^\]]*\]\([^\s)]+\)|\[[^\]]+\]\([^\s)]+\)|(?:https?:\/\/|www\.)[^\s<>)"]+|\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g;
     const tokens = text.split(TOKEN_REGEX);
 
     return (
@@ -744,6 +908,32 @@ export function ExhibitReader({
           // Inline KaTeX Math: $...$
           if (token.startsWith("$") && token.endsWith("$") && token.length > 2) {
             return <KatexEquation key={idx} expression={token.slice(1, -1)} />;
+          }
+
+          // Embedded Image: ![alt](url)
+          if (token.startsWith("![") && token.includes("](") && token.endsWith(")")) {
+            const imgMatch = token.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
+            if (imgMatch) {
+              const [, alt, src] = imgMatch;
+              return (
+                <span
+                  key={idx}
+                  onClick={() => {
+                    if (typeof window !== "undefined") {
+                      window.open(src, "_blank");
+                    }
+                  }}
+                  className="inline-block my-3 cursor-pointer group"
+                  title="Click to open full-resolution image in a new tab"
+                >
+                  <img
+                    src={src}
+                    alt={alt || "Diagram"}
+                    className="max-h-80 w-auto rounded-xl border border-hairline shadow-md group-hover:border-amber/40 transition-all inline-block"
+                  />
+                </span>
+              );
+            }
           }
 
           // Markdown Link: [label](url)

@@ -199,6 +199,7 @@ export function VesselCrossSection3D() {
   const [isAgitating, setIsAgitating] = useState(true);
   const [agitationRpm, setAgitationRpm] = useState<number>(25);
   const [showHotspots, setShowHotspots] = useState(true);
+  const [isAutoRotating, setIsAutoRotating] = useState(false);
 
   // Scene references
   const sceneRef = useRef<THREE.Scene | null>(null);
@@ -207,6 +208,8 @@ export function VesselCrossSection3D() {
   const controlsRef = useRef<OrbitControls | null>(null);
   const agitatorGroupRef = useRef<THREE.Group | null>(null);
   const assemblyGroupRef = useRef<THREE.Group | null>(null);
+  const autoRotateRef = useRef(false);
+  autoRotateRef.current = isAutoRotating;
   const meshesRef = useRef<Record<string, THREE.Object3D>>({});
 
   const spec = SUBSYSTEM_SPECS[activeSubsystem] || SUBSYSTEM_SPECS.agitator;
@@ -249,7 +252,7 @@ export function VesselCrossSection3D() {
 
     // Camera
     const camera = new THREE.PerspectiveCamera(42, width / height, 0.1, 100);
-    camera.position.set(2.8, 1.2, 4.2);
+    camera.position.set(2.8, 1.1, 4.2);
     cameraRef.current = camera;
 
     // Renderer
@@ -270,7 +273,7 @@ export function VesselCrossSection3D() {
     controls.minDistance = 1.6;
     controls.maxDistance = 8.5;
     controls.maxPolarAngle = Math.PI * 0.95;
-    controls.target.set(0, 0.15, 0);
+    controls.target.set(0, -0.05, 0);
     controlsRef.current = controls;
 
     // Lighting (Studio Engineering Rig)
@@ -300,6 +303,8 @@ export function VesselCrossSection3D() {
     // ─────────────────────────────────────────────────────────────────────────
     const isCutaway = displayMode === "cutaway180";
     const isGhost = displayMode === "ghost";
+    // thetaStart = 135° so that the cutaway cross-section faces directly towards the 45° camera perspective
+    const thetaStart = isCutaway ? Math.PI * 0.75 : 0;
     const thetaLength = isCutaway ? Math.PI * 1.1 : Math.PI * 2;
 
     // PBR Metal Material Presets
@@ -453,7 +458,7 @@ export function VesselCrossSection3D() {
     meshesRef.current.topHead = topHeadGroup;
 
     // 4. UPPER CYLINDRICAL SECTION (Freeboard expansion zone)
-    const upperCylinderGeo = new THREE.CylinderGeometry(0.96, 0.96, 0.35, 36, 1, true, 0, thetaLength);
+    const upperCylinderGeo = new THREE.CylinderGeometry(0.96, 0.96, 0.35, 36, 1, true, thetaStart, thetaLength);
     const upperCylinder = new THREE.Mesh(upperCylinderGeo, polishedInnerMaterial);
     upperCylinder.position.set(0, 0.72, 0);
     assemblyGroup.add(upperCylinder);
@@ -461,14 +466,14 @@ export function VesselCrossSection3D() {
     // 5. INNER CONICAL SANITARY SHELL (60° Included Angle)
     // Taper from radius 0.96 (top) to radius 0.15 (apex)
     const coneHeight = 1.6;
-    const coneGeo = new THREE.CylinderGeometry(0.96, 0.15, coneHeight, 48, 1, true, 0, thetaLength);
+    const coneGeo = new THREE.CylinderGeometry(0.96, 0.15, coneHeight, 48, 1, true, thetaStart, thetaLength);
     const coneMesh = new THREE.Mesh(coneGeo, polishedInnerMaterial);
     coneMesh.position.set(0, -0.25, 0);
     assemblyGroup.add(coneMesh);
     meshesRef.current.shell = coneMesh;
 
     // 6. DOUBLE HEAT-TRANSFER JACKET
-    const jacketGeo = new THREE.CylinderGeometry(1.06, 0.22, coneHeight * 0.95, 48, 1, true, 0, thetaLength);
+    const jacketGeo = new THREE.CylinderGeometry(1.06, 0.22, coneHeight * 0.95, 48, 1, true, thetaStart, thetaLength);
     const jacketMesh = new THREE.Mesh(jacketGeo, jacketMaterial);
     jacketMesh.position.set(0, -0.25, 0);
     assemblyGroup.add(jacketMesh);
@@ -487,7 +492,7 @@ export function VesselCrossSection3D() {
     assemblyGroup.add(outPort);
 
     // 7. OUTER INSULATION CLADDING (Cosmetic Stainless Sheath)
-    const claddingGeo = new THREE.CylinderGeometry(1.15, 0.28, coneHeight * 0.98, 48, 1, true, 0, thetaLength);
+    const claddingGeo = new THREE.CylinderGeometry(1.15, 0.28, coneHeight * 0.98, 48, 1, true, thetaStart, thetaLength);
     const claddingMesh = new THREE.Mesh(claddingGeo, insulationSkinMaterial);
     claddingMesh.position.set(0, -0.25, 0);
     assemblyGroup.add(claddingMesh);
@@ -617,6 +622,11 @@ export function VesselCrossSection3D() {
       if (isAgitating && agitatorGroupRef.current) {
         const radPerSec = (agitationRpm * 2 * Math.PI) / 60;
         agitatorGroupRef.current.rotation.y += radPerSec * dt;
+      }
+
+      // Smooth turntable auto-rotation of entire vessel around its vertical center axis
+      if (autoRotateRef.current && assemblyGroupRef.current) {
+        assemblyGroupRef.current.rotation.y += 0.35 * dt;
       }
 
       controls.update();
@@ -790,55 +800,80 @@ export function VesselCrossSection3D() {
       </div>
 
       {/* Main Interactive Stage Grid */}
-      <div className={`grid grid-cols-1 lg:grid-cols-12 gap-3.5 flex-1 min-h-0 ${isFullscreen ? "h-full" : ""}`}>
-        {/* 3D WebGL Canvas Viewport (7 cols) */}
+      <div className={`grid grid-cols-1 lg:grid-cols-12 gap-3.5 flex-1 min-h-0 items-stretch ${isFullscreen ? "h-full" : ""}`}>
+        {/* 3D WebGL Canvas Viewport (7 cols) - Stretches to full height of inspector, eliminating whitespace gap */}
         <div
-          className={`lg:col-span-7 bg-bg-inset rounded-xl border border-hairline relative overflow-hidden flex flex-col justify-between ${
-            isFullscreen ? "h-full min-h-[400px]" : "h-[360px] sm:h-[420px]"
+          className={`lg:col-span-7 bg-bg-inset rounded-xl border border-hairline relative overflow-hidden flex flex-col justify-between self-stretch ${
+            isFullscreen ? "h-full min-h-[400px]" : "h-[440px] sm:h-[520px] lg:h-full lg:min-h-[580px]"
           }`}
         >
           {/* 3D Canvas Anchor */}
           <div ref={mountRef} className="w-full h-full cursor-grab active:cursor-grabbing relative" />
 
-          {/* Viewport Top Left: Quick Camera Presets HUD */}
-          <div className="absolute top-3 left-3 flex items-center gap-1 bg-bg-panel/85 backdrop-blur-md p-1 rounded-lg border border-hairline text-[10px] font-mono text-ink-dim shadow-md pointer-events-auto">
-            <span className="px-1.5 text-ink-muted uppercase font-semibold">View:</span>
+          {/* Viewport Top Left: Quick Camera Presets & Center Axis Turntable HUD */}
+          <div className="absolute top-2.5 sm:top-3 left-2.5 sm:left-3 flex items-center gap-1 bg-bg-panel/90 backdrop-blur-md p-1 rounded-lg border border-hairline text-[10px] font-mono text-ink-dim shadow-md pointer-events-auto">
+            <span className="px-1 text-ink-muted uppercase font-semibold hidden xs:inline">View:</span>
             <button
               onClick={() => setCameraView("cutaway")}
-              className="px-2 py-0.5 rounded hover:bg-bg-hover text-ink-secondary hover:text-amber transition"
-              title="Front Cutaway (Chamber Interior)"
+              className="px-2 py-0.5 rounded hover:bg-bg-hover text-ink-secondary hover:text-amber transition font-medium"
+              title="Front View (Direct Interior Chamber)"
             >
               Front
             </button>
             <button
               onClick={() => setCameraView("isometric")}
-              className="px-2 py-0.5 rounded hover:bg-bg-hover text-ink-secondary hover:text-amber transition"
-              title="Isometric 3D Perspective"
+              className="px-2 py-0.5 rounded hover:bg-bg-hover text-ink-secondary hover:text-amber transition font-medium"
+              title="Isometric 45° CAD Perspective"
             >
-              Isometric
+              45° Iso
             </button>
             <button
               onClick={() => setCameraView("top")}
-              className="px-2 py-0.5 rounded hover:bg-bg-hover text-ink-secondary hover:text-amber transition"
+              className="px-2 py-0.5 rounded hover:bg-bg-hover text-ink-secondary hover:text-amber transition font-medium"
               title="Top View (Nozzles & Seal)"
             >
               Top Lid
             </button>
             <button
               onClick={() => setCameraView("bottom")}
-              className="px-2 py-0.5 rounded hover:bg-bg-hover text-ink-secondary hover:text-amber transition"
+              className="px-2 py-0.5 rounded hover:bg-bg-hover text-ink-secondary hover:text-amber transition font-medium"
               title="Bottom Discharge Valve Focus"
             >
               Bottom Valve
             </button>
+
+            {/* Turntable Rotation around Vertical Center Axis */}
+            <div className="pl-1 ml-0.5 border-l border-hairline">
+              <button
+                onClick={() => setIsAutoRotating(!isAutoRotating)}
+                className={`px-2 py-0.5 rounded transition font-mono text-[10px] flex items-center gap-1 font-medium ${
+                  isAutoRotating
+                    ? "bg-amber text-on-amber font-bold shadow-xs"
+                    : "hover:bg-bg-hover text-ink-secondary"
+                }`}
+                title="Rotate vessel smoothly around its vertical center axis"
+              >
+                <RotateCw className={`w-3 h-3 ${isAutoRotating ? "animate-spin-slow text-on-amber" : "text-amber"}`} />
+                <span className="hidden sm:inline">Turntable:</span>
+                <span>{isAutoRotating ? "ON" : "OFF"}</span>
+              </button>
+            </div>
           </div>
 
-          {/* Viewport Top Right: Agitation Dynamics HUD */}
-          <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-bg-panel/85 backdrop-blur-md p-1 px-2 rounded-lg border border-hairline text-xs font-mono shadow-md pointer-events-auto">
+          {/* Viewport Top Right: Agitation Dynamics & Live Physics Telemetry HUD */}
+          <div className="absolute top-2.5 sm:top-3 right-2.5 sm:right-3 flex items-center gap-1.5 bg-bg-panel/90 backdrop-blur-md p-1 px-2 rounded-lg border border-hairline text-xs font-mono shadow-md pointer-events-auto">
+            {/* Live Tip Speed & Shear Indicator (Adaptive Desktop / Tablet) */}
+            <div className="hidden md:flex items-center gap-1.5 text-[10px] text-ink-dim pr-1.5 border-r border-hairline">
+              <span>Tip:</span>
+              <span className="font-bold text-amber tabular-nums">
+                {isAgitating ? (agitationRpm === 5 ? "0.25 m/s" : agitationRpm === 25 ? "1.26 m/s" : "3.02 m/s") : "0 m/s"}
+              </span>
+            </div>
+
             <button
               onClick={() => setIsAgitating(!isAgitating)}
               className={`p-1 rounded transition ${
-                isAgitating ? "text-amber bg-amber/10" : "text-ink-dim hover:text-ink-primary"
+                isAgitating ? "text-amber bg-amber/15" : "text-ink-dim hover:text-ink-primary"
               }`}
               title={isAgitating ? "Pause Agitator" : "Start Agitator"}
             >
@@ -854,7 +889,7 @@ export function VesselCrossSection3D() {
                 }}
                 className={`px-1.5 py-0.5 rounded text-[10px] transition ${
                   agitationRpm === rpm && isAgitating
-                    ? "bg-amber text-on-amber font-bold"
+                    ? "bg-amber text-on-amber font-bold shadow-xs"
                     : "text-ink-dim hover:text-ink-primary"
                 }`}
                 title={`${rpm} RPM: ${
@@ -867,22 +902,24 @@ export function VesselCrossSection3D() {
           </div>
 
           {/* Viewport Bottom Controls & Interaction Hints */}
-          <div className="absolute bottom-2.5 left-3 right-3 flex items-center justify-between pointer-events-none text-[10px] font-mono text-ink-dim">
-            <div className="flex items-center gap-2 bg-bg-panel/80 backdrop-blur-md px-2.5 py-1 rounded-md border border-hairline shadow-xs">
-              <RotateCw className="w-3 h-3 text-amber animate-spin-slow" />
-              <span>Drag to rotate 3D • Pinch/Scroll to zoom • Right-click to pan</span>
+          <div className="absolute bottom-2.5 left-2.5 sm:left-3 right-2.5 sm:right-3 flex items-center justify-between pointer-events-none text-[10px] font-mono text-ink-dim gap-2">
+            <div className="flex items-center gap-1.5 bg-bg-panel/85 backdrop-blur-md px-2.5 py-1 rounded-md border border-hairline shadow-xs truncate">
+              <RotateCw className="w-3 h-3 text-amber animate-spin-slow shrink-0" />
+              <span className="truncate">Drag: Rotate • Pinch/Scroll: Zoom • Right-click: Pan</span>
             </div>
 
-            <div className="hidden sm:flex items-center gap-1 bg-bg-panel/80 backdrop-blur-md px-2.5 py-1 rounded-md border border-hairline">
+            <div className="hidden sm:flex items-center gap-1.5 bg-bg-panel/85 backdrop-blur-md px-2.5 py-1 rounded-md border border-hairline shrink-0">
               <span className="w-1.5 h-1.5 rounded-full bg-cryo animate-pulse" />
-              <span>Double Jacket: Cryo -55°C to Heating +80°C</span>
+              <span>Jacket: -55°C ⟷ +80°C</span>
+              <span className="text-ink-dim">•</span>
+              <span>5 Pa Vac</span>
             </div>
           </div>
         </div>
 
         {/* Engineering Specification & Fabricated Parts Inspector (5 cols) */}
         <div
-          className={`lg:col-span-5 flex flex-col justify-between bg-bg-inset rounded-xl border border-hairline p-4 ${
+          className={`lg:col-span-5 flex flex-col justify-between bg-bg-inset rounded-xl border border-hairline p-4 self-stretch ${
             isFullscreen ? "overflow-y-auto max-h-[85vh]" : ""
           }`}
         >

@@ -359,8 +359,8 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
         setAudioLevel(overallLevel);
         setFrequencyBands(bands);
       } else {
-        setAudioLevel(0);
-        setFrequencyBands(new Array(16).fill(5));
+        setAudioLevel((prev) => (prev !== 0 ? 0 : prev));
+        setFrequencyBands((prev) => (prev.some((v) => v !== 0) ? new Array(16).fill(0) : prev));
       }
 
       visualizerRafRef.current = requestAnimationFrame(updateVisualizer);

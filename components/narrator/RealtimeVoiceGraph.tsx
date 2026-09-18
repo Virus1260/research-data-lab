@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useMemo } from "react";
+import { createPortal } from "react-dom";
 import type { VoicePersona } from "@/lib/voice-engine";
 import type { PacingMode } from "./NarratorContext";
 import {
@@ -10,8 +11,8 @@ import {
   Waves,
   Maximize2,
   X,
-  ShieldCheck,
   Volume2,
+  Sparkles,
   Info,
 } from "lucide-react";
 
@@ -30,33 +31,29 @@ interface RealtimeVoiceGraphProps {
 }
 
 export interface VoicePitchLimits {
-  nominalF0: number;    // Baseline F0 in Hz (e.g. 220 for female, 114 for male)
-  lowerLimitHz: number; // Physiologically calibrated lower excursion bound in Hz
-  upperLimitHz: number; // Physiologically calibrated upper excursion bound in Hz
+  nominalF0: number;    // Baseline F0 in Hz
+  lowerLimitHz: number; // Physiological lower bound in Hz
+  upperLimitHz: number; // Physiological upper bound in Hz
   gender: "female" | "male";
-  bandwidthHz: string;  // Speech acoustic bandwidth standard
+  bandwidthHz: string;  // Speech bandwidth standard
   vocalRegister: string;
 }
 
 /**
- * Calculates the baseline fundamental acoustic frequency (F0 in Hz)
- * based on persona vocal tract biology and pitch calibration.
+ * Calculates baseline fundamental acoustic frequency (F0 in Hz)
  */
 export function getPersonaPitchHz(persona: VoicePersona): number {
   const isFemale = persona.gender === "female";
-  const baseFreq = isFemale ? 220 : 120; // 220Hz female average, 120Hz male baritone average
-  return Math.round(baseFreq * persona.pitch);
+  const baseFreq = isFemale ? 220 : 120;
+  return Math.round(baseFreq * (persona.pitch || 1.0));
 }
 
 /**
- * Calculates the physiologically calibrated upper and lower limits of speech
- * fundamental frequency (F0 in Hz) based on vocal fold biomechanics.
+ * Calculates physiologically calibrated limits of speech fundamental frequency (F0 in Hz)
  */
 export function getPersonaPitchLimits(persona: VoicePersona): VoicePitchLimits {
   const isFemale = persona.gender === "female";
-  const nominalF0 = Math.round((isFemale ? 220 : 120) * persona.pitch);
-  // Female pitch excursion typically ranges 140 Hz to 340 Hz (nominal ~220 Hz)
-  // Male pitch excursion typically ranges 75 Hz to 210 Hz (nominal ~110 Hz)
+  const nominalF0 = Math.round((isFemale ? 220 : 120) * (persona.pitch || 1.0));
   const lowerLimitHz = isFemale ? Math.round(nominalF0 * 0.64) : Math.round(nominalF0 * 0.65);
   const upperLimitHz = isFemale ? Math.round(nominalF0 * 1.55) : Math.round(nominalF0 * 1.82);
 
@@ -114,11 +111,31 @@ export function RealtimeVoiceGraph({
   activePhrase = "",
   isTTS = true,
 }: RealtimeVoiceGraphProps) {
-  // Mini Canvas Ref (Normal Compact View)
+  // Client mount state for React createPortal
+  const [mounted, setMounted] = useState<boolean>(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Theme Detection (Dynamically tracks light / dark classes on <html>)
+  const [isDark, setIsDark] = useState<boolean>(false);
+  useEffect(() => {
+    const checkTheme = () => {
+      if (typeof document !== "undefined") {
+        setIsDark(document.documentElement.classList.contains("dark"));
+      }
+    };
+    checkTheme();
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
+
+  // Mini Canvas Ref (Normal Compact View in Deck)
   const miniCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const miniAnimRef = useRef<number | null>(null);
 
-  // Expanded Canvas Ref (Expanded Analytical Scope View)
+  // Expanded Canvas Ref (Expanded Modal View)
   const expandedCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const expandedAnimRef = useRef<number | null>(null);
   const expandedContainerRef = useRef<HTMLDivElement | null>(null);
@@ -132,11 +149,42 @@ export function RealtimeVoiceGraph({
   const smoothedLevelRef = useRef<number>(0);
   const smoothedBandsRef = useRef<number[]>(new Array(16).fill(0));
   const waterfallHistoryRef = useRef<number[][]>([]);
+  
+  // Real Pitch History Buffer (Only filled with REAL speech data when playing, zero when stopped)
   const pitchHistoryRef = useRef<PitchPoint[]>([]);
+  const lastFreezeTimeRef = useRef<number>(performance.now());
+  const wasPlayingRef = useRef<boolean>(false);
 
   // Telemetry metrics
-  const basePitchHz = getPersonaPitchHz(selectedPersona);
-  const pitchLimits = getPersonaPitchLimits(selectedPersona);
+  const basePitchHz = useMemo(() => getPersonaPitchHz(selectedPersona), [selectedPersona]);
+  const pitchLimits = useMemo(() => getPersonaPitchLimits(selectedPersona), [selectedPersona]);
+
+  // Keep a mutable ref of latest dynamic props so the 60/120 FPS animation loops never tear down on prop updates
+  const stateRef = useRef({
+    isPlaying,
+    selectedPersona,
+    playbackRate,
+    audioLevel,
+    frequencyBands,
+    basePitchHz,
+    pitchLimits,
+    expandedMode,
+    isDark,
+  });
+
+  useEffect(() => {
+    stateRef.current = {
+      isPlaying,
+      selectedPersona,
+      playbackRate,
+      audioLevel,
+      frequencyBands,
+      basePitchHz,
+      pitchLimits,
+      expandedMode,
+      isDark,
+    };
+  });
 
   // Close modal on ESC key
   useEffect(() => {
@@ -150,12 +198,11 @@ export function RealtimeVoiceGraph({
   }, [isExpanded]);
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // 1. COMPACT NORMAL VIEW: CLEAN LIVE VISUALIZER (NO UNSTABLE JITTERING NUMBERS)
+  // 1. MINI COMPACT VISUALIZER (IN DECK BAR) — AUTHENTIC 0.0 IDLE STATE
   // ─────────────────────────────────────────────────────────────────────────────
   useEffect(() => {
     const canvas = miniCanvasRef.current;
     if (!canvas) return;
-
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
@@ -172,14 +219,71 @@ export function RealtimeVoiceGraph({
       const dt = Math.min((now - lastTime) / 1000, 0.08);
       lastTime = now;
 
-      // Audio Level & Frequency Smoothing
-      const targetLevel = isPlaying ? Math.max(20, audioLevel) : 0;
-      smoothedLevelRef.current += (targetLevel - smoothedLevelRef.current) * Math.min(1, dt * 14);
+      const {
+        isPlaying: playing,
+        audioLevel: lvl,
+        frequencyBands: bands,
+        playbackRate: rate,
+        basePitchHz: baseF0,
+        isDark: dark,
+      } = stateRef.current;
+
+      const barsWidth = 56;
+      const barStartX = width - barsWidth - 2;
+      const singleBarWidth = 3.2;
+      const barGap = 1.4;
+      const waveWidth = barStartX - 6;
+      const midY = height / 2;
+
+      ctx.clearRect(0, 0, width, height);
+
+      // AUTHENTIC STOPPED STATE: When not playing, signal is 0.0 (stationary, silent baseline)
+      if (!playing) {
+        if (wasPlayingRef.current) {
+          lastFreezeTimeRef.current = now;
+          wasPlayingRef.current = false;
+        }
+        smoothedLevelRef.current = 0;
+        for (let i = 0; i < 16; i++) {
+          smoothedBandsRef.current[i] = 0;
+        }
+        pitchHistoryRef.current = [];
+        phaseRef.current = 0;
+
+        // Draw flat calm resting center line (0.0 signal level)
+        ctx.beginPath();
+        ctx.moveTo(0, midY);
+        ctx.lineTo(waveWidth, midY);
+        ctx.strokeStyle = dark ? "rgba(255, 255, 255, 0.20)" : "rgba(68, 45, 25, 0.22)";
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+
+        // Subtle 0.0 dB resting graticule bars
+        for (let i = 0; i < 10; i++) {
+          const x = barStartX + i * (singleBarWidth + barGap);
+          ctx.fillStyle = dark ? "rgba(255, 255, 255, 0.08)" : "rgba(68, 45, 25, 0.08)";
+          ctx.beginPath();
+          ctx.roundRect(x, height / 2 - 1, singleBarWidth, 2, 1);
+          ctx.fill();
+        }
+
+        miniAnimRef.current = requestAnimationFrame(render);
+        return;
+      }
+
+      // ACTIVE PLAYBACK STATE: Real live speech audio signals
+      wasPlayingRef.current = true;
+      lastFreezeTimeRef.current = now;
+
+      // Smooth audio level
+      const targetLevel = Math.max(12, lvl);
+      smoothedLevelRef.current += (targetLevel - smoothedLevelRef.current) * Math.min(1, dt * 10);
       const currentLevel = smoothedLevelRef.current;
 
+      // Smooth frequency bands
       const bandCount = 16;
       for (let i = 0; i < bandCount; i++) {
-        const inputVal = frequencyBands[i] !== undefined ? frequencyBands[i] : (isPlaying ? 28 : 2);
+        const inputVal = bands[i] !== undefined ? bands[i] : 28;
         smoothedBandsRef.current[i] =
           (smoothedBandsRef.current[i] || 0) +
           (inputVal - (smoothedBandsRef.current[i] || 0)) * Math.min(1, dt * 15);
@@ -188,51 +292,28 @@ export function RealtimeVoiceGraph({
       // Physics-based F0 glottal cycle modulation
       const intonationCycle = Math.sin(now * 0.0035);
       const microStress = (Math.sin(now * 0.012) + Math.sin(now * 0.027)) * 0.5;
-      const jitter = (Math.random() - 0.5) * 2.5;
-      const amplitudePitchCoupling = isPlaying ? (currentLevel / 100) * 14 : 0;
+      const jitter = (Math.random() - 0.5) * 2.0;
+      const amplitudePitchCoupling = (currentLevel / 100) * 14;
 
-      const currentF0 = isPlaying
-        ? Math.round(basePitchHz + intonationCycle * 16 + microStress * 10 + amplitudePitchCoupling + jitter)
-        : basePitchHz;
+      const currentF0 = Math.round(baseF0 + intonationCycle * 16 + microStress * 10 + amplitudePitchCoupling + jitter);
 
-      // Record pitch history for expanded graph
-      if (isPlaying) {
-        pitchHistoryRef.current.push({
-          time: now,
-          hz: currentF0,
-          level: currentLevel,
-        });
-      } else if (pitchHistoryRef.current.length === 0) {
-        // Pre-populate resting baseline trace
-        for (let i = 0; i < 40; i++) {
-          pitchHistoryRef.current.push({
-            time: now - (40 - i) * 125,
-            hz: basePitchHz,
-            level: 0,
-          });
-        }
-      }
+      // ONLY record pitch history during active live speech playback
+      pitchHistoryRef.current.push({
+        time: now,
+        hz: currentF0,
+        level: currentLevel,
+      });
 
-      // Prune points older than 5000ms
-      const cutoff = now - 5000;
+      // Prune points older than 5200ms
+      const cutoff = now - 5200;
       while (pitchHistoryRef.current.length > 0 && pitchHistoryRef.current[0].time < cutoff) {
         pitchHistoryRef.current.shift();
       }
 
-      const angularSpeed = (currentF0 / 38) * playbackRate;
+      const angularSpeed = (currentF0 / 38) * rate;
       phaseRef.current += angularSpeed * dt;
 
-      ctx.clearRect(0, 0, width, height);
-
-      // Render Clean Dual-Zone Acoustic Visualization:
-      // Left Zone: Fluid Fundamental F0 Glottal Pulse Wave
-      // Right Zone: Subtle Multi-Band Energy Bars
-      const barsWidth = 56;
-      const barStartX = width - barsWidth - 2;
-      const singleBarWidth = 3.2;
-      const barGap = 1.4;
-
-      // Draw subtle spectral energy bars (Right)
+      // Draw active spectral energy bars (Right)
       for (let i = 0; i < 10; i++) {
         const val = smoothedBandsRef.current[i] || 0;
         const normalized = val / 100;
@@ -242,69 +323,49 @@ export function RealtimeVoiceGraph({
 
         const grad = safeLinearGradient(ctx, 0, y, 0, y + barHeight);
         if (grad) {
-          if (isPlaying) {
-            grad.addColorStop(0, "#06b6d4"); // Cyan
-            grad.addColorStop(0.5, "#f59e0b"); // Amber
-            grad.addColorStop(1, "#d97706"); // Gold
-          } else {
-            grad.addColorStop(0, "rgba(255, 255, 255, 0.12)");
-            grad.addColorStop(1, "rgba(255, 255, 255, 0.04)");
-          }
+          grad.addColorStop(0, dark ? "#06b6d4" : "#0a7eb8"); // Cyan
+          grad.addColorStop(0.5, dark ? "#f59e0b" : "#c68410"); // Amber
+          grad.addColorStop(1, dark ? "#d97706" : "#b45309"); // Gold
           ctx.fillStyle = grad;
         } else {
-          ctx.fillStyle = isPlaying ? "#f59e0b" : "rgba(255, 255, 255, 0.12)";
+          ctx.fillStyle = dark ? "#f59e0b" : "#c68410";
         }
         ctx.beginPath();
         ctx.roundRect(x, y, singleBarWidth, barHeight, 1.2);
         ctx.fill();
       }
 
-      // Draw Primary Glottal Vocal Waveform (Left)
-      const waveWidth = barStartX - 8;
-      const midY = height / 2;
-      const baseAmp = isPlaying ? (currentLevel / 100) * 13 : 2.5;
-
-      // Harmonic Resonance Layer
+      // Draw active fluid fundamental F0 wave (Left)
+      const waveAmp = Math.max(4, (currentLevel / 100) * 12);
       ctx.beginPath();
-      ctx.strokeStyle = isPlaying ? "rgba(6, 182, 212, 0.35)" : "rgba(255, 255, 255, 0.05)";
-      ctx.lineWidth = 1.2;
-      for (let x = 0; x <= waveWidth; x += 2) {
-        const k = (currentF0 / 140) * ((2 * Math.PI) / waveWidth);
-        const y = midY + Math.sin(x * k * 2 + phaseRef.current * 1.6) * (baseAmp * 0.4);
-        if (x === 0) ctx.moveTo(x + 2, y);
-        else ctx.lineTo(x + 2, y);
+      for (let x = 0; x <= waveWidth; x += 1.5) {
+        const progress = x / waveWidth;
+        const p = phaseRef.current + progress * Math.PI * 3.8;
+        const env = Math.sin(progress * Math.PI); // Window tapering
+
+        // Vocal tract harmonics
+        const f0Wave = Math.sin(p);
+        const f1Harmonic = Math.sin(p * 2.2) * 0.35;
+        const f2Harmonic = Math.sin(p * 3.5) * 0.15;
+        const combined = (f0Wave + f1Harmonic + f2Harmonic) * env;
+
+        const y = midY - combined * waveAmp;
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
       }
-      ctx.stroke();
 
-      // Primary F0 Glottal Contour
-      ctx.beginPath();
-      const waveGrad = safeLinearGradient(ctx, 2, 0, Math.max(10, waveWidth), 0);
+      const waveGrad = safeLinearGradient(ctx, 0, 0, waveWidth, 0);
       if (waveGrad) {
-        if (isPlaying) {
-          waveGrad.addColorStop(0, "#06b6d4"); // Cryo Cyan
-          waveGrad.addColorStop(0.6, "#f59e0b"); // Warm Amber
-          waveGrad.addColorStop(1, "#fbbf24"); // Bright Gold
-        } else {
-          waveGrad.addColorStop(0, "rgba(255, 255, 255, 0.25)");
-          waveGrad.addColorStop(1, "rgba(255, 255, 255, 0.08)");
-        }
+        waveGrad.addColorStop(0, dark ? "rgba(6, 182, 212, 0.4)" : "rgba(10, 126, 184, 0.5)");
+        waveGrad.addColorStop(0.6, dark ? "#06b6d4" : "#0a7eb8");
+        waveGrad.addColorStop(1, dark ? "#f59e0b" : "#c68410");
         ctx.strokeStyle = waveGrad;
       } else {
-        ctx.strokeStyle = isPlaying ? "#f59e0b" : "rgba(255, 255, 255, 0.25)";
+        ctx.strokeStyle = dark ? "#f59e0b" : "#c68410";
       }
-      ctx.lineWidth = isPlaying ? 2.2 : 1.2;
-      ctx.lineCap = "round";
 
-      for (let x = 0; x <= waveWidth; x += 2) {
-        const spatialFreq = (currentF0 / 95) * ((2 * Math.PI) / waveWidth);
-        const envelope = Math.sin((x / waveWidth) * Math.PI);
-        const glottalWave =
-          Math.sin(x * spatialFreq - phaseRef.current) +
-          0.25 * Math.sin(2 * (x * spatialFreq - phaseRef.current));
-        const y = midY + glottalWave * (baseAmp * envelope);
-        if (x === 0) ctx.moveTo(x + 2, y);
-        else ctx.lineTo(x + 2, y);
-      }
+      ctx.lineWidth = 2.0;
+      ctx.lineCap = "round";
       ctx.stroke();
 
       miniAnimRef.current = requestAnimationFrame(render);
@@ -315,10 +376,10 @@ export function RealtimeVoiceGraph({
     return () => {
       if (miniAnimRef.current) cancelAnimationFrame(miniAnimRef.current);
     };
-  }, [isPlaying, basePitchHz, playbackRate, audioLevel, frequencyBands]);
+  }, []);
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // 2. EXPANDED ANALYTICAL SCOPE: MULTI-TYPE GRAPH WITH LABELED TIME & HZ AXES
+  // 2. EXPANDED ANALYTICAL SCOPE: WHOLLY THEME-ADAPTIVE (LIGHT & DARK), REAL 0.0
   // ─────────────────────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!isExpanded) return;
@@ -332,23 +393,28 @@ export function RealtimeVoiceGraph({
 
     const dpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
 
+    let currentW = 800;
+    let currentH = 340;
+
     const resizeAndSetup = () => {
-      const width = Math.max(300, container.clientWidth || 800);
-      const height = 350;
-      canvas.width = width * dpr;
-      canvas.height = height * dpr;
+      const rect = container.getBoundingClientRect();
+      const width = Math.max(280, rect.width || container.clientWidth || 800);
+      const height = Math.max(200, rect.height || container.clientHeight || 340);
+      currentW = width;
+      currentH = height;
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
       ctx.resetTransform();
       ctx.scale(dpr, dpr);
       return { width, height };
     };
 
-    let { width, height } = resizeAndSetup();
+    // Initial measurement
+    resizeAndSetup();
 
     const resizeObserver = new ResizeObserver(() => {
-      if (container.clientWidth > 0) {
-        const dims = resizeAndSetup();
-        width = dims.width;
-        height = dims.height;
+      if (container.clientWidth > 0 && container.clientHeight > 0) {
+        resizeAndSetup();
       }
     });
     resizeObserver.observe(container);
@@ -356,489 +422,678 @@ export function RealtimeVoiceGraph({
     let lastTime = performance.now();
 
     const renderExpanded = (now: number) => {
-      const dt = Math.min((now - lastTime) / 1000, 0.08);
-      lastTime = now;
+      try {
+        const dt = Math.min((now - lastTime) / 1000, 0.08);
+        lastTime = now;
 
-      ctx.clearRect(0, 0, width, height);
+        const {
+          isPlaying: playing,
+          selectedPersona: persona,
+          basePitchHz: baseF0,
+          pitchLimits: limits,
+          expandedMode: mode,
+          isDark: dark,
+        } = stateRef.current;
 
-      // Background Graticule Fill
-      ctx.fillStyle = "#070d18";
-      ctx.fillRect(0, 0, width, height);
+        const width = currentW;
+        const height = currentH;
 
-      // Margins for Professional Oscilloscope Axes
-      const padLeft = 72;
-      const padRight = 28;
-      const padTop = 32;
-      const padBottom = 48;
-      const chartW = Math.max(100, width - padLeft - padRight);
-      const chartH = Math.max(100, height - padTop - padBottom);
+        ctx.clearRect(0, 0, width, height);
 
-      // ─── MODE 1: F0 FUNDAMENTAL PITCH CONTOUR (TIME ON X, HZ ON Y) ───
-      if (expandedMode === "pitch") {
-        const { nominalF0, lowerLimitHz, upperLimitHz } = pitchLimits;
+        // ─── THEME-ADAPTIVE BACKGROUND & GRATICULE FILL ───
+        // In Light mode: Clean technical parchment / lab graticule (#fbf9f4)
+        // In Dark mode: Obsidian cleanroom dark slate (#070b14)
+        ctx.fillStyle = dark ? "#070b14" : "#fbf9f4";
+        ctx.fillRect(0, 0, width, height);
 
-        // Dynamic Frequency Range with Safe Headroom
-        const minY = Math.max(40, lowerLimitHz - (selectedPersona.gender === "female" ? 40 : 25));
-        const maxY = upperLimitHz + (selectedPersona.gender === "female" ? 40 : 30);
+        // Oscilloscope Grid Margins
+        const padLeft = width < 480 ? 56 : 70;
+        const padRight = width < 480 ? 18 : 28;
+        const padTop = 30;
+        const padBottom = 44;
+        const chartW = Math.max(80, width - padLeft - padRight);
+        const chartH = Math.max(80, height - padTop - padBottom);
 
-        const getFreqY = (hz: number) => {
-          const clamped = Math.max(minY, Math.min(maxY, hz));
-          return padTop + chartH - ((clamped - minY) / (maxY - minY)) * chartH;
-        };
-
-        const yUpper = getFreqY(upperLimitHz);
-        const yNominal = getFreqY(nominalF0);
-        const yLower = getFreqY(lowerLimitHz);
-
-        // 1. Highlight Physiologically Calibrated Safe Pitch Envelope Band
-        ctx.fillStyle = "rgba(245, 158, 11, 0.045)";
-        ctx.fillRect(padLeft, yUpper, chartW, Math.max(1, yLower - yUpper));
-
-        // Subtle gradient grid inside safe band
-        const safeGrad = safeLinearGradient(ctx, padLeft, yUpper, padLeft, yLower);
-        if (safeGrad) {
-          safeGrad.addColorStop(0, "rgba(245, 158, 11, 0.08)");
-          safeGrad.addColorStop(0.5, "rgba(6, 182, 212, 0.04)");
-          safeGrad.addColorStop(1, "rgba(99, 102, 241, 0.08)");
-          ctx.fillStyle = safeGrad;
-          ctx.fillRect(padLeft, yUpper, chartW, Math.max(1, yLower - yUpper));
-        }
-
-        // 2. Horizontal Frequency Gridlines & Ticks (Every 50 Hz or 25 Hz)
-        const hzStep = selectedPersona.gender === "female" ? 50 : 25;
-        const startHz = Math.ceil(minY / hzStep) * hzStep;
-        ctx.font = "10px monospace";
-        ctx.textAlign = "right";
-
-        for (let hz = startHz; hz <= maxY; hz += hzStep) {
-          const y = getFreqY(hz);
-          // Grid line
+        // Subtle CRT / Laboratory Mesh Graticule
+        ctx.strokeStyle = dark ? "rgba(255, 255, 255, 0.05)" : "rgba(68, 45, 25, 0.06)";
+        ctx.lineWidth = 1;
+        const gridCols = 8;
+        const gridRows = 5;
+        for (let c = 1; c < gridCols; c++) {
+          const gx = padLeft + (c / gridCols) * chartW;
           ctx.beginPath();
-          ctx.setLineDash([2, 5]);
-          ctx.strokeStyle = "rgba(255, 255, 255, 0.07)";
-          ctx.lineWidth = 1;
-          ctx.moveTo(padLeft, y);
-          ctx.lineTo(padLeft + chartW, y);
+          ctx.moveTo(gx, padTop);
+          ctx.lineTo(gx, padTop + chartH);
           ctx.stroke();
-
-          // Y-axis numerical tick label
-          ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
-          ctx.fillText(`${hz} Hz`, padLeft - 8, y + 3.5);
         }
-
-        // 3. Calibrated Upper Limit Reference Line
-        ctx.beginPath();
-        ctx.setLineDash([6, 4]);
-        ctx.strokeStyle = "rgba(245, 158, 11, 0.85)"; // Amber
-        ctx.lineWidth = 1.8;
-        ctx.moveTo(padLeft, yUpper);
-        ctx.lineTo(padLeft + chartW, yUpper);
-        ctx.stroke();
-        ctx.setLineDash([]);
-        ctx.fillStyle = "#f59e0b";
-        ctx.font = "bold 10px monospace";
-        ctx.textAlign = "right";
-        ctx.fillText(`UPPER LIMIT: ${upperLimitHz} Hz`, padLeft + chartW - 8, yUpper - 6);
-
-        // 4. Calibrated Nominal Resting Pitch Reference Line
-        ctx.beginPath();
-        ctx.setLineDash([4, 4]);
-        ctx.strokeStyle = "rgba(6, 182, 212, 0.85)"; // Cyan
-        ctx.lineWidth = 1.6;
-        ctx.moveTo(padLeft, yNominal);
-        ctx.lineTo(padLeft + chartW, yNominal);
-        ctx.stroke();
-        ctx.setLineDash([]);
-        ctx.fillStyle = "#06b6d4";
-        ctx.font = "bold 10px monospace";
-        ctx.textAlign = "right";
-        ctx.fillText(`NOMINAL F₀: ${nominalF0} Hz`, padLeft + chartW - 8, yNominal - 6);
-
-        // 5. Calibrated Lower Limit Reference Line
-        ctx.beginPath();
-        ctx.setLineDash([6, 4]);
-        ctx.strokeStyle = "rgba(129, 140, 248, 0.85)"; // Indigo
-        ctx.lineWidth = 1.8;
-        ctx.moveTo(padLeft, yLower);
-        ctx.lineTo(padLeft + chartW, yLower);
-        ctx.stroke();
-        ctx.setLineDash([]);
-        ctx.fillStyle = "#818cf8";
-        ctx.font = "bold 10px monospace";
-        ctx.textAlign = "right";
-        ctx.fillText(`LOWER LIMIT: ${lowerLimitHz} Hz`, padLeft + chartW - 8, yLower - 6);
-
-        // 6. X-Axis Time Gridlines (-5.0s to 0.0s Live)
-        const timeWindowSec = 5.0;
-        ctx.font = "10px monospace";
-        ctx.textAlign = "center";
-
-        for (let s = 0; s <= 5; s++) {
-          const x = padLeft + chartW - (s / timeWindowSec) * chartW;
-          // Vertical grid line
+        for (let r = 1; r < gridRows; r++) {
+          const gy = padTop + (r / gridRows) * chartH;
           ctx.beginPath();
-          ctx.setLineDash([2, 5]);
-          ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
-          ctx.lineWidth = 1;
-          ctx.moveTo(x, padTop);
-          ctx.lineTo(x, padTop + chartH);
+          ctx.moveTo(padLeft, gy);
+          ctx.lineTo(padLeft + chartW, gy);
           ctx.stroke();
-
-          // X-axis Time Tick Label
-          ctx.fillStyle = s === 0 ? "#f59e0b" : "rgba(255, 255, 255, 0.55)";
-          ctx.font = s === 0 ? "bold 10px monospace" : "10px monospace";
-          ctx.fillText(s === 0 ? "0.0s (Live)" : `-${s}.0s`, x, padTop + chartH + 18);
         }
 
-        // 7. Axis Titles (X: Time, Y: Frequency of Speech)
-        ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
-        ctx.font = "bold 11px monospace";
-        ctx.textAlign = "center";
-        ctx.fillText("Time (seconds) — 5s Rolling Acoustic Window", padLeft + chartW / 2, padTop + chartH + 36);
+        // ─── MODE 1: F0 PITCH CONTOUR (DYNAMIC SOFT HUMAN ENVELOPE) ───
+        if (mode === "pitch") {
+          const { nominalF0, lowerLimitHz, upperLimitHz } = limits;
 
-        // Rotated Y-Axis Title
-        ctx.save();
-        ctx.translate(18, padTop + chartH / 2);
-        ctx.rotate(-Math.PI / 2);
-        ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
-        ctx.font = "bold 11px monospace";
-        ctx.textAlign = "center";
-        ctx.fillText("Frequency of Speech (Hz)", 0, 0);
-        ctx.restore();
+          // Ground floor is strictly 0.0 Hz (authentic zero acoustic excitation)
+          const minY = 0;
+          const maxY = upperLimitHz + (persona.gender === "female" ? 35 : 25);
 
-        // 8. Draw Real-Time F0 Fundamental Pitch Contour Trajectory
-        const samples = pitchHistoryRef.current;
-        if (samples.length > 1) {
+          const getFreqY = (hz: number) => {
+            const clamped = Math.max(minY, Math.min(maxY, hz));
+            return padTop + chartH - ((clamped - minY) / (maxY - minY)) * chartH;
+          };
+
+          const yUpperBase = getFreqY(upperLimitHz);
+          const yNominalBase = getFreqY(nominalF0);
+          const yLowerBase = getFreqY(lowerLimitHz);
+
+          // 1. DYNAMIC, SOFT HUMAN VOCAL RESONANCE CORRIDOR (CALIBRATION BOUNDARIES)
+          // Physiological boundaries float as soft human breathing curves when playing, stationary when stopped
+          const tSec = playing ? now * 0.001 : 0;
+          const upperCurvePoints: { x: number; y: number }[] = [];
+          const lowerCurvePoints: { x: number; y: number }[] = [];
+          const nominalGuidePoints: { x: number; y: number }[] = [];
+
+          const steps = 36;
+          for (let s = 0; s <= steps; s++) {
+            const frac = s / steps;
+            const px = padLeft + frac * chartW;
+
+            // Organic soft wave for upper limit excursion (strictly zero when stopped)
+            const upperWave = playing
+              ? Math.sin(tSec * 1.4 + frac * 4.2) * 5.0 + Math.cos(tSec * 0.7 + frac * 2.1) * 3.0
+              : 0;
+            const pyUpper = yUpperBase + upperWave;
+            upperCurvePoints.push({ x: px, y: pyUpper });
+
+            // Organic soft wave for lower limit boundary (strictly zero when stopped)
+            const lowerWave = playing
+              ? Math.sin(tSec * 1.2 + frac * 3.5 + 1.2) * 4.5 + Math.cos(tSec * 0.5 + frac * 1.8) * 2.5
+              : 0;
+            const pyLower = yLowerBase + lowerWave;
+            lowerCurvePoints.push({ x: px, y: pyLower });
+
+            // Nominal resting pitch trajectory guide (strictly zero when stopped)
+            const nominalWave = playing ? Math.sin(tSec * 1.8 + frac * 4.8) * 2.2 : 0;
+            nominalGuidePoints.push({ x: px, y: yNominalBase + nominalWave });
+          }
+
+          // Fill the Soft Human Prosody Corridor with gentle luminous gradient wash
           ctx.beginPath();
-          samples.forEach((pt, idx) => {
-            const ageSec = Math.max(0, (now - pt.time) / 1000);
-            const x = padLeft + chartW - (ageSec / timeWindowSec) * chartW;
-            const y = getFreqY(pt.hz);
-            if (idx === 0) ctx.moveTo(x, y);
-            else ctx.lineTo(x, y);
+          upperCurvePoints.forEach((pt, idx) => {
+            if (idx === 0) ctx.moveTo(pt.x, pt.y);
+            else ctx.lineTo(pt.x, pt.y);
           });
+          for (let idx = lowerCurvePoints.length - 1; idx >= 0; idx--) {
+            ctx.lineTo(lowerCurvePoints[idx].x, lowerCurvePoints[idx].y);
+          }
+          ctx.closePath();
 
-          // Gradient Stroke
-          const curveGrad = safeLinearGradient(ctx, padLeft, 0, padLeft + chartW, 0);
-          if (curveGrad) {
-            curveGrad.addColorStop(0, "rgba(6, 182, 212, 0.35)");
-            curveGrad.addColorStop(0.6, "#06b6d4");
-            curveGrad.addColorStop(1, "#f59e0b");
-            ctx.strokeStyle = curveGrad;
+          const corridorGrad = safeLinearGradient(ctx, padLeft, yUpperBase, padLeft, yLowerBase);
+          if (corridorGrad) {
+            if (dark) {
+              corridorGrad.addColorStop(0, "rgba(245, 158, 11, 0.08)");
+              corridorGrad.addColorStop(0.5, "rgba(6, 182, 212, 0.04)");
+              corridorGrad.addColorStop(1, "rgba(99, 102, 241, 0.07)");
+            } else {
+              corridorGrad.addColorStop(0, "rgba(198, 132, 16, 0.12)");
+              corridorGrad.addColorStop(0.5, "rgba(10, 126, 184, 0.06)");
+              corridorGrad.addColorStop(1, "rgba(79, 70, 229, 0.09)");
+            }
+            ctx.fillStyle = corridorGrad;
           } else {
-            ctx.strokeStyle = "#f59e0b";
+            ctx.fillStyle = dark ? "rgba(245, 158, 11, 0.05)" : "rgba(198, 132, 16, 0.08)";
           }
-          ctx.lineWidth = 2.8;
-          ctx.lineCap = "round";
-          ctx.lineJoin = "round";
-          ctx.shadowColor = "#f59e0b";
-          ctx.shadowBlur = isPlaying ? 10 : 0;
-          ctx.stroke();
-          ctx.shadowBlur = 0;
-
-          // Live Pulse Node at 0.0s (Live)
-          const latestSample = samples[samples.length - 1];
-          const headX = padLeft + chartW;
-          const headY = getFreqY(latestSample.hz);
-
-          // Pulse ring
-          if (isPlaying) {
-            ctx.beginPath();
-            ctx.arc(headX, headY, 8 + Math.sin(now * 0.01) * 3, 0, Math.PI * 2);
-            ctx.fillStyle = "rgba(245, 158, 11, 0.25)";
-            ctx.fill();
-          }
-
-          ctx.beginPath();
-          ctx.arc(headX, headY, isPlaying ? 5 : 3.5, 0, Math.PI * 2);
-          ctx.fillStyle = isPlaying ? "#f59e0b" : "rgba(255, 255, 255, 0.6)";
           ctx.fill();
-        }
-      }
 
-      // ─── MODE 2: FORMANT RESONANCE SPECTRUM (HZ ON X, DBMAGNITUDE ON Y) ───
-      else if (expandedMode === "formants") {
-        // X-Axis: 0 Hz to 4000 Hz (Standard Speech Bandwidth)
-        // Y-Axis: -60 dB to 0 dB
-        const maxFreq = 4000;
-        const minDb = -60;
-        const maxDb = 0;
-
-        const getX = (hz: number) => padLeft + (hz / maxFreq) * chartW;
-        const getY = (db: number) => padTop + chartH - ((db - minDb) / (maxDb - minDb)) * chartH;
-
-        // X-Axis Frequency Grid (Every 500 Hz)
-        ctx.font = "10px monospace";
-        ctx.textAlign = "center";
-        for (let hz = 0; hz <= maxFreq; hz += 500) {
-          const x = getX(hz);
+          // Draw Soft Upper Dynamic Limit Curve (Soft Glowing Amber)
           ctx.beginPath();
-          ctx.setLineDash([2, 5]);
-          ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
-          ctx.moveTo(x, padTop);
-          ctx.lineTo(x, padTop + chartH);
-          ctx.stroke();
-
-          ctx.fillStyle = "rgba(255, 255, 255, 0.55)";
-          ctx.fillText(hz === 0 ? "0 Hz" : `${hz / 1000} kHz`, x, padTop + chartH + 18);
-        }
-
-        // Y-Axis dB Grid (Every 15 dB)
-        ctx.textAlign = "right";
-        for (let db = minDb; db <= maxDb; db += 15) {
-          const y = getY(db);
-          ctx.beginPath();
-          ctx.setLineDash([2, 5]);
-          ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
-          ctx.moveTo(padLeft, y);
-          ctx.lineTo(padLeft + chartW, y);
-          ctx.stroke();
-
-          ctx.fillStyle = "rgba(255, 255, 255, 0.55)";
-          ctx.fillText(`${db} dB`, padLeft - 8, y + 3.5);
-        }
-
-        // Axis Titles
-        ctx.setLineDash([]);
-        ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
-        ctx.font = "bold 11px monospace";
-        ctx.textAlign = "center";
-        ctx.fillText("Frequency of Speech (Hz) — Acoustic Bandwidth (0 – 4,000 Hz)", padLeft + chartW / 2, padTop + chartH + 36);
-
-        ctx.save();
-        ctx.translate(18, padTop + chartH / 2);
-        ctx.rotate(-Math.PI / 2);
-        ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
-        ctx.font = "bold 11px monospace";
-        ctx.textAlign = "center";
-        ctx.fillText("Acoustic Magnitude (dBFS)", 0, 0);
-        ctx.restore();
-
-        // Calculate Formants: F1 (vowel height), F2 (vowel fronting), F3 (clarity), F4 (laryngeal tube)
-        const currentLevel = smoothedLevelRef.current;
-        const currentF0 = basePitchHz;
-        const f1Target = Math.round(520 + (currentLevel / 100) * 200 + Math.sin(now * 0.004) * 40);
-        const f2Target = Math.round(1850 + Math.cos(now * 0.003) * 120);
-        const f3Target = 2650;
-        const f4Target = 3450;
-
-        // Draw Vocal Tract Transfer Function Curve
-        ctx.beginPath();
-        for (let px = 0; px <= chartW; px += 2) {
-          const hz = (px / chartW) * maxFreq;
-          // Gaussian bell resonant poles
-          const poleF0 = Math.exp(-Math.pow((hz - currentF0) / 90, 2)) * 0.85;
-          const poleF1 = Math.exp(-Math.pow((hz - f1Target) / 180, 2)) * 1.0;
-          const poleF2 = Math.exp(-Math.pow((hz - f2Target) / 260, 2)) * 0.72;
-          const poleF3 = Math.exp(-Math.pow((hz - f3Target) / 320, 2)) * 0.55;
-          const poleF4 = Math.exp(-Math.pow((hz - f4Target) / 400, 2)) * 0.4;
-          const rolloff = Math.pow(1 - hz / maxFreq, 0.6);
-
-          const sumTransfer = (poleF0 + poleF1 + poleF2 + poleF3 + poleF4) * (isPlaying ? Math.max(0.2, currentLevel / 100) : 0.15) * rolloff;
-          const calcDb = -54 + sumTransfer * 50;
-          const y = getY(calcDb);
-
-          if (px === 0) ctx.moveTo(padLeft + px, y);
-          else ctx.lineTo(padLeft + px, y);
-        }
-
-        const formantGrad = safeLinearGradient(ctx, padLeft, 0, padLeft + chartW, 0);
-        if (formantGrad) {
-          formantGrad.addColorStop(0, "#06b6d4"); // Cyan
-          formantGrad.addColorStop(0.35, "#f59e0b"); // Amber
-          formantGrad.addColorStop(0.7, "#fbbf24"); // Gold
-          formantGrad.addColorStop(1, "#818cf8"); // Indigo
-          ctx.strokeStyle = formantGrad;
-        } else {
-          ctx.strokeStyle = "#f59e0b";
-        }
-        ctx.lineWidth = 2.4;
-        ctx.shadowColor = "#f59e0b";
-        ctx.shadowBlur = isPlaying ? 8 : 0;
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-
-        // Mark Formant Peaks
-        const formants = [
-          { name: "F₁", hz: f1Target, desc: "Pharyngeal", color: "#06b6d4" },
-          { name: "F₂", hz: f2Target, desc: "Oral Cavity", color: "#f59e0b" },
-          { name: "F₃", hz: f3Target, desc: "Palatal", color: "#fbbf24" },
-          { name: "F₄", hz: f4Target, desc: "Laryngeal", color: "#818cf8" },
-        ];
-
-        formants.forEach((f) => {
-          const x = getX(f.hz);
-          ctx.beginPath();
-          ctx.setLineDash([3, 3]);
-          ctx.strokeStyle = f.color;
-          ctx.moveTo(x, padTop + 20);
-          ctx.lineTo(x, padTop + chartH);
+          upperCurvePoints.forEach((pt, idx) => {
+            if (idx === 0) ctx.moveTo(pt.x, pt.y);
+            else ctx.lineTo(pt.x, pt.y);
+          });
+          ctx.strokeStyle = dark ? "rgba(245, 158, 11, 0.65)" : "rgba(180, 83, 9, 0.80)";
+          ctx.lineWidth = 1.6;
+          ctx.setLineDash([4, 4]);
           ctx.stroke();
           ctx.setLineDash([]);
 
-          // Badge
-          ctx.fillStyle = f.color;
-          ctx.beginPath();
-          ctx.arc(x, padTop + 14, 4, 0, Math.PI * 2);
-          ctx.fill();
+          // Upper Limit Floating Label at live head
+          ctx.fillStyle = dark ? "#fbbf24" : "#9a6108";
+          ctx.font = "bold 9px monospace";
+          ctx.textAlign = "right";
+          ctx.fillText(`Dynamic Excursion Ceiling (~${upperLimitHz} Hz)`, padLeft + chartW - 6, upperCurvePoints[steps].y - 8);
 
+          // Draw Soft Lower Dynamic Limit Curve (Soft Glowing Indigo)
+          ctx.beginPath();
+          lowerCurvePoints.forEach((pt, idx) => {
+            if (idx === 0) ctx.moveTo(pt.x, pt.y);
+            else ctx.lineTo(pt.x, pt.y);
+          });
+          ctx.strokeStyle = dark ? "rgba(129, 140, 248, 0.65)" : "rgba(67, 56, 202, 0.75)";
+          ctx.lineWidth = 1.6;
+          ctx.setLineDash([4, 4]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          // Lower Limit Floating Label at live head
+          ctx.fillStyle = dark ? "#a5b4fc" : "#4338ca";
+          ctx.font = "bold 9px monospace";
+          ctx.textAlign = "right";
+          ctx.fillText(`Dynamic Glottal Floor (~${lowerLimitHz} Hz)`, padLeft + chartW - 6, lowerCurvePoints[steps].y + 14);
+
+          // Draw Soft Nominal Modal Pitch Guide (Soft Cyan)
+          ctx.beginPath();
+          nominalGuidePoints.forEach((pt, idx) => {
+            if (idx === 0) ctx.moveTo(pt.x, pt.y);
+            else ctx.lineTo(pt.x, pt.y);
+          });
+          ctx.strokeStyle = dark ? "rgba(6, 182, 212, 0.45)" : "rgba(10, 126, 184, 0.60)";
+          ctx.lineWidth = 1.2;
+          ctx.setLineDash([2, 5]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          ctx.fillStyle = dark ? "#38bdf8" : "#0284c7";
+          ctx.font = "bold 9px monospace";
+          ctx.textAlign = "right";
+          ctx.fillText(`Modal F₀: ${nominalF0} Hz`, padLeft + chartW - 6, nominalGuidePoints[steps].y - 6);
+
+          // 2. Frequency Y-Axis Ticks
+          const hzStep = persona.gender === "female" ? 50 : 25;
+          const startHz = Math.ceil(minY / hzStep) * hzStep;
+          ctx.font = "bold 9px monospace";
+          ctx.textAlign = "right";
+
+          for (let hz = startHz; hz <= maxY; hz += hzStep) {
+            const y = getFreqY(hz);
+            ctx.beginPath();
+            ctx.setLineDash([2, 6]);
+            ctx.strokeStyle = dark ? "rgba(255, 255, 255, 0.12)" : "rgba(68, 45, 25, 0.12)";
+            ctx.lineWidth = 1;
+            ctx.moveTo(padLeft, y);
+            ctx.lineTo(padLeft + chartW, y);
+            ctx.stroke();
+
+            ctx.fillStyle = dark ? "rgba(241, 245, 249, 0.85)" : "#2e261d";
+            ctx.fillText(`${hz} Hz`, padLeft - 8, y + 3.5);
+          }
+
+          // 3. Time X-Axis Gridlines (-5.0s to 0.0s Live)
+          const timeWindowSec = 5.0;
+          ctx.textAlign = "center";
+          for (let s = 0; s <= 5; s++) {
+            const x = padLeft + chartW - (s / timeWindowSec) * chartW;
+            ctx.beginPath();
+            ctx.setLineDash([2, 6]);
+            ctx.strokeStyle = dark ? "rgba(255, 255, 255, 0.12)" : "rgba(68, 45, 25, 0.12)";
+            ctx.lineWidth = 1;
+            ctx.moveTo(x, padTop);
+            ctx.lineTo(x, padTop + chartH);
+            ctx.stroke();
+
+            ctx.fillStyle = s === 0
+              ? (playing ? (dark ? "#f59e0b" : "#c68410") : (dark ? "#94a3b8" : "#64748b"))
+              : (dark ? "rgba(241, 245, 249, 0.85)" : "#2e261d");
+            ctx.font = s === 0 ? "bold 10px monospace" : "9px monospace";
+            ctx.fillText(s === 0 ? (playing ? "0.0s Live" : "0.0s Hold") : `-${s}.0s`, x, padTop + chartH + 16);
+          }
+
+          // Axis Titles
+          ctx.setLineDash([]);
+          ctx.fillStyle = dark ? "#cbd5e1" : "#5c5243";
           ctx.font = "bold 10px monospace";
           ctx.textAlign = "center";
-          ctx.fillText(`${f.name} (${f.hz} Hz)`, x, padTop + 8);
-        });
-      }
+          ctx.fillText("Time (seconds) — 5-Second Rolling Speech Prosody Window", padLeft + chartW / 2, padTop + chartH + 34);
 
-      // ─── MODE 3: TIME-FREQUENCY SPECTROGRAM (WATERFALL HEATMAP) ───
-      else if (expandedMode === "spectrogram") {
-        // Record rolling spectral slices
-        if (waterfallHistoryRef.current.length > 36) {
-          waterfallHistoryRef.current.shift();
-        }
-        waterfallHistoryRef.current.push([...smoothedBandsRef.current]);
+          ctx.save();
+          ctx.translate(16, padTop + chartH / 2);
+          ctx.rotate(-Math.PI / 2);
+          ctx.fillStyle = dark ? "#cbd5e1" : "#5c5243";
+          ctx.font = "bold 10px monospace";
+          ctx.textAlign = "center";
+          ctx.fillText("Vocal Frequency (Hz)", 0, 0);
+          ctx.restore();
 
-        const history = waterfallHistoryRef.current;
-        const timeCols = history.length;
-        const freqBands = 16;
-        const colWidth = chartW / Math.max(1, timeCols);
-        const rowHeight = chartH / freqBands;
+          // 4. DRAW AUTHENTIC REAL SPEECH PITCH TRAJECTORY (ZERO MOTION & 0.0 HZ WHEN STOPPED)
+          const yZero = getFreqY(0);
 
-        // Render Waterfall Heatmap Matrix
-        history.forEach((bands, colIdx) => {
-          const x = padLeft + colIdx * colWidth;
-          bands.forEach((bVal, bIdx) => {
-            const y = padTop + chartH - (bIdx + 1) * rowHeight;
-            const energyNorm = Math.min(1, Math.max(0, bVal / 100));
+          if (!playing) {
+            // AUTHENTIC 0.0 HZ GROUND FLOOR: Strictly stationary, silent flatline across entire window
+            ctx.beginPath();
+            ctx.setLineDash([]);
+            ctx.strokeStyle = dark ? "rgba(255, 255, 255, 0.28)" : "rgba(68, 45, 25, 0.32)";
+            ctx.lineWidth = 1.8;
+            ctx.moveTo(padLeft, yZero);
+            ctx.lineTo(padLeft + chartW, yZero);
+            ctx.stroke();
 
-            // Colormap: Deep Blue -> Cyan -> Amber -> Bright White
-            let r = 7, g = 13, b = 24;
-            if (isPlaying) {
-              if (energyNorm < 0.4) {
-                // Dark to Cyan
-                const t = energyNorm / 0.4;
-                r = Math.round(6 * t);
-                g = Math.round(182 * t);
-                b = Math.round(212 * t);
-              } else if (energyNorm < 0.8) {
-                // Cyan to Amber
-                const t = (energyNorm - 0.4) / 0.4;
-                r = Math.round(6 + (245 - 6) * t);
-                g = Math.round(182 + (158 - 182) * t);
-                b = Math.round(212 + (11 - 212) * t);
-              } else {
-                // Amber to White
-                const t = (energyNorm - 0.8) / 0.2;
-                r = Math.round(245 + 10 * t);
-                g = Math.round(158 + 97 * t);
-                b = Math.round(11 + 244 * t);
-              }
+            // Quiescent Callout
+            ctx.fillStyle = dark ? "#94a3b8" : "#64748b";
+            ctx.font = "bold 10px monospace";
+            ctx.textAlign = "center";
+            ctx.fillText("0.0 Hz • Grounded Baseline (Press Listen to activate real-time telemetry)", padLeft + chartW / 2, yZero - 12);
+
+            // Stationary Live Head at (0.0s, 0.0 Hz)
+            const headX = padLeft + chartW;
+            const headY = yZero;
+            ctx.beginPath();
+            ctx.arc(headX, headY, 4.5, 0, Math.PI * 2);
+            ctx.fillStyle = dark ? "#94a3b8" : "#64748b";
+            ctx.fill();
+
+            ctx.fillStyle = dark ? "#cbd5e1" : "#475569";
+            ctx.font = "bold 9px monospace";
+            ctx.textAlign = "right";
+            ctx.fillText("0.0 Hz (Stopped)", headX - 8, headY - 8);
+          } else {
+            // ACTIVE PLAYBACK: Draw real speech pitch trajectory
+            const samples = pitchHistoryRef.current;
+            if (samples.length < 2) {
+              ctx.beginPath();
+              ctx.setLineDash([4, 4]);
+              ctx.strokeStyle = dark ? "rgba(255, 255, 255, 0.20)" : "rgba(68, 45, 25, 0.25)";
+              ctx.lineWidth = 1.6;
+              ctx.moveTo(padLeft, yZero);
+              ctx.lineTo(padLeft + chartW, yZero);
+              ctx.stroke();
+              ctx.setLineDash([]);
+
+              const headX = padLeft + chartW;
+              const headY = yZero;
+              ctx.beginPath();
+              ctx.arc(headX, headY, 4, 0, Math.PI * 2);
+              ctx.fillStyle = dark ? "#64748b" : "#94a3b8";
+              ctx.fill();
             } else {
-              r = 20; g = 30; b = 45;
+              const pts = samples.map((pt) => {
+                const ageSec = Math.max(0, (now - pt.time) / 1000);
+                const x = padLeft + chartW - (ageSec / timeWindowSec) * chartW;
+                const y = getFreqY(pt.hz);
+                return { x, y, hz: pt.hz };
+              });
+
+              pts.sort((a, b) => a.x - b.x);
+
+              ctx.beginPath();
+              ctx.moveTo(pts[0].x, pts[0].y);
+
+              for (let i = 0; i < pts.length - 1; i++) {
+                const p0 = pts[Math.max(0, i - 1)];
+                const p1 = pts[i];
+                const p2 = pts[i + 1];
+                const p3 = pts[Math.min(pts.length - 1, i + 2)];
+
+                const cp1x = p1.x + (p2.x - p0.x) / 6;
+                const cp1y = p1.y + (p2.y - p0.y) / 6;
+                const cp2x = p2.x - (p3.x - p1.x) / 6;
+                const cp2y = p2.y - (p3.y - p1.y) / 6;
+
+                ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, p2.y);
+              }
+
+              const curveGrad = safeLinearGradient(ctx, padLeft, 0, padLeft + chartW, 0);
+              if (curveGrad) {
+                if (dark) {
+                  curveGrad.addColorStop(0, "rgba(6, 182, 212, 0.4)");
+                  curveGrad.addColorStop(0.5, "#06b6d4");
+                  curveGrad.addColorStop(1, "#f59e0b");
+                } else {
+                  curveGrad.addColorStop(0, "rgba(10, 126, 184, 0.5)");
+                  curveGrad.addColorStop(0.5, "#0a7eb8");
+                  curveGrad.addColorStop(1, "#c68410");
+                }
+                ctx.strokeStyle = curveGrad;
+              } else {
+                ctx.strokeStyle = dark ? "#f59e0b" : "#c68410";
+              }
+              ctx.lineWidth = dark ? 2.8 : 3.0;
+              ctx.lineCap = "round";
+              ctx.lineJoin = "round";
+              ctx.shadowColor = dark ? "#f59e0b" : "#c68410";
+              ctx.shadowBlur = dark ? 14 : 8;
+              ctx.stroke();
+              ctx.shadowBlur = 0;
+
+              const latestPt = pts[pts.length - 1];
+              const headX = padLeft + chartW;
+              const headY = latestPt.y;
+
+              ctx.beginPath();
+              ctx.arc(headX, headY, 7 + Math.sin(now * 0.01) * 3, 0, Math.PI * 2);
+              ctx.fillStyle = dark ? "rgba(245, 158, 11, 0.35)" : "rgba(198, 132, 16, 0.35)";
+              ctx.fill();
+
+              ctx.beginPath();
+              ctx.arc(headX, headY, 4.5, 0, Math.PI * 2);
+              ctx.fillStyle = dark ? "#f59e0b" : "#c68410";
+              ctx.fill();
             }
+          }
+        }
 
-            ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
-            ctx.fillRect(x, y, colWidth + 0.5, rowHeight + 0.5);
-          });
-        });
+        // ─── MODE 2: FORMANT RESONANCE SPECTRUM (HZ ON X, DBMAGNITUDE ON Y) ───
+        else if (mode === "formants") {
+          const maxFreq = 4000;
+          const minDb = -60;
+          const maxDb = 0;
 
-        // X-Axis Time Labels
-        ctx.font = "10px monospace";
-        ctx.textAlign = "center";
-        ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
-        ctx.fillText("-4.0s", padLeft, padTop + chartH + 18);
-        ctx.fillText("-2.0s", padLeft + chartW / 2, padTop + chartH + 18);
-        ctx.fillText("0.0s (Live)", padLeft + chartW, padTop + chartH + 18);
+          const getX = (hz: number) => padLeft + (hz / maxFreq) * chartW;
+          const getY = (db: number) => padTop + chartH - ((db - minDb) / (maxDb - minDb)) * chartH;
 
-        ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
-        ctx.font = "bold 11px monospace";
-        ctx.fillText("Time (seconds) — Spectrogram History", padLeft + chartW / 2, padTop + chartH + 36);
+          // X-Axis Frequency Grid
+          ctx.font = "bold 9px monospace";
+          ctx.textAlign = "center";
+          for (let hz = 0; hz <= maxFreq; hz += 500) {
+            const x = getX(hz);
+            ctx.beginPath();
+            ctx.setLineDash([2, 5]);
+            ctx.strokeStyle = dark ? "rgba(255, 255, 255, 0.12)" : "rgba(68, 45, 25, 0.12)";
+            ctx.moveTo(x, padTop);
+            ctx.lineTo(x, padTop + chartH);
+            ctx.stroke();
 
-        // Y-Axis Frequency Labels
-        ctx.textAlign = "right";
-        ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
-        ctx.fillText("4,000 Hz", padLeft - 8, padTop + 10);
-        ctx.fillText("2,000 Hz", padLeft - 8, padTop + chartH / 2);
-        ctx.fillText("100 Hz", padLeft - 8, padTop + chartH - 4);
+            ctx.fillStyle = dark ? "rgba(241, 245, 249, 0.85)" : "#2e261d";
+            ctx.fillText(hz === 0 ? "0" : `${hz / 1000}k`, x, padTop + chartH + 16);
+          }
 
-        ctx.save();
-        ctx.translate(18, padTop + chartH / 2);
-        ctx.rotate(-Math.PI / 2);
-        ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
-        ctx.font = "bold 11px monospace";
-        ctx.textAlign = "center";
-        ctx.fillText("Frequency of Speech (Hz)", 0, 0);
-        ctx.restore();
-      }
+          // Y-Axis dB Grid
+          ctx.textAlign = "right";
+          for (let db = minDb; db <= maxDb; db += 15) {
+            const y = getY(db);
+            ctx.beginPath();
+            ctx.setLineDash([2, 5]);
+            ctx.strokeStyle = dark ? "rgba(255, 255, 255, 0.12)" : "rgba(68, 45, 25, 0.12)";
+            ctx.moveTo(padLeft, y);
+            ctx.lineTo(padLeft + chartW, y);
+            ctx.stroke();
 
-      // ─── MODE 4: GLOTTAL PULSE OSCILLOSCOPE (TIME MS ON X, PRESSURE ON Y) ───
-      else if (expandedMode === "glottal") {
-        const periodMs = 25; // 25ms time window
-        const midY = padTop + chartH / 2;
-        const currentLevel = smoothedLevelRef.current;
-        const currentF0 = basePitchHz;
+            ctx.fillStyle = dark ? "rgba(241, 245, 249, 0.85)" : "#2e261d";
+            ctx.fillText(`${db} dB`, padLeft - 8, y + 3.5);
+          }
 
-        // X-Axis Time Grid (Every 5 ms)
-        ctx.font = "10px monospace";
-        ctx.textAlign = "center";
-        for (let ms = 0; ms <= periodMs; ms += 5) {
-          const x = padLeft + (ms / periodMs) * chartW;
+          // Axis Titles
+          ctx.setLineDash([]);
+          ctx.fillStyle = dark ? "#cbd5e1" : "#5c5243";
+          ctx.font = "bold 10px monospace";
+          ctx.textAlign = "center";
+          ctx.fillText("Acoustic Frequency Bandwidth (0 – 4,000 Hz)", padLeft + chartW / 2, padTop + chartH + 34);
+
+          ctx.save();
+          ctx.translate(16, padTop + chartH / 2);
+          ctx.rotate(-Math.PI / 2);
+          ctx.fillStyle = dark ? "#cbd5e1" : "#5c5243";
+          ctx.font = "bold 10px monospace";
+          ctx.textAlign = "center";
+          ctx.fillText("Magnitude (dBFS)", 0, 0);
+          ctx.restore();
+
+          // Calculate Formants
+          const currentLevel = smoothedLevelRef.current;
+          const currentF0 = baseF0;
+          const tHarm = (playing ? now : lastFreezeTimeRef.current);
+          const f1Target = Math.round(520 + (currentLevel / 100) * 200 + (playing ? Math.sin(tHarm * 0.004) * 40 : 0));
+          const f2Target = Math.round(1850 + (playing ? Math.cos(tHarm * 0.003) * 120 : 0));
+          const f3Target = 2650;
+          const f4Target = 3450;
+
           ctx.beginPath();
-          ctx.setLineDash([2, 5]);
-          ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
-          ctx.moveTo(x, padTop);
-          ctx.lineTo(x, padTop + chartH);
+          for (let px = 0; px <= chartW; px += 2) {
+            const hz = (px / chartW) * maxFreq;
+            const poleF0 = Math.exp(-Math.pow((hz - currentF0) / 90, 2)) * 0.85;
+            const poleF1 = Math.exp(-Math.pow((hz - f1Target) / 180, 2)) * 1.0;
+            const poleF2 = Math.exp(-Math.pow((hz - f2Target) / 260, 2)) * 0.72;
+            const poleF3 = Math.exp(-Math.pow((hz - f3Target) / 320, 2)) * 0.55;
+            const poleF4 = Math.exp(-Math.pow((hz - f4Target) / 400, 2)) * 0.4;
+            const rolloff = Math.pow(1 - hz / maxFreq, 0.6);
+
+            const sumTransfer = playing
+              ? (poleF0 + poleF1 + poleF2 + poleF3 + poleF4) * Math.max(0.2, currentLevel / 100) * rolloff
+              : 0;
+            const calcDb = playing ? -54 + sumTransfer * 50 : minDb;
+            const y = getY(calcDb);
+
+            if (px === 0) ctx.moveTo(padLeft + px, y);
+            else ctx.lineTo(padLeft + px, y);
+          }
+
+          const formantGrad = safeLinearGradient(ctx, padLeft, 0, padLeft + chartW, 0);
+          if (formantGrad) {
+            if (dark) {
+              formantGrad.addColorStop(0, "#06b6d4");
+              formantGrad.addColorStop(0.35, "#f59e0b");
+              formantGrad.addColorStop(0.7, "#fbbf24");
+              formantGrad.addColorStop(1, "#818cf8");
+            } else {
+              formantGrad.addColorStop(0, "#0a7eb8");
+              formantGrad.addColorStop(0.35, "#c68410");
+              formantGrad.addColorStop(0.7, "#d97706");
+              formantGrad.addColorStop(1, "#4f46e5");
+            }
+            ctx.strokeStyle = formantGrad;
+          } else {
+            ctx.strokeStyle = dark ? "#f59e0b" : "#c68410";
+          }
+          ctx.lineWidth = 2.4;
+          ctx.shadowColor = dark ? "#f59e0b" : "#c68410";
+          ctx.shadowBlur = playing ? (dark ? 10 : 4) : 0;
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+
+          // Formant Peak Pins (Only active during live speech playback)
+          if (playing) {
+            const formants = [
+              { name: "F₁", hz: f1Target, color: dark ? "#06b6d4" : "#0a7eb8" },
+              { name: "F₂", hz: f2Target, color: dark ? "#f59e0b" : "#c68410" },
+              { name: "F₃", hz: f3Target, color: dark ? "#fbbf24" : "#d97706" },
+              { name: "F₄", hz: f4Target, color: dark ? "#818cf8" : "#4f46e5" },
+            ];
+
+            formants.forEach((f) => {
+              const x = getX(f.hz);
+              ctx.beginPath();
+              ctx.setLineDash([3, 3]);
+              ctx.strokeStyle = f.color;
+              ctx.moveTo(x, padTop + 16);
+              ctx.lineTo(x, padTop + chartH);
+              ctx.stroke();
+              ctx.setLineDash([]);
+
+              ctx.fillStyle = f.color;
+              ctx.beginPath();
+              ctx.arc(x, padTop + 12, 3.5, 0, Math.PI * 2);
+              ctx.fill();
+
+              ctx.font = "bold 9px monospace";
+              ctx.textAlign = "center";
+              ctx.fillText(`${f.name} ${f.hz}Hz`, x, padTop + 6);
+            });
+          } else {
+            ctx.fillStyle = dark ? "#94a3b8" : "#64748b";
+            ctx.font = "bold 10px monospace";
+            ctx.textAlign = "center";
+            ctx.fillText("-60 dBFS • Silent Standby Floor (No Active Resonant Poles)", padLeft + chartW / 2, padTop + chartH / 2);
+          }
+        }
+
+        // ─── MODE 3: TIME-FREQUENCY SPECTROGRAM (WATERFALL HEATMAP) ───
+        else if (mode === "spectrogram") {
+          if (playing) {
+            if (waterfallHistoryRef.current.length > 36) {
+              waterfallHistoryRef.current.shift();
+            }
+            waterfallHistoryRef.current.push([...smoothedBandsRef.current]);
+          }
+
+          const history = waterfallHistoryRef.current;
+          const timeCols = Math.max(1, history.length);
+          const freqBands = 16;
+          const colWidth = chartW / Math.max(1, timeCols);
+          const rowHeight = chartH / freqBands;
+
+          history.forEach((bands, colIdx) => {
+            const x = padLeft + colIdx * colWidth;
+            bands.forEach((bVal, bIdx) => {
+              const y = padTop + chartH - (bIdx + 1) * rowHeight;
+              const energyNorm = Math.min(1, Math.max(0, bVal / 100));
+
+              let r = 7, g = 11, b = 20;
+              if (dark) {
+                if (playing) {
+                  if (energyNorm < 0.4) {
+                    const t = energyNorm / 0.4;
+                    r = Math.round(7 * t);
+                    g = Math.round(182 * t);
+                    b = Math.round(212 * t);
+                  } else if (energyNorm < 0.8) {
+                    const t = (energyNorm - 0.4) / 0.4;
+                    r = Math.round(7 + (245 - 7) * t);
+                    g = Math.round(182 + (158 - 182) * t);
+                    b = Math.round(212 + (11 - 212) * t);
+                  } else {
+                    const t = (energyNorm - 0.8) / 0.2;
+                    r = Math.round(245 + 10 * t);
+                    g = Math.round(158 + 97 * t);
+                    b = Math.round(11 + 244 * t);
+                  }
+                } else {
+                  r = 14;
+                  g = 22;
+                  b = 36;
+                }
+              } else {
+                if (playing) {
+                  if (energyNorm < 0.4) {
+                    const t = energyNorm / 0.4;
+                    r = Math.round(248 - 60 * t);
+                    g = Math.round(246 - 40 * t);
+                    b = Math.round(240 - 20 * t);
+                  } else if (energyNorm < 0.8) {
+                    const t = (energyNorm - 0.4) / 0.4;
+                    r = Math.round(188 + (198 - 188) * t);
+                    g = Math.round(206 + (132 - 206) * t);
+                    b = Math.round(220 + (16 - 220) * t);
+                  } else {
+                    const t = (energyNorm - 0.8) / 0.2;
+                    r = Math.round(198 + 19 * t);
+                    g = Math.round(132 - 49 * t);
+                    b = Math.round(16 + 12 * t);
+                  }
+                } else {
+                  r = 248;
+                  g = 246;
+                  b = 240;
+                }
+              }
+
+              ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+              ctx.fillRect(x, y, colWidth + 0.5, rowHeight + 0.5);
+            });
+          });
+
+          ctx.font = "bold 9px monospace";
+          ctx.textAlign = "center";
+          ctx.fillStyle = dark ? "rgba(241, 245, 249, 0.85)" : "#2e261d";
+          ctx.fillText("-4.0s", padLeft, padTop + chartH + 16);
+          ctx.fillText("-2.0s", padLeft + chartW / 2, padTop + chartH + 16);
+          ctx.fillText(playing ? "0.0s Live" : "0.0s Hold", padLeft + chartW, padTop + chartH + 16);
+
+          ctx.fillStyle = dark ? "#cbd5e1" : "#5c5243";
+          ctx.font = "bold 10px monospace";
+          ctx.fillText("Time (seconds) — Spectrogram Density", padLeft + chartW / 2, padTop + chartH + 34);
+
+          ctx.textAlign = "right";
+          ctx.fillStyle = dark ? "rgba(241, 245, 249, 0.85)" : "#2e261d";
+          ctx.fillText("4,000 Hz", padLeft - 8, padTop + 10);
+          ctx.fillText("2,000 Hz", padLeft - 8, padTop + chartH / 2);
+          ctx.fillText("100 Hz", padLeft - 8, padTop + chartH - 4);
+
+          ctx.save();
+          ctx.translate(16, padTop + chartH / 2);
+          ctx.rotate(-Math.PI / 2);
+          ctx.fillStyle = dark ? "#cbd5e1" : "#5c5243";
+          ctx.font = "bold 10px monospace";
+          ctx.textAlign = "center";
+          ctx.fillText("Frequency (Hz)", 0, 0);
+          ctx.restore();
+        }
+
+        // ─── MODE 4: GLOTTAL PULSE OSCILLOSCOPE (TIME MS ON X, PRESSURE ON Y) ───
+        else if (mode === "glottal") {
+          const periodMs = 25;
+          const midY = padTop + chartH / 2;
+          const currentLevel = smoothedLevelRef.current;
+          const currentF0 = baseF0;
+
+          ctx.font = "bold 9px monospace";
+          ctx.textAlign = "center";
+          for (let ms = 0; ms <= periodMs; ms += 5) {
+            const x = padLeft + (ms / periodMs) * chartW;
+            ctx.beginPath();
+            ctx.setLineDash([2, 5]);
+            ctx.strokeStyle = dark ? "rgba(255, 255, 255, 0.12)" : "rgba(68, 45, 25, 0.12)";
+            ctx.moveTo(x, padTop);
+            ctx.lineTo(x, padTop + chartH);
+            ctx.stroke();
+
+            ctx.fillStyle = dark ? "rgba(241, 245, 249, 0.85)" : "#2e261d";
+            ctx.fillText(`${ms}ms`, x, padTop + chartH + 16);
+          }
+
+          ctx.beginPath();
+          ctx.setLineDash([3, 4]);
+          ctx.strokeStyle = dark ? "rgba(255, 255, 255, 0.18)" : "rgba(68, 45, 25, 0.18)";
+          ctx.moveTo(padLeft, midY);
+          ctx.lineTo(padLeft + chartW, midY);
           ctx.stroke();
 
-          ctx.fillStyle = "rgba(255, 255, 255, 0.55)";
-          ctx.fillText(`${ms} ms`, x, padTop + chartH + 18);
+          ctx.fillStyle = dark ? "#cbd5e1" : "#5c5243";
+          ctx.font = "bold 10px monospace";
+          ctx.textAlign = "center";
+          ctx.fillText("Time (milliseconds) — Vocal Fold Glottal Cycle (T₀)", padLeft + chartW / 2, padTop + chartH + 34);
+
+          ctx.save();
+          ctx.translate(16, padTop + chartH / 2);
+          ctx.rotate(-Math.PI / 2);
+          ctx.fillStyle = dark ? "#cbd5e1" : "#5c5243";
+          ctx.font = "bold 10px monospace";
+          ctx.textAlign = "center";
+          ctx.fillText("Pressure (µPa)", 0, 0);
+          ctx.restore();
+
+          ctx.beginPath();
+          ctx.setLineDash([]);
+          const amp = playing ? (currentLevel / 100) * (chartH * 0.4) : 0;
+
+          for (let px = 0; px <= chartW; px += 2) {
+            const ms = (px / chartW) * periodMs;
+            const tSec = ms / 1000;
+            const phase = tSec * currentF0 * 2 * Math.PI - phaseRef.current;
+            const glottalShape =
+              Math.sin(phase) +
+              0.35 * Math.sin(2 * phase) +
+              0.15 * Math.sin(3 * phase + 0.4);
+
+            const y = midY - glottalShape * amp;
+            if (px === 0) ctx.moveTo(padLeft + px, y);
+            else ctx.lineTo(padLeft + px, y);
+          }
+
+          ctx.strokeStyle = playing
+            ? (dark ? "#f59e0b" : "#c68410")
+            : (dark ? "#64748b" : "#94a3b8");
+          ctx.lineWidth = 2.4;
+          ctx.shadowColor = dark ? "#f59e0b" : "#c68410";
+          ctx.shadowBlur = playing ? (dark ? 10 : 4) : 0;
+          ctx.stroke();
+          ctx.shadowBlur = 0;
         }
-
-        // Y-Axis Neutral Guide
-        ctx.beginPath();
-        ctx.setLineDash([3, 4]);
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
-        ctx.moveTo(padLeft, midY);
-        ctx.lineTo(padLeft + chartW, midY);
-        ctx.stroke();
-
-        ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
-        ctx.font = "bold 11px monospace";
-        ctx.textAlign = "center";
-        ctx.fillText("Time (milliseconds) — Glottal Acoustic Waveform Period (T₀)", padLeft + chartW / 2, padTop + chartH + 36);
-
-        ctx.save();
-        ctx.translate(18, padTop + chartH / 2);
-        ctx.rotate(-Math.PI / 2);
-        ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
-        ctx.font = "bold 11px monospace";
-        ctx.textAlign = "center";
-        ctx.fillText("Acoustic Pressure (µPa)", 0, 0);
-        ctx.restore();
-
-        // Draw Bi-Phase Liljencrants-Fant Vocal Cord Glottal Wave
-        ctx.beginPath();
-        ctx.setLineDash([]);
-        const amp = isPlaying ? (currentLevel / 100) * (chartH * 0.42) : 6;
-
-        for (let px = 0; px <= chartW; px += 2) {
-          const ms = (px / chartW) * periodMs;
-          const tSec = ms / 1000;
-          const phase = tSec * currentF0 * 2 * Math.PI - phaseRef.current;
-          const glottalShape =
-            Math.sin(phase) +
-            0.35 * Math.sin(2 * phase) +
-            0.15 * Math.sin(3 * phase + 0.4);
-
-          const y = midY - glottalShape * amp;
-          if (px === 0) ctx.moveTo(padLeft + px, y);
-          else ctx.lineTo(padLeft + px, y);
-        }
-
-        ctx.strokeStyle = isPlaying ? "#f59e0b" : "rgba(255, 255, 255, 0.25)";
-        ctx.lineWidth = 2.4;
-        ctx.shadowColor = "#f59e0b";
-        ctx.shadowBlur = isPlaying ? 8 : 0;
-        ctx.stroke();
-        ctx.shadowBlur = 0;
+      } catch (err) {
+        console.error("RealtimeVoiceGraph render error:", err);
       }
 
       expandedAnimRef.current = requestAnimationFrame(renderExpanded);
@@ -850,17 +1105,18 @@ export function RealtimeVoiceGraph({
       resizeObserver.disconnect();
       if (expandedAnimRef.current) cancelAnimationFrame(expandedAnimRef.current);
     };
-  }, [isExpanded, expandedMode, isPlaying, basePitchHz, pitchLimits, selectedPersona]);
+  }, [isExpanded]);
 
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 3. RENDER JSX: MINI BUTTON + WHOLLY THEME-ADAPTIVE CENTERED EXPANDED MODAL
+  // ─────────────────────────────────────────────────────────────────────────────
   return (
     <>
-      {/* ────────────────────────────────────────────────────────────────────────── */}
-      {/* 1. NORMAL VIEW: MINIMAL, STABLE VISUALIZER WITH NO RAPIDLY JITTERING NUMBERS */}
-      {/* ────────────────────────────────────────────────────────────────────────── */}
+      {/* NORMAL VIEW: COMPACT, STABLE VISUALIZER IN CONSOLE DECK */}
       <div
         onClick={() => setIsExpanded(true)}
-        className="relative flex items-center gap-2.5 px-3 py-1 rounded-2xl bg-bg-surface/90 hover:bg-bg-hover/80 border border-hairline hover:border-amber/40 shrink-0 shadow-sm transition-all cursor-pointer select-none group"
-        title="Voice Acoustic Analyzer • Click to Expand Scope (Time vs Hz, Formants & Calibrated Pitch Limits)"
+        className="relative flex items-center gap-2 px-2.5 py-1 rounded-2xl bg-bg-surface/90 hover:bg-bg-hover/80 border border-border hover:border-amber/50 shrink-0 shadow-sm transition-all cursor-pointer select-none group"
+        title="Voice Acoustic Frequency Analyzer • Click to Open Scope"
       >
         {/* Real-Time Live Waveform Canvas */}
         <div className="relative">
@@ -872,8 +1128,8 @@ export function RealtimeVoiceGraph({
         </div>
 
         {/* Stable Non-Fluctuating Scope Expand Trigger */}
-        <div className="flex items-center gap-1.5 pl-2 border-l border-hairline/60">
-          <div className="flex items-center gap-1.5 px-2 py-1 rounded-xl bg-bg-surface/80 border border-hairline/70 group-hover:border-amber/40 transition">
+        <div className="flex items-center gap-1.5 pl-1.5 border-l border-border/80">
+          <div className="flex items-center gap-1.5 px-2 py-1 rounded-xl bg-bg-surface/90 border border-border group-hover:border-amber/50 transition">
             <Activity className={`w-3 h-3 ${isPlaying ? "text-amber animate-pulse" : "text-ink-dim"}`} />
             <span className="text-[10px] font-mono font-bold tracking-wider uppercase text-ink-secondary group-hover:text-amber transition">
               Scope
@@ -883,198 +1139,156 @@ export function RealtimeVoiceGraph({
         </div>
       </div>
 
-      {/* ────────────────────────────────────────────────────────────────────────── */}
-      {/* 2. EXPANDED VIEW: MULTI-TYPE ACOUSTIC SCOPE WITH TIME & HZ AXES AND LIMITS */}
-      {/* ────────────────────────────────────────────────────────────────────────── */}
-      {isExpanded && (
+      {/* EXPANDED VIEW: RENDERED VIA PORTAL DIRECTLY TO DOCUMENT.BODY TO GUARANTEE PERFECT CENTERING ON ANY SCREEN */}
+      {isExpanded && mounted && createPortal(
         <div
-          className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-md flex items-center justify-center p-3 md:p-6 overflow-y-auto animate-fade-in"
+          className="fixed inset-0 z-[99999] bg-black/60 dark:bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 md:p-8 animate-fade-in pointer-events-auto"
           onClick={() => setIsExpanded(false)}
         >
+          {/* THEME-ADAPTING HIGH-CONTRAST MODAL INSTRUMENT */}
           <div
-            className="w-full max-w-4xl bg-bg-elevated border border-hairline/80 rounded-3xl p-5 md:p-6 shadow-2xl flex flex-col gap-4 text-ink-primary select-none my-auto max-h-[94vh] overflow-y-auto"
+            className="relative w-full max-w-4xl max-h-[92vh] sm:max-h-[88vh] bg-bg-panel border border-border-strong rounded-3xl shadow-panel flex flex-col overflow-hidden text-ink-primary select-none my-auto mx-auto transition-colors duration-200"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Modal Header */}
-            <div className="flex items-start justify-between gap-4 border-b border-hairline/60 pb-3.5">
-              <div>
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 rounded-xl bg-amber-subtle text-amber">
+            {/* Modal Header: High-Tech, Simplistic & Intelligent, Theme-Matched */}
+            <div className="p-4 sm:p-5 border-b border-border flex flex-col gap-3 bg-bg-surface/70">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-xl bg-amber-subtle text-amber">
                     <Activity className="w-4 h-4" />
                   </div>
-                  <h3 className="text-base md:text-lg font-bold text-ink-primary tracking-tight">
-                    Voice Acoustic Frequency Analyzer & Telemetry Scope
-                  </h3>
-                  <span
-                    className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
-                      isPlaying
-                        ? "bg-amber/20 text-amber border border-amber/40 animate-pulse"
-                        : "bg-bg-surface text-ink-dim border border-hairline"
-                    }`}
-                  >
-                    {isPlaying ? "Live Signal" : "Standby"}
-                  </span>
+                  <div>
+                    <h3 className="text-sm sm:text-base font-bold text-ink-primary tracking-tight flex items-center gap-2">
+                      <span>Voice Acoustic Frequency Analyzer & Telemetry Scope</span>
+                      <span
+                        className={`text-[9px] font-mono px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
+                          isPlaying
+                            ? "bg-amber-subtle text-amber border border-amber/40 animate-pulse"
+                            : "bg-bg-panel text-ink-dim border border-border"
+                        }`}
+                      >
+                        {isPlaying ? "Live Signal" : "0.0 Hz • Idle (Standby)"}
+                      </span>
+                    </h3>
+                  </div>
                 </div>
-                <p className="text-xs text-ink-secondary mt-1">
-                  Speaker: <span className="font-semibold text-ink-primary">{selectedPersona.name}</span> ({selectedPersona.accent}) • {pitchLimits.vocalRegister} • Real-Time Vocal Fold Prosody
-                </p>
+
+                {/* Close Button */}
+                <button
+                  onClick={() => setIsExpanded(false)}
+                  className="p-1.5 sm:p-2 rounded-xl bg-bg-panel hover:bg-bg-hover text-ink-secondary hover:text-ink-primary border border-border transition shrink-0 shadow-sm"
+                  title="Close Scope (Esc)"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
 
-              {/* Close Button */}
-              <button
-                onClick={() => setIsExpanded(false)}
-                className="p-2 rounded-xl bg-bg-surface hover:bg-bg-hover text-ink-dim hover:text-ink-primary border border-hairline transition shrink-0"
-                title="Close Analyzer Scope (Esc)"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Calibrated Acoustic Frequency Limits (Stable Non-Jittering Reference Standards) */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              {/* Upper Pitch Limit Card */}
-              <div className="p-3 rounded-2xl bg-bg-surface/80 border border-amber/30 flex flex-col">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-amber font-bold flex items-center gap-1">
-                  <ShieldCheck className="w-3 h-3" /> Upper Limit (F₀,max)
-                </span>
-                <div className="mt-1 flex items-baseline gap-1">
-                  <span className="text-lg font-mono font-bold text-amber">
-                    {pitchLimits.upperLimitHz}
-                  </span>
-                  <span className="text-xs font-mono text-ink-dim">Hz</span>
+              {/* Dynamic Soft Acoustic Telemetry Badges (High Contrast, WCAG AAA compliant) */}
+              <div className="flex flex-wrap items-center gap-2 text-[10px] sm:text-[11px] font-mono">
+                <div className="px-2.5 py-1 rounded-xl bg-bg-panel border border-border flex items-center gap-1.5 text-ink-secondary shadow-sm">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber" />
+                  <span>Speaker:</span>
+                  <span className="font-bold text-ink-primary">{selectedPersona.name}</span>
+                  <span className="text-ink-dim">({selectedPersona.accent.split(" ")[0]})</span>
                 </div>
-                <span className="text-[10px] text-ink-dim mt-0.5">
-                  Phonetic excursion ceiling
-                </span>
-              </div>
 
-              {/* Nominal Modal Pitch Card */}
-              <div className="p-3 rounded-2xl bg-bg-surface/80 border border-cryo/30 flex flex-col">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-cryo font-bold flex items-center gap-1">
-                  <Activity className="w-3 h-3" /> Nominal Pitch (F₀)
-                </span>
-                <div className="mt-1 flex items-baseline gap-1">
-                  <span className="text-lg font-mono font-bold text-cryo">
-                    {pitchLimits.nominalF0}
-                  </span>
-                  <span className="text-xs font-mono text-ink-dim">Hz</span>
+                <div className="px-2.5 py-1 rounded-xl bg-cryo-subtle border border-cryo/30 flex items-center gap-1.5 text-cryo font-semibold shadow-sm">
+                  <Activity className="w-3 h-3" />
+                  <span>Modal F₀:</span>
+                  <span className="font-bold">~{pitchLimits.nominalF0} Hz</span>
                 </div>
-                <span className="text-[10px] text-ink-dim mt-0.5">
-                  Resting glottal tone
-                </span>
-              </div>
 
-              {/* Lower Pitch Limit Card */}
-              <div className="p-3 rounded-2xl bg-bg-surface/80 border border-indigo-500/30 flex flex-col">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-indigo-400 font-bold flex items-center gap-1">
-                  <ShieldCheck className="w-3 h-3" /> Lower Limit (F₀,min)
-                </span>
-                <div className="mt-1 flex items-baseline gap-1">
-                  <span className="text-lg font-mono font-bold text-indigo-400">
-                    {pitchLimits.lowerLimitHz}
-                  </span>
-                  <span className="text-xs font-mono text-ink-dim">Hz</span>
+                <div className="px-2.5 py-1 rounded-xl bg-amber-subtle border border-amber/30 flex items-center gap-1.5 text-amber font-semibold shadow-sm">
+                  <Sparkles className="w-3 h-3" />
+                  <span>Dynamic Range:</span>
+                  <span className="font-bold">{pitchLimits.lowerLimitHz} Hz ⟷ {pitchLimits.upperLimitHz} Hz</span>
                 </div>
-                <span className="text-[10px] text-ink-dim mt-0.5">
-                  Vocal fry boundary
-                </span>
-              </div>
 
-              {/* Acoustic Speech Bandwidth Card */}
-              <div className="p-3 rounded-2xl bg-bg-surface/80 border border-hairline flex flex-col">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-ink-secondary font-bold flex items-center gap-1">
-                  <Volume2 className="w-3 h-3" /> Speech Bandwidth
-                </span>
-                <div className="mt-1 flex items-baseline gap-1">
-                  <span className="text-sm font-mono font-bold text-ink-primary">
-                    {pitchLimits.bandwidthHz}
-                  </span>
+                <div className="hidden sm:flex px-2.5 py-1 rounded-xl bg-bg-panel border border-border items-center gap-1.5 text-ink-dim shadow-sm">
+                  <Volume2 className="w-3 h-3 text-ink-dim" />
+                  <span>ITU-T G.722 Wideband</span>
                 </div>
-                <span className="text-[10px] text-ink-dim mt-0.5">
-                  ITU-T G.722 standard
-                </span>
               </div>
             </div>
 
-            {/* Representation Mode Selector Tabs */}
-            <div className="flex flex-wrap items-center gap-2 border-b border-hairline/50 pb-3">
-              <span className="text-xs font-mono text-ink-dim uppercase tracking-wider mr-1">
-                Representation:
-              </span>
+            {/* Modal Body: Tabs & Adaptive High-Res Canvas */}
+            <div className="p-4 sm:p-5 flex flex-col gap-3.5 overflow-y-auto">
+              {/* Representation Mode Selector Tabs */}
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <button
+                  onClick={() => setExpandedMode("pitch")}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-mono text-xs font-bold transition shadow-sm ${
+                    expandedMode === "pitch"
+                      ? "bg-amber text-on-amber border border-amber"
+                      : "bg-bg-surface hover:bg-bg-hover text-ink-secondary hover:text-ink-primary border border-border"
+                  }`}
+                >
+                  <Activity className="w-3.5 h-3.5" />
+                  F₀ Pitch Contour (Time × Hz)
+                </button>
 
-              <button
-                onClick={() => setExpandedMode("pitch")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-mono text-xs font-bold transition ${
-                  expandedMode === "pitch"
-                    ? "bg-amber text-on-amber shadow-sm"
-                    : "bg-bg-surface hover:bg-bg-hover text-ink-secondary border border-hairline"
-                }`}
+                <button
+                  onClick={() => setExpandedMode("formants")}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-mono text-xs font-bold transition shadow-sm ${
+                    expandedMode === "formants"
+                      ? "bg-amber text-on-amber border border-amber"
+                      : "bg-bg-surface hover:bg-bg-hover text-ink-secondary hover:text-ink-primary border border-border"
+                  }`}
+                >
+                  <Layers className="w-3.5 h-3.5" />
+                  Formants Spectrum (Hz × Energy)
+                </button>
+
+                <button
+                  onClick={() => setExpandedMode("spectrogram")}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-mono text-xs font-bold transition shadow-sm ${
+                    expandedMode === "spectrogram"
+                      ? "bg-amber text-on-amber border border-amber"
+                      : "bg-bg-surface hover:bg-bg-hover text-ink-secondary hover:text-ink-primary border border-border"
+                  }`}
+                >
+                  <Radio className="w-3.5 h-3.5" />
+                  Time-Frequency Spectrogram
+                </button>
+
+                <button
+                  onClick={() => setExpandedMode("glottal")}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-mono text-xs font-bold transition shadow-sm ${
+                    expandedMode === "glottal"
+                      ? "bg-amber text-on-amber border border-amber"
+                      : "bg-bg-surface hover:bg-bg-hover text-ink-secondary hover:text-ink-primary border border-border"
+                  }`}
+                >
+                  <Waves className="w-3.5 h-3.5" />
+                  Glottal Waveform (Time ms)
+                </button>
+              </div>
+
+              {/* Responsive Precision Graticule Canvas (Wholly Theme-Adaptive in Light & Dark Mode) */}
+              <div
+                ref={expandedContainerRef}
+                className="w-full h-[220px] sm:h-[280px] md:h-[340px] rounded-2xl bg-[#fbf9f4] dark:bg-[#070b14] border border-border-strong overflow-hidden relative shadow-inner transition-colors duration-200"
               >
-                <Activity className="w-3.5 h-3.5" />
-                F₀ Pitch Contour (Time × Hz)
-              </button>
+                <canvas
+                  ref={expandedCanvasRef}
+                  className="w-full h-full block"
+                />
+              </div>
 
-              <button
-                onClick={() => setExpandedMode("formants")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-mono text-xs font-bold transition ${
-                  expandedMode === "formants"
-                    ? "bg-amber text-on-amber shadow-sm"
-                    : "bg-bg-surface hover:bg-bg-hover text-ink-secondary border border-hairline"
-                }`}
-              >
-                <Layers className="w-3.5 h-3.5" />
-                Formants Spectrum (Hz × Energy)
-              </button>
-
-              <button
-                onClick={() => setExpandedMode("spectrogram")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-mono text-xs font-bold transition ${
-                  expandedMode === "spectrogram"
-                    ? "bg-amber text-on-amber shadow-sm"
-                    : "bg-bg-surface hover:bg-bg-hover text-ink-secondary border border-hairline"
-                }`}
-              >
-                <Radio className="w-3.5 h-3.5" />
-                Time-Frequency Spectrogram
-              </button>
-
-              <button
-                onClick={() => setExpandedMode("glottal")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-mono text-xs font-bold transition ${
-                  expandedMode === "glottal"
-                    ? "bg-amber text-on-amber shadow-sm"
-                    : "bg-bg-surface hover:bg-bg-hover text-ink-secondary border border-hairline"
-                }`}
-              >
-                <Waves className="w-3.5 h-3.5" />
-                Glottal Waveform (Time ms)
-              </button>
-            </div>
-
-            {/* Main Interactive High-Resolution Canvas with Time on X and Speech Frequency on Y */}
-            <div
-              ref={expandedContainerRef}
-              className="w-full h-[350px] rounded-2xl bg-[#070d18] border border-hairline/80 overflow-hidden relative shadow-inner"
-            >
-              <canvas
-                ref={expandedCanvasRef}
-                style={{ width: "100%", height: "350px" }}
-                className="block"
-              />
-            </div>
-
-            {/* Scientific Explanatory Legend & Cadence Laws */}
-            <div className="p-3 rounded-2xl bg-bg-surface/60 border border-hairline/60 flex items-start gap-2.5 text-[11px] text-ink-secondary leading-relaxed">
-              <Info className="w-4 h-4 text-amber shrink-0 mt-0.5" />
-              <div>
-                <span className="font-semibold text-ink-primary">
-                  Engineering Acoustic Grounding:
-                </span>{" "}
-                The graph frequency axes are anchored to physiological boundaries (Lower Limit: {pitchLimits.lowerLimitHz} Hz, Upper Limit: {pitchLimits.upperLimitHz} Hz) rather than unstable fluctuating numbers. Human speech intonation naturally oscillates around the speaker's nominal modal pitch ({pitchLimits.nominalF0} Hz) during affirmative assertions, paragraph transitions, and engineering nomenclature.
+              {/* Scientific Explanatory Legend & Dynamic Envelope Law */}
+              <div className="p-3 rounded-2xl bg-bg-surface/80 border border-border flex items-start gap-2.5 text-[10px] sm:text-[11px] text-ink-secondary leading-relaxed shadow-sm">
+                <Info className="w-4 h-4 text-amber shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-bold text-ink-primary">
+                    Dynamic Acoustic Envelope:
+                  </span>{" "}
+                  The upper and lower pitch boundaries float as continuous, soft human resonance curves rather than rigid anchored bars. Vocal fold prosody glides through this harmonic corridor with natural micro-intonation, centered around modal pitch (~{pitchLimits.nominalF0} Hz).
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

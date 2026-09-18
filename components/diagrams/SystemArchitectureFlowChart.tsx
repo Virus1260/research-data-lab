@@ -225,7 +225,6 @@ export function SystemArchitectureFlowChart() {
   const containerRef = useRef<HTMLDivElement>(null);
   const busRef = useRef<HTMLDivElement>(null);
   const pinRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const card1BottomPinRef = useRef<HTMLDivElement>(null);
   const radialHubRef = useRef<HTMLDivElement>(null);
   const radialPinRefs = useRef<(HTMLDivElement | null)[]>([]);
 
@@ -260,15 +259,6 @@ export function SystemArchitectureFlowChart() {
         }
       }
 
-      let card1BottomPt: { x: number; y: number } | null = null;
-      if (card1BottomPinRef.current) {
-        const c1Rect = card1BottomPinRef.current.getBoundingClientRect();
-        card1BottomPt = {
-          x: c1Rect.left + c1Rect.width / 2 - contRect.left,
-          y: c1Rect.top + c1Rect.height / 2 - contRect.top,
-        };
-      }
-
       if (pts.length === 6 && pts[0].x > 0) {
         setPinPoints(pts);
 
@@ -288,53 +278,55 @@ export function SystemArchitectureFlowChart() {
 
         // ================= MATHEMATICAL PROOF OF ZERO CROSSINGS =================
         // Destinations sorted by X coordinate:
-        // p0.x (Col 1, ~180) < gap1X (Gap 1, ~350) < p1.x (Col 2, ~510) < gap2X (Gap 2, ~670) < p2.x (Col 3, ~830)
+        // p0.x (Col 1) < gap1X (Gap 1) < p1.x (Col 2) < gap2X (Gap 2) < p2.x (Col 3)
         //
-        // By assigning bus departure ports in the EXACT SAME left-to-right order:
-        // port0X < port3X < port1X < port5X < port2X
-        // the X coordinates of all lines remain strictly non-intersecting across their entire vertical descent.
-        // Minimum clearance between any two paths is > 45px everywhere, expanding to > 150px!
+        // In Gap 1, we allocate two dedicated parallel conduit lanes with generous clearance:
+        // lane6X (for #06 Collector) on the left side of Gap 1
+        // lane7X (for #07 Discharge) on the right side of Gap 1
+        // This completely eliminates any line crossings or card overlaps!
+        const lane6X = gap1X - 22;
+        const lane7X = gap1X + 22;
 
-        const port0X = busX - Math.min(bWidth * 0.40, 185); // Port 0 (TCU #03 - Far Left)
-        const port3X = busX - Math.min(bWidth * 0.18, 85);  // Port 3 (Collector #06 - Mid Left)
-        const port1X = busX;                                 // Port 1 (Vessel #01 - Dead Center)
-        const port5X = busX + Math.min(bWidth * 0.18, 85);  // Port 5 (CIP/SIP #08 - Mid Right)
-        const port2X = busX + Math.min(bWidth * 0.40, 185); // Port 2 (Vacuum #05 - Far Right)
+        const port0X = busX - Math.min(bWidth * 0.42, 190); // Port 0 (TCU #03 - Far Left)
+        const port3X = busX - Math.min(bWidth * 0.24, 110); // Port 3 (Collector #06 - Mid Left)
+        const port4X = busX - Math.min(bWidth * 0.08, 38);  // Port 4 (Discharge #07 - Inner Left)
+        const port1X = busX + Math.min(bWidth * 0.08, 38);  // Port 1 (Vessel #01 - Inner Right / Center)
+        const port5X = busX + Math.min(bWidth * 0.24, 110); // Port 5 (CIP/SIP #08 - Mid Right)
+        const port2X = busX + Math.min(bWidth * 0.42, 190); // Port 2 (Vacuum #05 - Far Right)
 
         setBusPortPoints([
           { x: port0X, y: busY },
           { x: port1X, y: busY },
           { x: port2X, y: busY },
           { x: port3X, y: busY },
-          { x: port1X, y: busY }, // reference for #07
+          { x: port4X, y: busY },
           { x: port5X, y: busY },
         ]);
 
-        // 1. Path to Card #03: leaves Far Left port on bus, sweeps left-down into top pin of Card #03
-        // All X coordinates remain in [p0.x, port0X], strictly to the left of port3X and gap1X!
+        // Alley Y coordinates between Row 1 and Row 2 for smooth turning
+        const rowAlleyY1 = p0.y + (p3.y - p0.y) * 0.52;
+        const rowAlleyY2 = p0.y + (p3.y - p0.y) * 0.68;
+
+        // 1. Path to Card #03 (Row 1 Col 1): leaves Far Left port on bus, sweeps into top pin of Card #03
         const path0 = `M ${port0X},${busY} C ${port0X - 10},${busY + (p0.y - busY) * 0.45} ${p0.x + 10},${busY + (p0.y - busY) * 0.60} ${p0.x},${p0.y}`;
 
-        // 2. Path to Card #01: drops straight down from center of bus into top pin of Card #01
-        const path1 = `M ${port1X},${busY} L ${p1.x},${p1.y}`;
+        // 2. Path to Card #01 (Row 1 Col 2): drops directly from bus into top pin of Card #01
+        const path1 = `M ${port1X},${busY} C ${port1X},${busY + 20} ${p1.x},${p1.y - 20} ${p1.x},${p1.y}`;
 
-        // 3. Path to Card #05: leaves Far Right port on bus, sweeps right-down into top pin of Card #05
-        // All X coordinates remain in [port2X, p2.x], strictly to the right of port5X and gap2X!
+        // 3. Path to Card #05 (Row 1 Col 3): leaves Far Right port on bus, sweeps into top pin of Card #05
         const path2 = `M ${port2X},${busY} C ${port2X + 10},${busY + (p2.y - busY) * 0.45} ${p2.x - 10},${busY + (p2.y - busY) * 0.60} ${p2.x},${p2.y}`;
 
-        // 4. Path to Card #06 (Level 2): Leaves Mid Left port, curves into Gap 1, travels dead-center down Gap 1,
-        // then below Row 1 cards turns smoothly left into Card #06's top pin.
-        // Stays strictly in [p3.x, port3X] between Path 0 on its left and Card 01 on its right!
-        const path3 = `M ${port3X},${busY} C ${port3X - 5},${busY + 28} ${gap1X},${p0.y - 45} ${gap1X},${p0.y} L ${gap1X},${p3.y - 50} C ${gap1X},${p3.y - 18} ${p3.x + 20},${p3.y - 25} ${p3.x},${p3.y}`;
+        // 4. Path to Card #06 (Row 2 Col 1): Leaves Mid-Left port, enters Gap 1 at lane6X, travels down Gap 1,
+        // then in the alley between rows turns smoothly left into top pin of Card #06.
+        const path3 = `M ${port3X},${busY} C ${port3X - 5},${busY + 26} ${lane6X},${p0.y - 45} ${lane6X},${p0.y} L ${lane6X},${rowAlleyY1} C ${lane6X},${p3.y - 22} ${p3.x + 25},${p3.y - 25} ${p3.x},${p3.y}`;
 
-        // 5. Path to Card #07 (Level 2): Process product discharge line straight down from bottom of Lyophilisation Vessel (#01) into Bottom Discharge Valve (#07).
-        // 100% physically authentic to AFD equipment architecture; zero crossings, > 150px clear space to Gap 1 & Gap 2!
-        const startCard7Y = card1BottomPt ? card1BottomPt.y : p1.y + 240;
-        const path4 = `M ${p1.x},${startCard7Y} L ${p4.x},${p4.y}`;
+        // 5. Path to Card #07 (Row 2 Col 2): Leaves Inner-Left port, enters Gap 1 at lane7X, travels down Gap 1
+        // with 44px clearance from lane6X, passes Row 1 cards cleanly, then turns right into top pin of Card #07!
+        const path4 = `M ${port4X},${busY} C ${port4X},${busY + 28} ${lane7X},${p1.y - 45} ${lane7X},${p1.y} L ${lane7X},${rowAlleyY2} C ${lane7X},${p4.y - 20} ${p4.x - 25},${p4.y - 25} ${p4.x},${p4.y}`;
 
-        // 6. Path to Card #08 (Level 2): Leaves Mid Right port, curves into Gap 2, travels dead-center down Gap 2,
-        // then below Row 1 cards turns smoothly right into Card #08's top pin.
-        // Stays strictly in [port5X, p5.x] between Card 01 on its left and Path 2 on its right!
-        const path5 = `M ${port5X},${busY} C ${port5X + 5},${busY + 28} ${gap2X},${p2.y - 45} ${gap2X},${p2.y} L ${gap2X},${p5.y - 50} C ${gap2X},${p5.y - 18} ${p5.x - 20},${p5.y - 25} ${p5.x},${p5.y}`;
+        // 6. Path to Card #08 (Row 2 Col 3): Leaves Mid-Right port, enters Gap 2 at gap2X, travels down Gap 2,
+        // then in the alley turns smoothly right into top pin of Card #08.
+        const path5 = `M ${port5X},${busY} C ${port5X + 5},${busY + 28} ${gap2X},${p2.y - 45} ${gap2X},${p2.y} L ${gap2X},${rowAlleyY1} C ${gap2X},${p5.y - 22} ${p5.x - 25},${p5.y - 25} ${p5.x},${p5.y}`;
 
         setTreePaths([path0, path1, path2, path3, path4, path5]);
       }
@@ -500,7 +492,7 @@ export function SystemArchitectureFlowChart() {
           {/* Dedicated discrete Bus Departure Terminals anchored on the bottom edge of the Bus pill */}
           {busPortPoints.map((bPt, bIdx) => {
             const sub = PRIMARY_SUBSYSTEMS[bIdx];
-            if (!sub || !bPt || bIdx === 4) return null; // #07 connects directly from Card #01 bottom
+            if (!sub || !bPt) return null;
             const themeColors = isDark ? sub.dark : sub.light;
             return (
               <g key={`bus-terminal-port-${sub.id}`}>
@@ -737,7 +729,7 @@ export function SystemArchitectureFlowChart() {
             </div>
 
             {/* TIER 2: PRIMARY PROCESS SUBSYSTEMS GRID (ROW 1: SUBSYSTEMS 03, 01, 05) */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-20">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 lg:gap-14 relative z-20">
               {PRIMARY_SUBSYSTEMS.filter((s) => s.row === 1).map((sub, idx) => {
                 const themeColors = isDark ? sub.dark : sub.light;
                 const isHovered = hoveredSubsystem === sub.id;
@@ -769,20 +761,6 @@ export function SystemArchitectureFlowChart() {
                         style={{ backgroundColor: themeColors.colorHex }}
                       />
                     </div>
-
-                    {/* Bottom Terminal Pin on Subsystem #01 (Lyophilisation Vessel) for direct discharge connection to Subsystem #07 */}
-                    {sub.id === "vessel" && (
-                      <div
-                        ref={card1BottomPinRef}
-                        className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full border-2 bg-bg-surface flex items-center justify-center shadow-md z-30"
-                        style={{ borderColor: themeColors.colorHex }}
-                      >
-                        <div
-                          className="w-2 h-2 rounded-full"
-                          style={{ backgroundColor: themeColors.colorHex }}
-                        />
-                      </div>
-                    )}
 
                     <div>
                       {/* Line 1: Subsystem identifier and domain */}
@@ -843,10 +821,10 @@ export function SystemArchitectureFlowChart() {
             </div>
 
             {/* SPACIOUS GAP BETWEEN ROW 1 AND ROW 2 FOR LEVEL 2 CONDUIT ROUTING */}
-            <div className="h-6" />
+            <div className="h-16 sm:h-20 lg:h-24" />
 
             {/* TIER 2: PRIMARY PROCESS SUBSYSTEMS GRID (ROW 2: SUBSYSTEMS 06, 07, 08) */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-20">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 lg:gap-14 relative z-20">
               {PRIMARY_SUBSYSTEMS.filter((s) => s.row === 2).map((sub, idx) => {
                 const themeColors = isDark ? sub.dark : sub.light;
                 const isHovered = hoveredSubsystem === sub.id;

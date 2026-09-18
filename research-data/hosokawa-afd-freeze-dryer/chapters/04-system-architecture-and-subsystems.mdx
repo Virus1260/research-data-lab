@@ -10,36 +10,13 @@ simulators: ['CycleProfileScrubber']
 
 # 04 — System Architecture & Subsystem Breakdown
 
-See `diagrams/system_block_diagram.png` for an original block diagram of the full system described below.
+![AFD System Architecture Block Diagram](/diagrams/system_block_diagram.png)
 
 ## Top-level subsystem map
 
 This structure follows Hosokawa's own named subsystem list (from the AFD page and the general drying-systems page) combined with the mechanical detail from the two patents (file 03), organized the way you'd actually plan a build:
 
-```
-                       ┌─────────────────────────┐
-                       │   Control System (PLC/   │
-                       │   HMI, 21 CFR Part 11)   │
-                       └────────────┬─────────────┘
-                                    │ I/O
-        ┌────────────┬─────────────┼─────────────┬─────────────┐
-        │             │             │             │             │
-   ┌────▼───┐   ┌─────▼─────┐ ┌────▼────┐  ┌─────▼─────┐ ┌─────▼──────┐
-   │  TCU   │   │  Vessel/  │ │ Vacuum  │  │  Material  │ │ CIP/SIP    │
-   │ (heat/ │──▶│  Chamber  │▶│  Path   │─▶│ Collector  │▶│  Skid      │
-   │  cool) │   │ + Agitator│ │ (valve, │  │ + Vacuum   │ │            │
-   └────────┘   └─────┬─────┘ │ bypass) │  │   Pump     │ └────────────┘
-                       │       └─────────┘  └────────────┘
-                 ┌─────▼─────┐
-                 │  Bottom   │
-                 │ Discharge │
-                 │  Valve    │──▶ Product Collection Canister
-                 └───────────┘
-
-   Utility Management Skid: interfaces all of the above to
-   plant electricity, compressed air/nitrogen, process water,
-   steam (if SIP), chilled water/glycol, and drains.
-```
+<SystemArchitectureFlowChart />
 
 ## Subsystem list, with what each one does and where it's covered in this package
 
@@ -64,8 +41,8 @@ This structure follows Hosokawa's own named subsystem list (from the AFD page an
 | 17 | **Safety systems** | Vacuum/pressure relief, interlocks, ATEX-rated components in dust zones, e-stop circuits | File 09 |
 
 ## How the process cycle exercises each subsystem
-
-See `diagrams/freeze_drying_cycle_profile.png` for an original time/temperature/pressure chart of a representative cycle.
+ 
+![Representative Freeze Drying Cycle Profile](/diagrams/freeze_drying_cycle_profile.png)
 
 1. **Charge** — product loaded into vessel (top port, per patent drawings), lid closed and clamped/sealed.
 2. **Pre-cool / freeze** — TCU circulates cold fluid through jacket; agitator running slowly; vessel at or near atmospheric pressure initially, per NL2026893B1's description ("temperature within the freeze-drying chamber is lowered to a temperature close to and above the freezing temperature... by introducing a heat-exchanging medium into the double-jacketed vessel wall"), then vacuum is drawn to induce final freezing.

@@ -14,18 +14,11 @@ See `diagrams/isa88_batch_structure.png` for the diagram this file explains.
 
 ![ISA-88 Batch Structure & Phase State Machine](/diagrams/isa88_batch_structure.png)
 
-<BatchStateTransitionChart />
-
 ## 1. Why structure the recipe at all, instead of just writing PLC code
 
 The tempting approach is to write one long PLC program that does "step 1, then step 2, then step 3...". It works, right up until you need to change one step, add a second vessel, or explain to someone else what the machine actually does — at which point a flat, unstructured program becomes very hard to safely modify. **ISA-88 (also published as IEC 61512)**, the international batch-control standard, solves this by breaking any batch process into four nested levels that stay the same regardless of what you're actually manufacturing:
 
-```
-PROCEDURE  (the whole recipe: "Freeze-Dry Batch")
-   └── UNIT PROCEDURE  (a major stage: "Freeze", "Dry", "Discharge", "Clean/Sterilize")
-          └── OPERATION  (a meaningful chunk of work: "Primary Drying")
-                 └── PHASE  (the smallest reusable, testable unit of logic: "Ramp jacket temperature")
-```
+<Isa88HierarchyChart />
 
 **Phases are the important idea.** A phase is small enough to test in isolation, and — this is the payoff — genuinely reusable. "Vacuum-induced freeze" as a phase doesn't care whether it's phase 3 of today's recipe or phase 7 of a future recipe on a second vessel; it's the same tested block of logic either time. This is exactly the property that makes a control system maintainable as it grows, and it's why this structure, not a flat program, is what actually lives inside the BPCS (file 20).
 
@@ -48,12 +41,7 @@ This is the same nine-step cycle already walked through narratively in file 04 �
 
 Every phase, regardless of what it does physically, follows the same simple state pattern — this is the other half of what ISA-88 standardizes, and it's worth internalizing because it's the same pattern in every phase you'll ever write for this machine:
 
-```
-IDLE → (start command) → RUNNING → (complete condition met) → COMPLETE
-                             │
-                             ├── (hold command) → HELD → (resume) → RUNNING
-                             └── (abort/fault condition) → ABORTING → ABORTED
-```
+<BatchStateTransitionChart />
 
 Take "Hold vacuum setpoint" as a concrete example: it goes **RUNNING** when the primary-drying operation starts it; it stays RUNNING as long as `PIC-101` is successfully holding pressure near setpoint; it goes to **COMPLETE** when the recipe's time or convergence condition (§4 below) is satisfied; and if `PDT-102` trips high or the SIS fires (file 22), it goes to **ABORTING** and then **ABORTED**, handing control to whatever safe-state logic that fault requires. Every phase in the table above can be described this same way — once you've written the state pattern for one phase, you already understand the shape of all of them.
 
@@ -65,29 +53,7 @@ Most phase transitions are simple (a timer expires, an operator confirms somethi
 
 Section 3 showed the generic state pattern *every individual phase* follows. This section shows the top-level state machine for **the whole batch procedure** — the sequence an operator or a supervisory recipe manager actually watches move forward. This is a good artifact to keep in this exact form (Mermaid renders natively in GitHub, most modern documentation tools, and — per your Research Data site's own publishing rules — directly in a `.md` file or inside a `<pre class="mermaid">` block on a published page) rather than only as a picture:
 
-```mermaid
-stateDiagram-v2
-    [*] --> IDLE
-    IDLE --> PRE_STERILIZE: SIP requested
-    IDLE --> LEAK_TEST: SIP not required
-    PRE_STERILIZE --> LEAK_TEST: SIP cycle complete
-    LEAK_TEST --> PRODUCT_CHARGE: rate-of-rise pass
-    LEAK_TEST --> IDLE: leak test fail (abort)
-    PRODUCT_CHARGE --> PRE_COOL: lid closed & confirmed (ZS-101)
-    PRE_COOL --> VACUUM_INDUCED_FREEZING: jacket at freeze setpoint
-    VACUUM_INDUCED_FREEZING --> PRIMARY_DRYING: product fully frozen
-    PRIMARY_DRYING --> SECONDARY_DRYING: PIT-101A/101B convergence (file 06 §3b)
-    SECONDARY_DRYING --> FILTER_BLOWBACK_POSTBLEND: desorption hold time met
-    FILTER_BLOWBACK_POSTBLEND --> VACUUM_BREAK: post-blend complete
-    VACUUM_BREAK --> STERILE_DISCHARGE: vessel at atmospheric (PSH-101)
-    STERILE_DISCHARGE --> CIP_WASH: XV-105 confirmed closed, canister removed
-    CIP_WASH --> IDLE: CIP cycle complete
-
-    VACUUM_INDUCED_FREEZING --> ABORT: SIS trip (file 22)
-    PRIMARY_DRYING --> ABORT: SIS trip (file 22)
-    SECONDARY_DRYING --> ABORT: SIS trip (file 22)
-    ABORT --> IDLE: fault cleared & acknowledged
-```
+<FullBatchProcedureChart />
 
 A few things worth noticing in this diagram: **`VACUUM_BREAK` uses sterile gas (nitrogen or filtered sterile air), never plant compressed air directly** — this is what keeps the whole discharge aseptic, consistent with Hosokawa's own description of the AFD as a fully sterile, closed process (file 03). **`ABORT` is reachable from every drying-related state, but only the SIS decides when that transition fires** — the BPCS recipe logic itself never overrides a genuine safety trip; it only reacts to one after the fact (file 20 §3). And **`LEAK_TEST` sits before `PRODUCT_CHARGE`**, not after — verifying vacuum integrity on an empty, cleaned vessel before committing real product to a batch is the same discipline file 15's commissioning plan asks for, just now built into the routine production cycle itself rather than only being a one-time commissioning step.
 

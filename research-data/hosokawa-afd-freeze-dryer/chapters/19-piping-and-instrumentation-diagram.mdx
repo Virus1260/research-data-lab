@@ -20,12 +20,7 @@ See `diagrams/pid_afd_freeze_dryer.png` for the full drawing. A machine-readable
 
 Every bubble on a P&ID has a short code in it, like `PIT-101A` or `TIC-201`. This is standardized by **ANSI/ISA-5.1** ("Instrumentation Symbols and Identification"), and it always decodes the same way:
 
-```
-[First letter]  [more letters]  -  [loop number]  [suffix]
-     ↓                ↓                ↓             ↓
-  WHAT it measures  WHAT it does   which loop    A/B if there
-                                   it belongs to  are two of them
-```
+<IsaTagAnatomyChart />
 
 **First letter — what's being measured:**
 
