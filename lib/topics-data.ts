@@ -27,7 +27,7 @@ export const STATIC_CHAPTER_TOPICS: ChapterTopic[] = [
     "title": "Hosokawa AFD Pharma Freeze Dryer — Deep Technical Study & Workshop Build Package",
     "act": "Overview",
     "actId": "act-0",
-    "readTime": "4 min read",
+    "readTime": "6 min read",
     "headings": [
       {
         "level": 1,
@@ -43,6 +43,11 @@ export const STATIC_CHAPTER_TOPICS: ChapterTopic[] = [
         "level": 2,
         "text": "Critical framing — read this before anything else",
         "id": "critical-framing-read-this-before-anything-else"
+      },
+      {
+        "level": 2,
+        "text": "What's new in this extended edition (P&ID, controls, CAD prep)",
+        "id": "whats-new-in-this-extended-edition-pid-controls-cad-prep"
       },
       {
         "level": 2,
@@ -237,7 +242,7 @@ export const STATIC_CHAPTER_TOPICS: ChapterTopic[] = [
     "title": "Vessel, Chamber, Agitator & Materials",
     "act": "The Machine",
     "actId": "act-2",
-    "readTime": "7 min read",
+    "readTime": "9 min read",
     "headings": [
       {
         "level": 1,
@@ -258,6 +263,11 @@ export const STATIC_CHAPTER_TOPICS: ChapterTopic[] = [
         "level": 2,
         "text": "3. Agitator",
         "id": "3-agitator"
+      },
+      {
+        "level": 3,
+        "text": "Jacket construction — three real, buildable options",
+        "id": "jacket-construction-three-real-buildable-options"
       },
       {
         "level": 2,
@@ -777,7 +787,7 @@ export const STATIC_CHAPTER_TOPICS: ChapterTopic[] = [
     "title": "References & Source List",
     "act": "Make It Real",
     "actId": "act-4",
-    "readTime": "5 min read",
+    "readTime": "7 min read",
     "headings": [
       {
         "level": 1,
@@ -836,6 +846,11 @@ export const STATIC_CHAPTER_TOPICS: ChapterTopic[] = [
       },
       {
         "level": 2,
+        "text": "K. Added for the P&ID / controls / CAD extension (files 19–24)",
+        "id": "k-added-for-the-pid-controls-cad-extension-files-1924"
+      },
+      {
+        "level": 2,
         "text": "How this package used these sources",
         "id": "how-this-package-used-these-sources"
       },
@@ -849,240 +864,280 @@ export const STATIC_CHAPTER_TOPICS: ChapterTopic[] = [
   {
     "slug": "19-piping-and-instrumentation-diagram",
     "chapterNumber": "19",
-    "title": "Piping & Instrumentation Diagram (P&ID) and ISA 5.1 Tagging",
-    "act": "Automation & P&ID",
+    "title": "P&ID: How to Read It, and the Full Diagram for This Machine",
+    "act": "Automation, P&ID & CAD",
     "actId": "act-5",
-    "readTime": "7 min read",
+    "readTime": "6 min read",
     "headings": [
       {
         "level": 1,
-        "text": "19 — Piping & Instrumentation Diagram (P&ID) and ISA 5.1 Tagging",
-        "id": "19-piping-instrumentation-diagram-pid-and-isa-51-tagging"
+        "text": "19 — P&ID: How to Read It, and the Full Diagram for This Machine",
+        "id": "19-pid-how-to-read-it-and-the-full-diagram-for-this-machine"
       },
       {
         "level": 2,
-        "text": "1. The ISA 5.1 Tagging Alphabet",
-        "id": "1-the-isa-51-tagging-alphabet"
-      },
-      {
-        "level": 3,
-        "text": "First Letter — Physical Variable Being Measured",
-        "id": "first-letter-physical-variable-being-measured"
-      },
-      {
-        "level": 3,
-        "text": "Succeeding Letters — Instrument Function & Role",
-        "id": "succeeding-letters-instrument-function-role"
-      },
-      {
-        "level": 3,
-        "text": "Decoding Practical Examples:",
-        "id": "decoding-practical-examples"
+        "text": "1. The alphabet: ISA 5.1 instrument tags",
+        "id": "1-the-alphabet-isa-51-instrument-tags"
       },
       {
         "level": 2,
-        "text": "2. Bubble Geometry & Line Symbology",
-        "id": "2-bubble-geometry-line-symbology"
+        "text": "2. Line types",
+        "id": "2-line-types"
       },
       {
         "level": 2,
-        "text": "3. Walkthrough of Process Flow Subsystems",
-        "id": "3-walkthrough-of-process-flow-subsystems"
+        "text": "3. Walking the diagram, subsystem by subsystem",
+        "id": "3-walking-the-diagram-subsystem-by-subsystem"
       },
       {
-        "level": 3,
-        "text": "Subsystem A: Agitated Conical Vessel (`V-101`)",
-        "id": "subsystem-a-agitated-conical-vessel-v-101"
+        "level": 2,
+        "text": "4. Why some tags repeat the same letter twice on purpose",
+        "id": "4-why-some-tags-repeat-the-same-letter-twice-on-purpose"
       },
       {
-        "level": 3,
-        "text": "Subsystem B: Dual-Gauge Vacuum Measurement (`PIT-101A` vs `PIT-101B`)",
-        "id": "subsystem-b-dual-gauge-vacuum-measurement-pit-101a-vs-pit-101b"
+        "level": 2,
+        "text": "5. The structured data behind this diagram",
+        "id": "5-the-structured-data-behind-this-diagram"
       },
       {
-        "level": 3,
-        "text": "Subsystem C: Vapor Flow & Dust Separation (`V-102`)",
-        "id": "subsystem-c-vapor-flow-dust-separation-v-102"
-      },
-      {
-        "level": 3,
-        "text": "Subsystem D: Refrigerated Condenser Coil (`E-101`) & Vacuum Train (`PKG-401`)",
-        "id": "subsystem-d-refrigerated-condenser-coil-e-101-vacuum-train-pkg-401"
-      },
-      {
-        "level": 3,
-        "text": "Subsystem E: Temperature Control Unit (`TCU-201`) & Cascade Skid (`PKG-301`)",
-        "id": "subsystem-e-temperature-control-unit-tcu-201-cascade-skid-pkg-301"
+        "level": 2,
+        "text": "6. What's illustrative vs. what's fixed",
+        "id": "6-whats-illustrative-vs-whats-fixed"
       }
     ]
   },
   {
     "slug": "20-control-system-architecture",
     "chapterNumber": "20",
-    "title": "Control System Architecture & Safety Separation (BPCS vs. SIS)",
-    "act": "Automation & P&ID",
+    "title": "Control System Architecture",
+    "act": "Automation, P&ID & CAD",
     "actId": "act-5",
-    "readTime": "6 min read",
+    "readTime": "5 min read",
     "headings": [
       {
         "level": 1,
-        "text": "20 — Control System Architecture & Safety Separation (BPCS vs. SIS)",
-        "id": "20-control-system-architecture-safety-separation-bpcs-vs-sis"
+        "text": "20 — Control System Architecture",
+        "id": "20-control-system-architecture"
       },
       {
         "level": 2,
-        "text": "1. The Core Axiom: BPCS vs. SIS Isolation",
-        "id": "1-the-core-axiom-bpcs-vs-sis-isolation"
-      },
-      {
-        "level": 3,
-        "text": "Tier 1: Basic Process Control System (BPCS)",
-        "id": "tier-1-basic-process-control-system-bpcs"
-      },
-      {
-        "level": 3,
-        "text": "Tier 2: Safety Instrumented System (SIS)",
-        "id": "tier-2-safety-instrumented-system-sis"
+        "text": "1. The one idea that makes everything else make sense",
+        "id": "1-the-one-idea-that-makes-everything-else-make-sense"
       },
       {
         "level": 2,
-        "text": "2. Hardwired Emergency Stop Philosophy (`ESD-001`)",
-        "id": "2-hardwired-emergency-stop-philosophy-esd-001"
+        "text": "2. The four layers, bottom to top",
+        "id": "2-the-four-layers-bottom-to-top"
       },
       {
         "level": 2,
-        "text": "3. The Four-Tier Automation Hierarchy",
-        "id": "3-the-four-tier-automation-hierarchy"
-      },
-      {
-        "level": 3,
-        "text": "Layer 1: Field Devices",
-        "id": "layer-1-field-devices"
-      },
-      {
-        "level": 3,
-        "text": "Layer 2: I/O Interface",
-        "id": "layer-2-io-interface"
-      },
-      {
-        "level": 3,
-        "text": "Layer 3: Programmable Automation Controllers",
-        "id": "layer-3-programmable-automation-controllers"
-      },
-      {
-        "level": 3,
-        "text": "Layer 4: Supervisory SCADA & Data Historian",
-        "id": "layer-4-supervisory-scada-data-historian"
+        "text": "3. What talks to what (and, just as importantly, what doesn't)",
+        "id": "3-what-talks-to-what-and-just-as-importantly-what-doesnt"
       },
       {
         "level": 2,
-        "text": "4. Communication & Network Architecture",
-        "id": "4-communication-network-architecture"
+        "text": "4. Networks",
+        "id": "4-networks"
+      },
+      {
+        "level": 2,
+        "text": "5. Where the ISA-88 recipe logic (file 21) actually lives",
+        "id": "5-where-the-isa-88-recipe-logic-file-21-actually-lives"
       }
     ]
   },
   {
     "slug": "21-batch-sequence-and-operating-cycle",
     "chapterNumber": "21",
-    "title": "Batch Sequence & Operating Cycle (ISA-88 State Machine)",
-    "act": "Automation & P&ID",
+    "title": "Batch Sequence & Operating Cycle (ISA-88 Structure)",
+    "act": "Automation, P&ID & CAD",
     "actId": "act-5",
-    "readTime": "7 min read",
+    "readTime": "6 min read",
     "headings": [
       {
         "level": 1,
-        "text": "21 — Batch Sequence & Operating Cycle (ISA-88 State Machine)",
-        "id": "21-batch-sequence-operating-cycle-isa-88-state-machine"
+        "text": "21 — Batch Sequence & Operating Cycle (ISA-88 Structure)",
+        "id": "21-batch-sequence-operating-cycle-isa-88-structure"
       },
       {
         "level": 2,
-        "text": "1. The ISA-88 Hierarchical Model",
-        "id": "1-the-isa-88-hierarchical-model"
-      },
-      {
-        "level": 3,
-        "text": "Why Phases Are the Magic Building Block",
-        "id": "why-phases-are-the-magic-building-block"
+        "text": "1. Why structure the recipe at all, instead of just writing PLC code",
+        "id": "1-why-structure-the-recipe-at-all-instead-of-just-writing-plc-code"
       },
       {
         "level": 2,
-        "text": "2. The Universal Phase State Machine",
-        "id": "2-the-universal-phase-state-machine"
-      },
-      {
-        "level": 3,
-        "text": "Standard States & Behaviors",
-        "id": "standard-states-behaviors"
+        "text": "2. This machine's cycle, mapped onto that structure",
+        "id": "2-this-machines-cycle-mapped-onto-that-structure"
       },
       {
         "level": 2,
-        "text": "3. AFD Lyophilization Cycle Mapped to ISA-88",
-        "id": "3-afd-lyophilization-cycle-mapped-to-isa-88"
+        "text": "3. How a phase actually behaves (the part that removes the \"PLC code = magic\" feeling)",
+        "id": "3-how-a-phase-actually-behaves-the-part-that-removes-the-plc-code-magic-feeling"
       },
       {
         "level": 2,
-        "text": "4. Automated Phase Transition: Comparative Pressure Convergence",
-        "id": "4-automated-phase-transition-comparative-pressure-convergence"
+        "text": "4. A genuinely useful transition condition: ending Primary Drying automatically",
+        "id": "4-a-genuinely-useful-transition-condition-ending-primary-drying-automatically"
+      },
+      {
+        "level": 2,
+        "text": "5. The full batch as one state diagram",
+        "id": "5-the-full-batch-as-one-state-diagram"
+      },
+      {
+        "level": 2,
+        "text": "6. Recipe vs. equipment — the other half of ISA-88",
+        "id": "6-recipe-vs-equipment-the-other-half-of-isa-88"
       }
     ]
   },
   {
-    "slug": "22-practical-equipment-sizing-vacuum-and-cryogenics",
+    "slug": "22-interlocks-cause-effect-matrix-and-io-list",
     "chapterNumber": "22",
-    "title": "Practical Equipment Sizing: Vacuum, -60°C Cryogenics & Safety Interlocks",
-    "act": "Automation & P&ID",
+    "title": "Interlocks: Cause & Effect Matrix and I/O List",
+    "act": "Automation, P&ID & CAD",
+    "actId": "act-5",
+    "readTime": "11 min read",
+    "headings": [
+      {
+        "level": 1,
+        "text": "22 — Interlocks: Cause & Effect Matrix and I/O List",
+        "id": "22-interlocks-cause-effect-matrix-and-io-list"
+      },
+      {
+        "level": 2,
+        "text": "1. What a Cause & Effect (C&E) Matrix actually is, and why it's the right format",
+        "id": "1-what-a-cause-effect-ce-matrix-actually-is-and-why-its-the-right-format"
+      },
+      {
+        "level": 2,
+        "text": "2. Reading the columns in `cause_and_effect_matrix.csv`",
+        "id": "2-reading-the-columns-in-cause_and_effect_matrixcsv"
+      },
+      {
+        "level": 2,
+        "text": "3. Two interlocks worth understanding in detail (because the *reasoning*, not just the row, is the transferable skill)",
+        "id": "3-two-interlocks-worth-understanding-in-detail-because-the-reasoning-not-just-the-row-is-the-transferable-skill"
+      },
+      {
+        "level": 2,
+        "text": "4. Reading the I/O list",
+        "id": "4-reading-the-io-list"
+      },
+      {
+        "level": 2,
+        "text": "5. What this file deliberately does not do",
+        "id": "5-what-this-file-deliberately-does-not-do"
+      },
+      {
+        "level": 2,
+        "text": "IEC 62881 Cause & Effect Interlock Matrix",
+        "id": "iec-62881-cause-effect-interlock-matrix"
+      },
+      {
+        "level": 2,
+        "text": "Complete Control System I/O List (30 Tags)",
+        "id": "complete-control-system-io-list-30-tags"
+      }
+    ]
+  },
+  {
+    "slug": "23-engineering-resolution-freezing-methods-and-thermal-duty",
+    "chapterNumber": "23",
+    "title": "Engineering Resolution: How the Freezing Stage Actually Works",
+    "act": "Automation, P&ID & CAD",
     "actId": "act-5",
     "readTime": "9 min read",
     "headings": [
       {
         "level": 1,
-        "text": "22 — Practical Equipment Sizing: Vacuum, -60°C Cryogenics & Safety Interlocks",
-        "id": "22-practical-equipment-sizing-vacuum--60c-cryogenics-safety-interlocks"
+        "text": "23 — Engineering Resolution: How the Freezing Stage Actually Works",
+        "id": "23-engineering-resolution-how-the-freezing-stage-actually-works"
       },
       {
         "level": 2,
-        "text": "1. Vacuum System Selection: Reaching & Holding 0.04 mbar",
-        "id": "1-vacuum-system-selection-reaching-holding-004-mbar"
-      },
-      {
-        "level": 3,
-        "text": "Why Conventional Pumps Fail Here:",
-        "id": "why-conventional-pumps-fail-here"
-      },
-      {
-        "level": 3,
-        "text": "The Proven Industrial Solution: Dry Screw Pump + Roots Mechanical Booster",
-        "id": "the-proven-industrial-solution-dry-screw-pump-roots-mechanical-booster"
-      },
-      {
-        "level": 3,
-        "text": "Commercial Hardware Specifications:",
-        "id": "commercial-hardware-specifications"
+        "text": "1. Direct product-contact freezing: what the patent allows vs. what's actually wise",
+        "id": "1-direct-product-contact-freezing-what-the-patent-allows-vs-whats-actually-wise"
       },
       {
         "level": 2,
-        "text": "2. Cryogenic Thermal Engineering: How to Achieve -60°C",
-        "id": "2-cryogenic-thermal-engineering-how-to-achieve--60c"
-      },
-      {
-        "level": 3,
-        "text": "Option A: Two-Stage Mechanical Cascade Refrigeration Skid (`PKG-301`)",
-        "id": "option-a-two-stage-mechanical-cascade-refrigeration-skid-pkg-301"
-      },
-      {
-        "level": 3,
-        "text": "Option B: Liquid Nitrogen (LN2) Indirect Cryogenic Skid",
-        "id": "option-b-liquid-nitrogen-ln2-indirect-cryogenic-skid"
+        "text": "2. How the jacket actually gets cold, then hot again — the TCU/HTF architecture in depth",
+        "id": "2-how-the-jacket-actually-gets-cold-then-hot-again-the-tcuhtf-architecture-in-depth"
       },
       {
         "level": 2,
-        "text": "3. Cause-and-Effect (C&E) Safety Interlock Matrix",
-        "id": "3-cause-and-effect-ce-safety-interlock-matrix"
+        "text": "3. How agitation, jacket temperature, and vacuum together produce granular freezing (not a solid block)",
+        "id": "3-how-agitation-jacket-temperature-and-vacuum-together-produce-granular-freezing-not-a-solid-block"
       },
       {
         "level": 2,
-        "text": "4. Chronological Step-by-Step Cycle Execution",
-        "id": "4-chronological-step-by-step-cycle-execution"
+        "text": "4. Thermal duty for the freezing stage — extending file 11's method",
+        "id": "4-thermal-duty-for-the-freezing-stage-extending-file-11s-method"
+      },
+      {
+        "level": 2,
+        "text": "5. Agitator torque and shear — what actually happens as the batch freezes",
+        "id": "5-agitator-torque-and-shear-what-actually-happens-as-the-batch-freezes"
+      }
+    ]
+  },
+  {
+    "slug": "24-cad-solidworks-equipment-nozzle-schedule",
+    "chapterNumber": "24",
+    "title": "CAD/SolidWorks Preparation: Equipment, Nozzle & Valve Schedule",
+    "act": "Automation, P&ID & CAD",
+    "actId": "act-5",
+    "readTime": "12 min read",
+    "headings": [
+      {
+        "level": 1,
+        "text": "24 — CAD/SolidWorks Preparation: Equipment, Nozzle & Valve Schedule",
+        "id": "24-cadsolidworks-preparation-equipment-nozzle-valve-schedule"
+      },
+      {
+        "level": 2,
+        "text": "1. Why a separate schedule from the P&ID",
+        "id": "1-why-a-separate-schedule-from-the-pid"
+      },
+      {
+        "level": 2,
+        "text": "2. Reading the equipment schedule",
+        "id": "2-reading-the-equipment-schedule"
+      },
+      {
+        "level": 2,
+        "text": "3. Reading the nozzle schedule",
+        "id": "3-reading-the-nozzle-schedule"
+      },
+      {
+        "level": 2,
+        "text": "4. Reading the valve schedule",
+        "id": "4-reading-the-valve-schedule"
+      },
+      {
+        "level": 2,
+        "text": "5. What to do with this in SolidWorks, practically",
+        "id": "5-what-to-do-with-this-in-solidworks-practically"
+      },
+      {
+        "level": 2,
+        "text": "Design Basis",
+        "id": "design-basis"
+      },
+      {
+        "level": 2,
+        "text": "Major Equipment Schedule",
+        "id": "major-equipment-schedule"
+      },
+      {
+        "level": 2,
+        "text": "Vessel Nozzle Schedule (V-101)",
+        "id": "vessel-nozzle-schedule-v-101"
+      },
+      {
+        "level": 2,
+        "text": "Valve Schedule & Fail Positions",
+        "id": "valve-schedule-fail-positions"
       }
     ]
   }

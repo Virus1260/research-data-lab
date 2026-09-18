@@ -1,0 +1,102 @@
+---
+title: "CAD/SolidWorks Preparation: Equipment, Nozzle & Valve Schedule"
+chapterNumber: "24"
+slug: "24-cad-solidworks-equipment-nozzle-schedule"
+act: "Automation, P&ID & CAD"
+actId: "act-5"
+readTime: "12 min read"
+simulators: []
+---
+
+# 24 — CAD/SolidWorks Preparation: Equipment, Nozzle & Valve Schedule
+
+See `pid_controls_data/cad_equipment_nozzle_schedule.json` for the full structured schedule this file explains. This is written specifically for the moment you sit down in SolidWorks: it's the list of *what needs a nozzle, what standard that nozzle follows, and what rating the surrounding shell needs to be modeled to* — the information a P&ID alone doesn't give you, because a P&ID deliberately shows process connectivity, not physical geometry.
+
+## 1. Why a separate schedule from the P&ID
+
+The P&ID (file 19) tells you *that* the vessel has a vapor outlet to the material collector. It doesn't tell you *what size that nozzle is, what flange or clamp standard it uses, or what gasket material to specify*. That's exactly the gap this file and its JSON close — it's the traditional handoff document between a process engineer and a mechanical/CAD engineer on any real project, and there's no reason to skip it just because it's currently a one-person project.
+
+## 2. Reading the equipment schedule
+
+For each major tag, the schedule gives: a capacity/volume basis, **design pressure on both the process side and the jacket side separately** (these are genuinely different numbers — the process side lives mostly under vacuum with a modest positive-pressure allowance, while a half-pipe-coil jacket needs a materially higher rating to handle real circulation pressure, file 05's addendum), a design temperature range with margin above your actual operating range (this margin matters for material toughness/MDMT checks per file 05 §5, not just as a round-number buffer), and materials of construction split between product-contact and non-product-contact surfaces (file 05 §4, file 10). Package equipment (`PKG-301`, `PKG-401`, `TCU-201`, etc.) is deliberately left light on internal detail — you don't design a vendor's vacuum pump train, you model its purchased envelope and nozzle-connection drawing once you've selected a vendor.
+
+## 3. Reading the nozzle schedule
+
+Thirteen nozzles are listed against the vessel (`V-101`) — this is a realistic, complete count for this kind of machine, not a partial list. A few worth flagging:
+
+- **N2 (vapor outlet) deliberately doesn't get a fixed size** — it's sized by a real vacuum-conductance calculation (file 08 §6's note that vacuum lines want to be short and large-diameter), not by convention. Undersizing this one nozzle is one of the easier ways to quietly bottleneck your whole vacuum system's real-world pumping speed regardless of how well the pump itself is specified.
+- **N5 (agitator shaft penetration) has no standard DN size at all** — because it isn't a process nozzle in the usual sense; its geometry is dictated entirely by whichever magnetic-coupling or mechanical-seal assembly you purchase (file 05 §3 and its addendum). Get this vendor's mounting-flange drawing *before* finalizing the lid geometry in CAD, not after — it's one of the few components on this machine where the purchased part's geometry should drive your design rather than the other way around.
+- **N12 (bottom discharge) is deliberately shown with two possible connection philosophies**: a straightforward sanitary Tri-Clamp for a first prototype, or an aseptic split-valve docking connection (the kind of device that lets a canister or vial-filler connect and disconnect without ever exposing the powder to room air) if you're building toward the fully aseptic operation Hosokawa's own literature describes for the real AFD (file 18, source 21). Decide which philosophy you're building toward *before* modeling this nozzle in detail, since the two approaches have quite different envelope and clearance requirements underneath the vessel.
+- **Face-to-face dimensions are deliberately not invented for the Tri-Clamp/ISO-K fittings.** Sanitary clamp fittings don't really have a single "face-to-face" dimension the way a flanged pipe spool does — their geometry is fully defined by the ISO 2852/DIN 32676 (Tri-Clamp) or ISO 2861 series (ISO-K/ISO-KF vacuum flange) standards for whatever nominal size you choose. Pull the real numbers from those standards (or your fitting vendor's own catalog drawing, which will cite the same standard) when you model each nozzle — that's a five-minute catalog lookup once you've chosen sizes, and it will be more accurate than any number this package could give you generically.
+
+## 4. Reading the valve schedule
+
+The one column worth thinking about carefully, valve by valve, is **fail position** — what a valve does if it loses air supply or electrical signal, which is a genuine safety design decision, not a default setting:
+- Most valves here fail **closed (FC)** — losing power/air should not, by itself, create a new hazardous condition (e.g., `FCV-201` failing closed simply stops jacket flow, which is safe).
+- `PV-102` (the vessel-to-collector vacuum path) is flagged as needing real thought: failing open toward atmosphere would break vacuum uncontrolled mid-cycle, which is its own kind of process upset — so fail-closed or fail-in-last-position is generally preferable, but confirm this against your own safe-state analysis (file 09, file 22) rather than copying this schedule blindly.
+- `XV-104` (the vent/vacuum-break valve) is the one genuinely debatable case: some designs deliberately choose **fail-open** here specifically *so that* a total power/air loss automatically breaks vacuum and returns the vessel toward a safe, atmospheric, accessible state — this is a legitimate alternative safety philosophy to "everything fails closed," and which one is right depends on which failure mode you've judged more dangerous for your specific installation (an uncontrolled vacuum break vs. a vessel stuck under vacuum with no power). This is exactly the kind of decision a real HAZOP/LOPA exercise (file 09 §6, file 22 §2) is meant to resolve deliberately rather than by default.
+
+## 5. What to do with this in SolidWorks, practically
+
+A reasonable modeling sequence: block in the vessel shell and jacket geometry first (file 05, sized via file 11) with placeholder nozzle bosses at the thirteen locations above; source real vendor drawings for the purchased items that dictate their own interface geometry (the agitator seal/coupling, the discharge valve, the sight glass, the vacuum pump train's inlet flange) and drop those in as the true geometric constraints they are; then finalize nozzle sizes, orientations, and standard-compliant dimensions once those vendor interfaces are locked, rather than the other way around. This avoids the common and frustrating rework of having designed a beautiful vessel around a nozzle size or orientation that turns out not to match the seal or valve you actually end up buying.
+
+
+---
+
+
+## Design Basis
+
+| Parameter | Specification / Basis |
+|---|---|
+| **Batch Capacity** | 10-50 kg wet product (illustrative range - re-size per file 11 for your own target) |
+| **Base Vacuum** | < 0.01 mbar |
+| **Operating Drying Vacuum** | 0.04-0.15 mbar (within Hosokawa's own patent-disclosed 5-0.01 mbar range, file 03 SS2a) |
+| **Condenser Temperature** | -60 degC continuous ice loading, -75 degC ultimate base (illustrative - size per file 06 refrigeration method) |
+| **Jacket Temperature Range** | -60 degC (freezing) to +80 degC (secondary drying); allow design margin to ~+150 degC if SIP-equipped (file 07 SS2, file 23 SS2) |
+| **Heat Transfer Fluid Example** | Dow Syltherm XLT or equivalent wide-range silicone HTF (usable range approx -100 to +260 degC) - a real, named, verifiable example; not a confirmed Hosokawa specification |
+
+## Major Equipment Schedule
+
+| Tag | Description | Process Rating | Jacket Rating | Design Temp | Product Contact MOC | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| `V-101` | Lyophilisation Vessel (double-jacketed, downward-conical) | Full Vacuum (FV) to +1.5 barg | FV to +6 to +10 barg (half-pipe coil jacket, file 05 addendum) | -60 degC to +150 degC (includes SIP margin) | 316L stainless, Ra <= 0.4 um (SF4 electropolished, file 05 SS4 / file 10) | External-pressure design per ASME BPVC VIII-1 UG-28/UG-29 or PED/EN13445 (file 05 SS5) - contract to specialist fabricator, file 10 |
+| `M-101` | Agitator drive assembly (motor + VFD + seal/mag-drive housing) | N/A (seal/coupling rated to vessel design pressure) |  | ambient (bearings/motor kept outside cold zone, file 05 SS3) | 316L wetted shaft/agitator element | Purchased component (magnetic coupling, mechanical seal, or double-seal + N2 barrier per file 05 addendum) - not fabricated in-house, file 10 |
+| `V-102` | Material Collector / Dust Filter housing | FV to +1.5 barg (blowback pulse) |  | -60 degC to +100 degC | 316L, Ra <= 0.4 um | Housing fabricated in-house or by specialist shop; filter media purchased/consumable, file 10 |
+| `E-101` | Condenser (refrigerated coil, catches bulk water vapor) | FV to +0.5 barg |  | -85 degC to +30 degC | 316L | Purchased or specialist-fabricated heat exchanger |
+| `PKG-401` | Vacuum Pump Train (Roots/dry-screw combination) | per vendor rating |  | per vendor rating | vendor-specified (typically 316L wetted parts) | Purchased vendor package - CAD model uses vendor envelope/nozzle drawing, file 10 |
+| `TCU-201` | Temperature Control Unit skid | N/A (HTF loop, low pressure) |  | -100 degC to +260 degC (HTF-limited, e.g. Syltherm XLT range) | N/A (non-product-contact utility loop) | Purchased/assembled package, file 06 SS1, file 10 |
+| `PKG-301` | Cascade Refrigeration Skid | N/A (refrigerant circuit, per refrigerant code) |  | per refrigerant selection | N/A | Purchased vendor package; refrigerant work requires certified technician, file 09 SS2 |
+| `PKG-501` | CIP Skid | per CIP supply pressure (typically < 5 barg) |  | ambient to +85 degC (heated wash) | 316L wetted skid components | Purchased vendor package, file 07 SS1 |
+| `PKG-502` | Clean Steam Package (SIP, optional) | per clean steam supply (typically 2-4 barg saturated) |  | up to ~145 degC saturated steam | 316L wetted skid components | Optional; purchased vendor package, file 07 SS2 |
+
+## Vessel Nozzle Schedule (V-101)
+
+| Nozzle | Function | Size / Range | Connection Standard | Gasket MOC | Face-to-Face / Notes |
+| --- | --- | --- | --- | --- | --- |
+| **N1** | Product/CIP charge inlet | DN40-DN65 | Sanitary Tri-Clamp per ISO 2852 / DIN 32676 Series A | USP Class VI EPDM or PTFE-encapsulated silicone | Tri-Clamp is a ferrule/clamp joint, not a flanged spool - take ferrule OD and clamp geometry from ISO 2852/DIN 32676 tables for the chosen DN, not a fixed face-to-face figure |
+| **N2** | Vapor outlet to material collector (PV-102 line) | DN80-DN150 (size per vacuum conductance calc, file 08 SS6 - larger and shorter is better for vacuum lines) | ISO-K vacuum flange (larger vacuum lines) or Tri-Clamp for smaller pilot units | Vacuum-rated elastomer O-ring (ISO-K) or PTFE/EPDM (Tri-Clamp) | Pull exact ISO-K flange OD/bolt circle from ISO 2861 series dimension tables for the chosen DN - not invented here |
+| **N3** | Vent / vacuum-break inlet (XV-104, via F-101 sterile filter) | DN15-DN25 | Tri-Clamp per ISO 2852 | USP Class VI EPDM |  |
+| **N4** | Sight glass (LG-101) | DN40-DN65 (per vendor sight-glass assembly) | Vendor-specific vacuum/cryo-rated sight glass flange | Per vendor - PTFE or EPDM typical |  |
+| **N5** | Agitator shaft penetration (drive/seal housing mount) | Sized to selected seal/mag-drive vendor's mounting flange - not a standard sanitary DN | Vendor-specific per magnetic coupling or double mechanical seal selection, file 05 addendum | Per vendor |  |
+| **N6** | Blow nozzle gas inlet (end-of-cycle cleanup) | DN10-DN15 | Tri-Clamp or NPT/BSP threaded instrument connection | USP Class VI EPDM |  |
+| **N7** | Jacket HTF supply | DN25-DN40 (size per file 11 flow/duty calc) | Tri-Clamp (low pressure) or welded/threaded per half-pipe jacket design pressure, file 05 addendum | EPDM (wide temperature range) |  |
+| **N8** | Jacket HTF return | DN25-DN40 | Same as N7 | EPDM |  |
+| **N9** | SIP clean steam inlet (optional) | DN15-DN25 | Tri-Clamp, steam-rated gasket | EPDM (steam-grade, not standard EPDM compound) |  |
+| **N10** | Pressure instrument ports (PIT-101A, PIT-101B) | DN25 x2 | Tri-Clamp instrument tee or dedicated diaphragm-seal boss | USP Class VI EPDM |  |
+| **N11** | Product temperature probe port | DN15-DN25 | Tri-Clamp thermowell fitting | USP Class VI EPDM |  |
+| **N12** | Bottom discharge (to XV-105) | DN100-DN200 (large - sized for powder flow, not liquid flow assumptions) | Sanitary Tri-Clamp for a first build; a split-valve aseptic transfer connection (e.g. an Alpha-Beta-style split butterfly valve) if docking directly to a canister/vial-filler as Hosokawa's own literature describes, file 18 source 21 | USP Class VI EPDM |  |
+| **N13** | Vacuum relief valve (VRV-101) mount | DN25-DN40 (per relief device vendor sizing - a real relief calc, not a nominal guess) | Vendor-specific relief valve connection | Per vendor |  |
+
+## Valve Schedule & Fail Positions
+
+| Valve Tag | Valve Type | Actuation | Fail Position | Connection |
+| --- | --- | --- | --- | --- |
+| `FCV-201` | Control valve, diaphragm or globe body | Pneumatic modulating, 4-20mA positioner | **Fail-Closed (FC) recommended - loses jacket flow safely on air/signal loss** | Tri-Clamp or flanged per line size |
+| `PV-102` | Control valve, 3-position (open/closed/throttle) | Pneumatic modulating with positioner, or electric motorized actuator | **Fail-Open (FO) to atmosphere side is NOT appropriate here (would break vacuum uncontrolled) - Fail-Closed or Fail-Last-Position recommended; confirm against your specific safe-state analysis** | Per N2 vacuum line connection standard |
+| `XV-103` | On/off valve (bypass) | Pneumatic spring-return | **Fail-Closed (FC)** | Per N2 line |
+| `XV-104` | On/off valve (vent/vacuum-break) | Pneumatic spring-return | **Fail-Closed (FC) as default; some designs prefer Fail-Open here as a passive vacuum-break on air/power loss - a deliberate safety design decision, not a default, see file 09** | Per N3 line |
+| `XV-105` | Ball-segment discharge valve | Pneumatic, spring-return or double-acting per vendor | **Fail-Closed (FC)** | Per N12 line - sanitary or split-valve aseptic docking |
+| `XV-106` | On/off valve (filter blowback gas) | Pneumatic solenoid, fast-acting | **Fail-Closed (FC)** | Small-bore Tri-Clamp or push-fit instrument fitting |
+| `PV-502` | Control valve (SIP steam) | Pneumatic modulating with positioner | **Fail-Closed (FC)** | Per N9 line, steam-rated trim |
+| `VRV-101` | Vacuum relief valve (passive, spring or weight-loaded) | Self-acting (no external power/signal) | **N/A - inherently fail-safe by design** | Per N13 |
+| `PSV-501` | Steam relief valve (passive, spring-loaded) | Self-acting (no external power/signal) | **N/A - inherently fail-safe by design** | Per SIP steam supply line |

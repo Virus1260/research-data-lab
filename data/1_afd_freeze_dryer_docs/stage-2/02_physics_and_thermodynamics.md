@@ -1,0 +1,94 @@
+# 02 — Physics & Thermodynamics of Freeze-Drying
+
+This is generic physics — it applies identically whether your freeze dryer is a static shelf design or Hosokawa's agitated AFD. It is the foundation everything mechanical in this package is sized against.
+
+## 1. The water phase diagram — why vacuum, not just cold
+
+See `diagrams/water_phase_diagram.png` (original diagram created for this package).
+
+Water can exist as solid, liquid, or vapor depending on temperature and pressure. Three curves divide the diagram:
+- The **melting curve** (solid–liquid boundary), nearly vertical at ~0 °C across the pressure range that matters here.
+- The **vaporization curve** (liquid–vapor boundary), running from the triple point up to the critical point.
+- The **sublimation curve** (solid–vapor boundary), running from very low temperature/pressure up to the triple point.
+
+The **triple point of water is 0.01 °C at 6.11 mbar (611 Pa, 4.58 Torr)**. This single number is *the* reason freeze dryers need a vacuum system at all: at any pressure below 6.11 mbar, water simply cannot exist as a liquid — it is either solid ice or vapor. So if you keep your frozen product below its freezing point and pull the surrounding pressure below the vapor pressure of that ice at that temperature, the ice sublimes directly to vapor. There is no liquid phase to pass through, no risk of the product "melting" and collapsing, as long as you stay under the relevant vapor-pressure curve for the product's temperature.
+
+In practice, industrial freeze-drying runs well below the triple point on both axes — typically product temperatures of −10 °C to −45 °C and chamber pressures in the 0.05–2 mbar range — because the ice's vapor pressure at those temperatures is very low, and you need the chamber pressure below that vapor pressure for sublimation to actually proceed at a useful rate.
+
+## 2. Vapor pressure of ice vs. temperature (why "how cold" sets "how low a vacuum you need")
+
+The vapor pressure of ice falls steeply as temperature drops (it roughly follows the Clausius–Clapeyron relation, below). Some reference points:
+
+| Ice temperature | Vapor pressure of ice |
+|---|---|
+| 0 °C | 6.11 mbar |
+| −10 °C | 2.60 mbar |
+| −20 °C | 1.03 mbar |
+| −30 °C | 0.38 mbar |
+| −40 °C | 0.13 mbar |
+| −50 °C | 0.04 mbar |
+
+**Clausius–Clapeyron equation**, the underlying relationship:
+
+```
+dP/dT = L / (T·Δv)
+```
+where `L` is the latent heat of sublimation of ice (~2,838 kJ/kg, i.e. the sum of latent heat of fusion ~334 kJ/kg plus latent heat of vaporization ~2,501 kJ/kg — sublimation has to supply both), `T` is absolute temperature, and `Δv` is the specific volume change between vapor and solid.
+
+**Why this matters for equipment sizing:** the chamber (or, in the AFD, the vessel) pressure has to be maintained *below* the vapor pressure of the product's ice at whatever temperature that ice actually is — not just "some low vacuum number." A colder, more sensitive product (say, a live-cell suspension needing to stay at −45 °C) needs a considerably harder vacuum than a robust small-molecule solution that can be dried at −15 °C. This is also why the **condenser must run colder than the product** — the water vapor has to have somewhere colder to go and re-freeze onto, or it will simply re-condense back onto the (relatively) warmer product or saturate the vacuum pump.
+
+## 3. Heat and mass transfer during primary drying — the Pikal model
+
+The rate-limiting step in ordinary primary drying is almost always **heat transfer to the sublimation front**, not the vacuum pump's raw pumping speed. The standard engineering treatment, developed by Michael Pikal and collaborators and still the reference model used across the industry, models a single vial as follows (Pikal, M.J. et al., *J. Parenter. Sci. Technol.* and later refinements; summarized well in Tang, X. & Pikal, M.J., "Design of Freeze-Drying Processes for Pharmaceuticals: Practical Advice," *Pharm. Res.* 21(2):191-200, 2004, and its 2023 update by Fissore et al., *Pharm. Res.*, PMC10661802):
+
+**Heat flow to the vial:**
+```
+Q = Kv · Av · (Ts − Tb)
+```
+- `Q` = heat flow rate to the product (per vial or per unit area)
+- `Kv` = overall vial heat transfer coefficient (combines conduction through the container base, gas conduction across any gap, and radiation)
+- `Av` = base/contact area
+- `Ts` = shelf (or in the AFD's case, jacket/wall) surface temperature
+- `Tb` = temperature at the bottom of the frozen product (sublimation front)
+
+**Sublimation mass flow rate**, from that same heat input (since all the heat goes into the latent heat of sublimation once the system is at steady state):
+```
+dm/dt = Q / ΔHs
+```
+where `ΔHs` ≈ 2,838 kJ/kg is the latent heat of sublimation of ice.
+
+**Mass transfer resistance through the already-dried layer** limits how fast vapor can actually escape once a dry crust has formed above the sublimation front:
+```
+dm/dt = Ap · (Pice − Pchamber) / Rp
+```
+- `Ap` = sublimation front area
+- `Pice` = vapor pressure of ice at the sublimation-front temperature
+- `Pchamber` = chamber pressure
+- `Rp` = dried-product resistance to vapor flow (grows as the dry layer thickens; strongly product/formulation dependent, and the main reason cycles are formulation-specific)
+
+The **product temperature must stay below the collapse temperature (Tc) or glass transition temperature (Tg')** throughout primary drying, or the frozen matrix loses its rigidity and the cake collapses (loses its porous, freely-reconstitutable structure). This constraint — not "the vacuum pump's limit" — is usually what actually sets the maximum shelf/jacket temperature and therefore the sublimation rate and cycle time.
+
+## 4. Secondary drying / desorption
+
+Once essentially all the ice has sublimed, the remaining "bound" water (adsorbed to the solid matrix, not present as ice) is removed by raising the product temperature — now safely, since there's no more ice to collapse — while staying under vacuum. This is a slower, diffusion-limited desorption process rather than sublimation, governed by the product's sorption isotherm. Typical secondary-drying temperatures run from ambient up to 40–50 °C, held for several hours, to bring residual moisture down to the target (often <1–3% for a stable pharmaceutical cake or powder).
+
+## 5. How agitation changes the heat-transfer picture (the AFD-relevant physics)
+
+In a static shelf/vial system, the equations above describe transfer *through* the frozen product to a fixed sublimation front, and the dried layer's resistance (`Rp`) only ever grows, because dried material never moves out of the way.
+
+In an **agitated/stirred freeze dryer** (the AFD's family — see file 03), continuously moving the granular frozen product against the heated jacket wall does two things:
+1. **Refreshes the surface in contact with the heat source** far more often than static conduction through a thickening dry crust would allow, which is the entire mechanical justification for stirring: Hosokawa's own 2003 patent (NL1022668C2) states this directly — continuous mixing of the product against the wall gives a better heat-transfer rate and shortens the drying process versus a static "trays-in-cabinet" design, precisely because it avoids the growing-dry-layer resistance problem described above.
+2. **Prevents the mass from freezing into one solid block**, instead yielding many small, independent ice granules, each with a much higher surface-area-to-volume ratio than a single frozen cake — which sublimes far faster for the same heat input, for the same reason that crushed ice cools a drink faster than a single ice cube.
+
+The tradeoff, also noted directly in Hosokawa's 2020 patent (NL2026893B1), is **mechanical shear**: continuous agitation for the entire cycle can damage genuinely shear-sensitive materials (live probiotics, certain protein/PLGA particle formulations) — which is exactly the problem that patent's valve/bypass arrangement (removing dried material from the vessel as soon as it's dry, rather than continuing to work it) was designed to solve. See file 03 for the mechanical detail.
+
+## 6. Freezing rate and ice crystal structure
+
+The rate at which a solution is frozen strongly affects the resulting ice crystal size and therefore both the freezing behavior and the porosity (and hence sublimation resistance, `Rp`, above) of the final dried structure:
+- **Slow freezing** → large ice crystals → large pores after sublimation → lower `Rp`, faster primary drying, but potentially larger cake/particle structure and, for biologics, more freeze-concentration stress on the product.
+- **Fast/flash freezing** (e.g., vacuum-induced freezing, spray freezing, or agitated freezing) → many small ice crystals → finer, more uniform porous structure.
+
+Hosokawa's AFD patent (NL1022668C2) gives concrete, citable numbers for its own agitated process: **an optimum freezing rate of 0.1–10 °C/min**, producing a frozen charge at **0 °C to −60 °C (preferably −55 °C to −15 °C)**, before sublimation begins under a vacuum of **5 mbar down to 0.01 mbar (preferably <0.1 mbar)**. These are Hosokawa's own patent-disclosed process parameters for the stirred vessel — not universal constants — and are used as the reference figures for the sizing examples in file 11.
+
+## Sources for this file
+See file 18 for full citations; key sources used directly above: Tang & Pikal 2004 (*Pharm. Res.* 21(2):191-200); Fissore et al. 2023 update (PMC10661802); NIST/standard water triple-point data; Hosokawa patents NL1022668C2 and NL2026893B1.

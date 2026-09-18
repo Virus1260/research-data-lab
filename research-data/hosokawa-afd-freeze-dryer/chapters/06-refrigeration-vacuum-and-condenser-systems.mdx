@@ -18,6 +18,8 @@ Hosokawa names the TCU explicitly as a standalone subsystem on the AFD page ("Te
 - Circulates that fluid through the process vessel's jacket via a pump, with a control loop (PID, typically) holding jacket temperature to setpoint and ramping it through the cycle's freeze/dry stages.
 - **Heat-transfer fluid**: for the wide temperature swing a freeze dryer needs (roughly −55 °C to +40/50 °C or higher for a demanding secondary-drying step), **silicone (dimethyl siloxane) heat-transfer oil** is the industry-standard fluid, used because it stays fluid and stable across that entire range without freezing or excessive viscosity increase at the cold end — this is standard practice on conventional shelf freeze dryers as well and transfers directly.
 
+![Refrigeration Cascade System Diagram](/diagrams/refrigeration_cascade_diagram.png)
+
 ## 2. Refrigeration system design
 
 - **Cascade refrigeration** — two (or more) separate refrigerant loops connected through an intermediate heat exchanger, where the "low stage" loop's condenser is cooled by the "high stage" loop's evaporator — is the standard architecture whenever a single refrigerant/compressor combination can't efficiently reach the target low temperature (roughly below about −40 °C, where a single-stage vapor-compression cycle's efficiency collapses and compressor discharge temperatures become excessive). This is standard practice on virtually all pharma/lab freeze dryers reaching the −40 °C to −85 °C range typically needed.

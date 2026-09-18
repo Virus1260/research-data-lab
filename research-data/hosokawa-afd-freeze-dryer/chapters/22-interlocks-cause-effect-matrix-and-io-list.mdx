@@ -1,0 +1,95 @@
+---
+title: "Interlocks: Cause & Effect Matrix and I/O List"
+chapterNumber: "22"
+slug: "22-interlocks-cause-effect-matrix-and-io-list"
+act: "Automation, P&ID & CAD"
+actId: "act-5"
+readTime: "11 min read"
+simulators: []
+---
+
+# 22 — Interlocks: Cause & Effect Matrix and I/O List
+
+See `pid_controls_data/cause_and_effect_matrix.csv` (13 interlocks) and `pid_controls_data/io_list.csv` (30 tags) for the full structured data behind this file.
+
+## 1. What a Cause & Effect (C&E) Matrix actually is, and why it's the right format
+
+A C&E matrix is the standard way the process industry documents interlock logic — standardized in **IEC 62881**. The idea is deliberately simple: **rows are causes** (a condition becomes true), **columns are effects** (an action the system takes in response), and a mark at the intersection means "this cause triggers this effect." The entire value of the format is that it's unambiguous and exhaustively checkable — an auditor, a commissioning engineer, or you in six months can look at any row and know exactly what happens, with no logic buried in PLC code that only makes sense if you already know what it does.
+
+## 2. Reading the columns in `cause_and_effect_matrix.csv`
+
+- **System** — whether this interlock lives in the BPCS or the SIS (file 20). Notice most of the genuinely safety-critical rows (E-stop, lid/pressure permissives, oxygen deficiency) are SIS; rows that protect equipment or product quality rather than people (agitator jam, filter clogging, vacuum pump feedback loss) are BPCS-only. This split is itself a design decision worth making deliberately, row by row, rather than defaulting everything to one system.
+- **Voting Logic** — how many independent sensors must agree before the action fires. `1oo1` ("one out of one") means a single sensor's reading is trusted directly — simplest, but that one sensor is a single point of failure. `1oo2` means either of two independent sensors can trigger the action — biased toward safety (a single failed sensor reading "trip" still trips the system, so you never miss a real hazard, at the cost of occasional nuisance trips from a single faulty sensor). `2oo3` (not needed anywhere on this machine at this scale, but common on larger plants) means two of three must agree — this reduces nuisance trips while still tolerating one failed sensor, at the cost of needing three sensors instead of one.
+- **Illustrative SIL** — Safety Integrity Level, the IEC 61511 measure of how reliable a safety function needs to be (SIL 1 through SIL 4, increasing reliability requirement). **These are illustrative placeholders, not a certified result.** The only correct way to assign a real SIL to a real interlock is a **LOPA (Layer of Protection Analysis)** — a formal, documented risk assessment specific to your actual product, your actual facility, and the actual consequence of each specific failure, carried out by (or with) a qualified process-safety engineer. Treat the SIL column here as "roughly this order of importance," useful for prioritizing your build effort, and nothing more until a real LOPA has been done.
+
+## 3. Two interlocks worth understanding in detail (because the *reasoning*, not just the row, is the transferable skill)
+
+- **I-04 and I-13 both pair an electronic BPCS/SIS trip with a passive mechanical device (`VRV-101`, `PSV-501`).** This is intentional layering, not redundancy for its own sake: a passive relief device needs no power, no logic, and no sensor to work — it protects you even if the entire control system (BPCS *and* SIS) has lost power or failed outright. This is exactly the kind of "independent layer of protection" thinking a real LOPA formalizes, and it's a good habit to build into your own designs before you ever run a formal LOPA: **for the handful of consequences you genuinely cannot tolerate, ask whether a passive device can protect you even in a total-control-system-failure scenario, and if so, include one.**
+- **I-08 (seal barrier gas pressure) only applies if you choose the double-mechanical-seal agitator drive option from file 05's addendum**, rather than the magnetic coupling or single-seal alternatives. This is a good small example of why the interlock list isn't fixed in stone — it's a direct consequence of specific design choices you make elsewhere in the machine (file 05, file 06), and should be revisited every time one of those choices changes.
+
+## 4. Reading the I/O list
+
+`io_list.csv` is the flat version of every tag on the P&ID (file 19) plus the two SIS-only tags this file adds (`I-08`'s `PIT-701`, and `ESD-001`/`AT-601` which don't appear as circles on the P&ID itself since they're SIS field devices drawn separately in the control architecture, file 20). Columns: **Tag**, **Description**, **System** (BPCS/SIS), **Signal Type** (the actual electrical/data type — analog 4-20mA, discrete on/off, RTD, etc.), **Range/Notes**, and **P&ID Ref** (where it physically sits). This is the document you'd actually hand to whoever configures PLC I/O modules, and it's also useful as a cross-check list against your SolidWorks model once you get there (file 24) — every tag here needs a corresponding physical fitting, boss, or nozzle somewhere on the 3D model.
+
+## 5. What this file deliberately does not do
+
+It does not certify any interlock to any SIL level, and it does not replace a real Dust Hazard Analysis (file 09 §4) or LOPA. What it gives you is the **complete, structured, auditable list of what this specific machine needs to protect against and how**, in the standard industry format, ready to be reviewed, revised, and formally validated by qualified people as your build moves from prototype toward anything GMP-capable (file 14).
+
+
+---
+
+## IEC 62881 Cause & Effect Interlock Matrix
+
+| Interlock Tag | Cause / Monitored Variable | Trip Threshold | System | Voting Logic | Automated Safety Action | Illustrative SIL | P&ID Ref |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| I-01 | Emergency stop pushbutton pressed | N/A (discrete) | SIS | 1oo1 per station | Stop agitator, stop heaters, trip refrigeration compressor contactor, trip vacuum pump, hold batch | SIL 2 | ESD-001 |
+| I-02 | Lid not fully closed while recipe requires closed vessel | ZS-101 = not-closed | SIS | 1oo1 | Block agitator start; hold batch | SIL 1 | ZS-101 |
+| I-03 | Attempt to unlock/open lid while vessel not near atmospheric | PSH-101 not satisfied | SIS | 1oo1 | Block lid unlock mechanism | SIL 2 | PSH-101 + ZS-101 |
+| I-04 | Vessel overpressure relative to external-pressure design limit during vacuum operation (loss-of-vacuum-integrity direction is covered by I-06; this covers an unintended positive-pressure event e.g. gas purge fault) | PIT-101A HH | BPCS + passive relief (VRV-101) | 1oo1 (transmitter) + passive mechanical backup | Open vent path; alarm; hold batch. VRV-101 provides passive protection independent of any electronic trip. | SIL 1 (electronic) / passive device provides independent protection layer | PIT-101A / VRV-101 |
+| I-05 | Agitator torque/current above high-high (mechanical jam protection) | JIT-101 HH | BPCS | 1oo1 | Stop agitator, alarm, hold batch | Not safety-rated (equipment-protection function |  BPCS only) | JIT-101 |
+| I-06 | Unexpected loss of vacuum during Primary or Secondary Drying | PIT-101A HH during a drying phase | BPCS | 1oo1 | Stop jacket heating, alarm, hold batch pending operator review | Not safety-rated (process-protection function |  BPCS only) | PIT-101A |
+| I-07 | Material collector filter differential pressure above high-high | PDT-102 HH | BPCS | 1oo1 | Trip vacuum pump, alarm, hold batch | Not safety-rated (equipment-protection function |  BPCS only) | PDT-102 |
+| I-08 | Barrier gas (double mechanical seal) pressure below low-low | new tag PIT-701 (barrier gas supply) | SIS | 1oo1 (1oo2 recommended if seal integrity is safety-critical for the specific product) | Stop agitator, alarm, hold batch | SIL 1-2 depending on product hazard classification (confirm via LOPA) | Agitator seal (file 05 addendum) |
+| I-09 | Oxygen concentration below safe threshold in equipment room (LN2/dry-ice direct-freeze option only) | AT-601 LL | SIS | 1oo1 (1oo2 recommended for occupied spaces) | Stop agitator, stop heating, trip refrigeration compressor, sound room evacuation alarm, hold batch | SIL 2 | AT-601 |
+| I-10 | Vacuum pump run feedback lost while recipe expects running | ZS-401 = stopped | BPCS | 1oo1 | Stop jacket heating, alarm, hold batch | Not safety-rated (process-protection function |  BPCS only) | ZS-401 |
+| I-11 | Attempt to open discharge valve while vessel still under vacuum | PIT-101A (not near-atm) AND XV-105 open command | SIS | 1oo1 | Block XV-105 open command | SIL 2 | PIT-101A + XV-105 |
+| I-12 | CIP or SIP initiated while lid not confirmed closed/sealed | ZS-101 | SIS | 1oo1 | Block CIP/SIP start | SIL 1 | ZS-101 |
+| I-13 | SIP steam temperature/pressure above jacket rated limit | TT-503 HH / steam supply pressure HH | BPCS + passive relief (PSV-501) | 1oo1 (transmitter) + passive mechanical backup | Close PV-502, alarm, hold batch. PSV-501 provides passive protection independent of any electronic trip. | Not safety-rated (electronic) / passive device provides independent protection layer | TT-503 / PSV-501 |
+
+
+---
+
+## Complete Control System I/O List (30 Tags)
+
+| Tag | Description | System | Signal Type | Range/Notes | P&ID Ref |
+| --- | --- | --- | --- | --- | --- |
+| PIT-101A | Vessel pressure - capacitance manometer (primary control signal) | BPCS | AI (4-20mA) | 0.001-1000 mbar abs | V-101 top |
+| PIT-101B | Vessel pressure - Pirani gauge (diagnostic / end-of-drying detection) | BPCS | AI (4-20mA) | 0.001-1000 mbar (gas-composition dependent) | V-101 top |
+| PIC-101 | Vessel pressure controller (software function block in BPCS) | BPCS | Internal (PID) | Output to PV-102 | BPCS logic |
+| TT-201 | Jacket fluid supply temperature | BPCS | AI (RTD/4-20mA) | -60 to +160 degC | TCU-201 to V-101 |
+| TT-202 | Jacket fluid return temperature | BPCS | AI (RTD/4-20mA) | -60 to +160 degC | V-101 to TCU-201 |
+| TIC-201 | Jacket supply temperature controller (software function block) | BPCS | Internal (PID) | Output to FCV-201 | BPCS logic |
+| FCV-201 | Jacket fluid flow/temperature control valve | BPCS | AO (4-20mA) + DI position feedback | 0-100% open | TCU-201 supply line |
+| SIC-101 | Agitator speed controller (VFD setpoint) | BPCS | AO (4-20mA) | 0-100% speed | M-101 |
+| JIT-101 | Agitator drive torque/current transmitter | BPCS | AI (4-20mA) | 0-100% rated torque | M-101 shaft |
+| LG-101 | Sight glass (visual only - no electronic signal) | Field | None (visual) | N/A | V-101 lid |
+| PV-102 | Vessel-to-collector vacuum path throttle valve | BPCS | AO (4-20mA) + DI(x2) open/closed limits | Open/Closed/Throttle | Vapor line |
+| XV-103 | Bypass valve around PV-102 | BPCS | DO + DI(x2) open/closed limits | Open/Closed | Vapor line bypass |
+| XV-104 | Vent/vacuum-break valve | BPCS | DO + DI(x2) open/closed limits | Open/Closed | V-101 to F-101 |
+| F-101 | Sterile vent filter (passive - no signal) | Field | None | N/A | Vent line |
+| VRV-101 | Vacuum relief valve (passive mechanical safety device) | Safety (passive) | None (self-acting) | Set point per vessel MAWP/full-vacuum rating | V-101 lid |
+| PDT-102 | Material collector filter differential pressure | BPCS | AI (4-20mA) | 0-500 mbar diff | V-102 |
+| XV-106 | Filter blowback/purge gas valve | BPCS | DO | Open/Closed (pulsed) | V-102 top |
+| TT-103 | Condenser coil temperature | BPCS | AI (RTD/4-20mA) | -90 to +30 degC | E-101 |
+| ZS-401 | Vacuum pump train running feedback | BPCS | DI | Run/Stopped | PKG-401 |
+| XV-105 | Bottom discharge (ball-segment) valve | BPCS | DO + DI(x2) open/closed limits | Open/Closed | V-101 bottom |
+| FT-501 | CIP supply flow transmitter | BPCS | AI (4-20mA) | 0-worst-case CIP flow | PKG-501 to V-101 |
+| PV-502 | SIP clean steam control valve | BPCS | AO (4-20mA) | 0-100% open | PKG-502 to V-101 jacket |
+| TT-503 | SIP heat-distribution RTD (multiple physical points; one representative tag shown) | BPCS | AI (RTD) x N points | 0-150 degC | Distributed through SIP boundary |
+| PSV-501 | SIP steam relief valve (passive mechanical safety device) | Safety (passive) | None (self-acting) | Set per steam system design pressure | PKG-502 line |
+| ZS-101 | Lid closed position switch | SIS | DI (safety-rated) | Closed/Not-closed | V-101 lid |
+| PSH-101 | Vessel near-atmospheric pressure switch (lid-unlock permissive) | SIS | DI (safety-rated) | Trips above set near-atm threshold | V-101 |
+| ESD-001 | Hardwired emergency stop pushbutton(s) | SIS | DI (hardwired |  safety relay) | Normally closed loop | Multiple field locations |
+| AT-601 | Oxygen-deficiency monitor (required only if LN2/dry ice direct-freeze option used) | SIS | AI (4-20mA) + DI alarm | 0-25% vol O2 | Equipment room |
+| PIT-701 | Agitator double mechanical seal - nitrogen barrier gas pressure (only if double-seal option per file 05 is used instead of magnetic coupling or single seal) | SIS | AI (4-20mA) + safety-rated switch function | Set above vessel process pressure at all times | M-101 seal housing |
+

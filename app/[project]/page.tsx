@@ -81,7 +81,7 @@ export default async function LabPage({ params }: { params: Promise<{ project: s
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-bg-hover border border-hairline text-ink-primary font-mono text-xs hover:bg-bg-hover transition"
             >
               <Table className="w-3.5 h-3.5 text-cryo" />
-              <span>74-Part BOM</span>
+              <span>{project.stats.bomItemsCount}-Part BOM</span>
             </Link>
 
             <Link
@@ -89,7 +89,7 @@ export default async function LabPage({ params }: { params: Promise<{ project: s
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-bg-hover border border-hairline text-ink-primary font-mono text-xs hover:bg-bg-hover transition"
             >
               <Library className="w-3.5 h-3.5 text-amber" />
-              <span>34 Primary Sources</span>
+              <span>{project.stats.referencesCount} Primary Sources</span>
             </Link>
           </div>
         </div>
@@ -240,7 +240,7 @@ export default async function LabPage({ params }: { params: Promise<{ project: s
               >
                 <div>
                   <div className="text-xs font-bold text-ink-primary">The Bench (BOM)</div>
-                  <div className="text-[10px] text-ink-dim font-mono">74 Parts Across 17 Subsystems</div>
+                  <div className="text-[10px] text-ink-dim font-mono">{project.stats.bomItemsCount} Parts Across {project.stats.subsystemsCount} Subsystems</div>
                 </div>
                 <ChevronRight className="w-4 h-4 text-ink-dim transition" />
               </Link>

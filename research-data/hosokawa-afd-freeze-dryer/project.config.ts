@@ -86,14 +86,16 @@ export const project: ProjectConfig = {
     },
     {
       id: "act-5",
-      name: "Automation & P&ID",
+      name: "Automation, P&ID & CAD",
       roman: "V",
-      description: "P&ID flow architecture, ISA 5.1 instrumentation, BPCS vs. SIS safety separation, and equipment sizing.",
+      description: "P&ID flow architecture, ISA 5.1 instrumentation, BPCS vs. SIS safety separation, C&E interlocks, thermal duty, and SolidWorks CAD schedule.",
       chapters: [
         "19-piping-and-instrumentation-diagram",
         "20-control-system-architecture",
         "21-batch-sequence-and-operating-cycle",
-        "22-practical-equipment-sizing-vacuum-and-cryogenics",
+        "22-interlocks-cause-effect-matrix-and-io-list",
+        "23-engineering-resolution-freezing-methods-and-thermal-duty",
+        "24-cad-solidworks-equipment-nozzle-schedule",
       ],
     },
   ],
@@ -114,11 +116,11 @@ export const project: ProjectConfig = {
     ],
   },
   summary:
-    "A 22-chapter engineering research dossier on Hosokawa's Active Freeze Dryer technology, reconstructed from patents, public literature, control architecture, and heat/mass transfer physics.",
+    "A comprehensive 25-chapter engineering research dossier on Hosokawa's Active Freeze Dryer technology, reconstructed from patents, public literature, control architecture, heat/mass transfer physics, Cause & Effect interlocks, and CAD equipment schedules.",
   stats: {
-    chaptersCount: 22,
+    chaptersCount: 25,
     subsystemsCount: 17,
-    bomItemsCount: 74,
-    referencesCount: 34,
+    bomItemsCount: 75,
+    referencesCount: 43,
   },
 };

@@ -1,78 +1,96 @@
 ---
-title: "Batch Sequence & Operating Cycle (ISA-88 State Machine)"
+title: "Batch Sequence & Operating Cycle (ISA-88 Structure)"
 chapterNumber: "21"
 slug: "21-batch-sequence-and-operating-cycle"
-act: "Automation & P&ID"
+act: "Automation, P&ID & CAD"
 actId: "act-5"
-readTime: "7 min read"
+readTime: "6 min read"
 simulators: []
 ---
 
-# 21 — Batch Sequence & Operating Cycle (ISA-88 State Machine)
+# 21 — Batch Sequence & Operating Cycle (ISA-88 Structure)
 
-The traditional pitfall in bespoke automation projects is writing one long, monolithic script: *"step 1, then step 2, then step 3..."* That approach functions initially, but collapses when engineers need to alter hold times, qualify validation runs, or handle unexpected process alarms.
-
-To build an industrial-grade, reproducible pharmaceutical freeze dryer, we follow **ANSI/ISA-88 (IEC 61512)** — the global benchmark for automated batch control.
+See `diagrams/isa88_batch_structure.png` for the diagram this file explains.
 
 ![ISA-88 Batch Structure & Phase State Machine](/diagrams/isa88_batch_structure.png)
 
----
-
-## 1. The ISA-88 Hierarchical Model
-
-ISA-88 establishes a strict four-layer hierarchy that isolates process intent from equipment execution:
-
-```
-PROCEDURE         (Master Batch Recipe: "Complete AFD Lyophilization")
-   └── UNIT PROCEDURE   (Major Phase: "Freezing", "Drying", "Discharge", "CIP/SIP")
-          └── OPERATION        (Discrete Goal: "Primary Sublimation Drying")
-                 └── PHASE            (Atomic Reusable Unit: "Hold Chamber Vacuum")
-```
-
-### Why Phases Are the Magic Building Block
-A **Phase** is the smallest self-contained, independently verifiable unit of control logic.
-- A phase like `"Ramp Jacket Temperature"` does not know or care whether it is executing during an initial trial batch or a validated commercial lot.
-- It receives clean recipe parameters (target temperature: `-15°C`, ramp rate: `0.5°C/min`, hold duration: `120 min`), executes its closed-loop PID control, and signals completion when its objective is fulfilled.
-
----
-
-## 2. The Universal Phase State Machine
-
-Every phase in the PLC conforms to the standardized ISA-88 finite state machine (FSM):
-
 <BatchStateTransitionChart />
 
-### Standard States & Behaviors
-- **IDLE**: The phase is initialized, waiting for the supervisory sequencer to provide setpoint parameters and trigger the `Start` command.
-- **RUNNING**: The phase actively drives its actuators (e.g. `TIC-201` modulates `FCV-201`, or `SIC-101` turns `M-101`).
-- **HELD**: Process is paused safely (e.g. operator paused the batch to inspect a filter). Actuators hold safe steady-state values.
-- **ABORTING / ABORTED**: An interlock or critical fault occurred (e.g. vacuum loss or refrigeration trip). The phase immediately de-energizes heaters, closes isolation valves, and hands control over to emergency shutdown routines.
+## 1. Why structure the recipe at all, instead of just writing PLC code
 
----
+The tempting approach is to write one long PLC program that does "step 1, then step 2, then step 3...". It works, right up until you need to change one step, add a second vessel, or explain to someone else what the machine actually does — at which point a flat, unstructured program becomes very hard to safely modify. **ISA-88 (also published as IEC 61512)**, the international batch-control standard, solves this by breaking any batch process into four nested levels that stay the same regardless of what you're actually manufacturing:
 
-## 3. AFD Lyophilization Cycle Mapped to ISA-88
+```
+PROCEDURE  (the whole recipe: "Freeze-Dry Batch")
+   └── UNIT PROCEDURE  (a major stage: "Freeze", "Dry", "Discharge", "Clean/Sterilize")
+          └── OPERATION  (a meaningful chunk of work: "Primary Drying")
+                 └── PHASE  (the smallest reusable, testable unit of logic: "Ramp jacket temperature")
+```
 
-| Unit Procedure | Operation | Phase Breakdown | Key Active Instruments & Actuators |
-|---|---|---|---|
-| **1. Freezing** | Charge & Pre-cool | • Purge chamber with N2<br>• Pre-chill jacket to -30°C<br>• Meter liquid feed into vessel | `TIC-201`, `XV-104`, `FT-101`, `SIC-101` (15 RPM) |
-| | Solidification | • Ramp jacket to -50°C<br>• Maintain continuous orbital agitation<br>• Hold until core temp reaches solidus | `TT-101`, `JIT-101` (torque monitoring), `PKG-301` |
-| **2. Drying** | Primary Sublimation | • Chill condenser coil to -70°C<br>• Evacuate chamber to 0.04 mbar<br>• Ramp jacket to -15°C<br>• Monitor dual-gauge convergence | `TT-103`, `PKG-401`, `PIC-101` (`PV-102`), `PIT-101A/B` |
-| | Secondary Desorption | • Step jacket to +25°C<br>• Maintain deep vacuum (0.02 mbar)<br>• Hold for bound moisture desorption | `TIC-201`, `PIT-101A`, `PDT-102` |
-| **3. Discharge** | Powder Recovery | • Backfill vessel with sterile N2 to 950 mbar<br>• Pulse clean reverse N2 through filter `V-102`<br>• Open ball-segment valve `XV-105` | `XV-104`, `PIT-101A`, `XV-105`, `SIC-101` (slow discharge rotation) |
-| **4. Clean / SIP** | CIP Wash | • Circulate wash water & detergent<br>• Drain bottom outlet | `PKG-501`, `FT-501`, `XV-501` |
-| | SIP Sterilization (Opt.) | • Admit clean steam at 121°C<br>• Maintain 30 min sterilization dwell | `PKG-502`, `TT-503`, `PSV-501` |
+**Phases are the important idea.** A phase is small enough to test in isolation, and — this is the payoff — genuinely reusable. "Vacuum-induced freeze" as a phase doesn't care whether it's phase 3 of today's recipe or phase 7 of a future recipe on a second vessel; it's the same tested block of logic either time. This is exactly the property that makes a control system maintainable as it grows, and it's why this structure, not a flat program, is what actually lives inside the BPCS (file 20).
 
----
+## 2. This machine's cycle, mapped onto that structure
 
-## 4. Automated Phase Transition: Comparative Pressure Convergence
+| Unit Procedure | Operations | Phases |
+|---|---|---|
+| **Freeze** | Charge & Pre-cool | Load product · Start jacket cooldown |
+| | Freeze | Vacuum-induced freeze · Hold at set temperature |
+| **Dry** | Primary Drying | Ramp jacket temperature · Hold vacuum setpoint · Monitor `PIT-101A`/`PIT-101B` convergence |
+| | Secondary Drying | Raise jacket temperature · Hold vacuum · Timed desorption hold |
+| **Discharge** | End-of-Cycle | Filter blowback purge · Post-blend in vessel |
+| | Discharge | Vacuum release · Open `XV-105` · Confirm empty (`LG-101`) |
+| **Clean/Sterilize** | CIP | Pre-rinse · Chemical wash · Final rinse · Air dry |
+| | SIP (optional) | Steam admit · Heat-distribution hold · Steam vent/cooldown |
 
-In traditional freeze dryers, operators guess the end of primary drying using fixed timers, risking either unfinished batches or wasted machine hours.
+This is the same nine-step cycle already walked through narratively in file 04 §2 — ISA-88 is simply the formal, industry-standard way of writing that same cycle down so a PLC program (and the people maintaining it) can treat each piece as an independent, testable building block instead of one monolithic script.
 
-In this automated AFD architecture, the transition from **Primary Drying** to **Secondary Drying** is triggered automatically:
-1. `PIT-101A` (Capacitance Manometer) reads absolute total pressure.
-2. `PIT-101B` (Pirani Sensor) reads apparent pressure skewed high by water vapor thermal conductivity.
-3. While active sublimation occurs, `PIT-101B` exceeds `PIT-101A` by up to 60%.
-4. As sublimation nears completion, water vapor diminishes, replaced by background nitrogen bleed.
-5. When the ratio:
-   $$\Delta P = \frac{P_{\text{Pirani}} - P_{\text{Capacitance}}}{P_{\text{Capacitance}}} \le 0.05$$
-   remains true for a continuous 20-minute window, the PLC automatically transitions the batch from Primary to Secondary Drying.
+## 3. How a phase actually behaves (the part that removes the "PLC code = magic" feeling)
+
+Every phase, regardless of what it does physically, follows the same simple state pattern — this is the other half of what ISA-88 standardizes, and it's worth internalizing because it's the same pattern in every phase you'll ever write for this machine:
+
+```
+IDLE → (start command) → RUNNING → (complete condition met) → COMPLETE
+                             │
+                             ├── (hold command) → HELD → (resume) → RUNNING
+                             └── (abort/fault condition) → ABORTING → ABORTED
+```
+
+Take "Hold vacuum setpoint" as a concrete example: it goes **RUNNING** when the primary-drying operation starts it; it stays RUNNING as long as `PIC-101` is successfully holding pressure near setpoint; it goes to **COMPLETE** when the recipe's time or convergence condition (§4 below) is satisfied; and if `PDT-102` trips high or the SIS fires (file 22), it goes to **ABORTING** and then **ABORTED**, handing control to whatever safe-state logic that fault requires. Every phase in the table above can be described this same way — once you've written the state pattern for one phase, you already understand the shape of all of them.
+
+## 4. A genuinely useful transition condition: ending Primary Drying automatically
+
+Most phase transitions are simple (a timer expires, an operator confirms something). One transition on this machine is worth calling out because it's a real, elegant piece of process logic: the **Primary Drying → Secondary Drying** transition can be driven automatically by watching the gap between `PIT-101A` (true pressure) and `PIT-101B` (Pirani, reads high while water vapor dominates) close to a small, near-zero value (file 06 §3b, file 19 §3) — rather than by guessing a fixed drying time and hoping it's long enough. This is a good first target for your own control logic once you have a working prototype, because it's directly observable and testable against real data (file 15's commissioning plan asks you to log exactly this).
+
+## 5. The full batch as one state diagram
+
+Section 3 showed the generic state pattern *every individual phase* follows. This section shows the top-level state machine for **the whole batch procedure** — the sequence an operator or a supervisory recipe manager actually watches move forward. This is a good artifact to keep in this exact form (Mermaid renders natively in GitHub, most modern documentation tools, and — per your Research Data site's own publishing rules — directly in a `.md` file or inside a `<pre class="mermaid">` block on a published page) rather than only as a picture:
+
+```mermaid
+stateDiagram-v2
+    [*] --> IDLE
+    IDLE --> PRE_STERILIZE: SIP requested
+    IDLE --> LEAK_TEST: SIP not required
+    PRE_STERILIZE --> LEAK_TEST: SIP cycle complete
+    LEAK_TEST --> PRODUCT_CHARGE: rate-of-rise pass
+    LEAK_TEST --> IDLE: leak test fail (abort)
+    PRODUCT_CHARGE --> PRE_COOL: lid closed & confirmed (ZS-101)
+    PRE_COOL --> VACUUM_INDUCED_FREEZING: jacket at freeze setpoint
+    VACUUM_INDUCED_FREEZING --> PRIMARY_DRYING: product fully frozen
+    PRIMARY_DRYING --> SECONDARY_DRYING: PIT-101A/101B convergence (file 06 §3b)
+    SECONDARY_DRYING --> FILTER_BLOWBACK_POSTBLEND: desorption hold time met
+    FILTER_BLOWBACK_POSTBLEND --> VACUUM_BREAK: post-blend complete
+    VACUUM_BREAK --> STERILE_DISCHARGE: vessel at atmospheric (PSH-101)
+    STERILE_DISCHARGE --> CIP_WASH: XV-105 confirmed closed, canister removed
+    CIP_WASH --> IDLE: CIP cycle complete
+
+    VACUUM_INDUCED_FREEZING --> ABORT: SIS trip (file 22)
+    PRIMARY_DRYING --> ABORT: SIS trip (file 22)
+    SECONDARY_DRYING --> ABORT: SIS trip (file 22)
+    ABORT --> IDLE: fault cleared & acknowledged
+```
+
+A few things worth noticing in this diagram: **`VACUUM_BREAK` uses sterile gas (nitrogen or filtered sterile air), never plant compressed air directly** — this is what keeps the whole discharge aseptic, consistent with Hosokawa's own description of the AFD as a fully sterile, closed process (file 03). **`ABORT` is reachable from every drying-related state, but only the SIS decides when that transition fires** — the BPCS recipe logic itself never overrides a genuine safety trip; it only reacts to one after the fact (file 20 §3). And **`LEAK_TEST` sits before `PRODUCT_CHARGE`**, not after — verifying vacuum integrity on an empty, cleaned vessel before committing real product to a batch is the same discipline file 15's commissioning plan asks for, just now built into the routine production cycle itself rather than only being a one-time commissioning step.
+
+## 6. Recipe vs. equipment — the other half of ISA-88
+
+ISA-88 also separates **what you want to do** (the recipe: target temperatures, hold times, vacuum setpoints — the "formula") from **how the equipment physically does it** (the phase logic wired to `TIC-201`, `PIC-101`, etc.). In practice this means: if you later need to run a *different* product with different hold times and temperatures on the *same* machine, you write a new recipe (a new set of parameters) rather than a new PLC program. This is the standard's biggest practical payoff for anyone planning to iterate on process development (file 16's roadmap) rather than build one fixed, never-changing cycle.

@@ -44,8 +44,8 @@ export default async function BenchPage({ params }: { params: Promise<{ project:
               The Bench — System Parts Explorer
             </h1>
             <p className="text-xs sm:text-sm text-ink-muted max-w-2xl">
-              74 engineering components across 17 subsystems. Cross-referenced directly to the sizing math,
-              fabrication tolerances, and patent disclosures across the 19 research chapters.
+              {bomItems.length} engineering components across {project.stats.subsystemsCount} subsystems. Cross-referenced directly to the sizing math,
+              fabrication tolerances, and patent disclosures across the {project.stats.chaptersCount} research chapters.
             </p>
           </div>
         </div>

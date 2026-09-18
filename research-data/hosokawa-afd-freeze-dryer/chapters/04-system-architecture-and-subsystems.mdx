@@ -16,7 +16,30 @@ See `diagrams/system_block_diagram.png` for an original block diagram of the ful
 
 This structure follows Hosokawa's own named subsystem list (from the AFD page and the general drying-systems page) combined with the mechanical detail from the two patents (file 03), organized the way you'd actually plan a build:
 
-<SystemArchitectureFlowChart />
+```
+                       ┌─────────────────────────┐
+                       │   Control System (PLC/   │
+                       │   HMI, 21 CFR Part 11)   │
+                       └────────────┬─────────────┘
+                                    │ I/O
+        ┌────────────┬─────────────┼─────────────┬─────────────┐
+        │             │             │             │             │
+   ┌────▼───┐   ┌─────▼─────┐ ┌────▼────┐  ┌─────▼─────┐ ┌─────▼──────┐
+   │  TCU   │   │  Vessel/  │ │ Vacuum  │  │  Material  │ │ CIP/SIP    │
+   │ (heat/ │──▶│  Chamber  │▶│  Path   │─▶│ Collector  │▶│  Skid      │
+   │  cool) │   │ + Agitator│ │ (valve, │  │ + Vacuum   │ │            │
+   └────────┘   └─────┬─────┘ │ bypass) │  │   Pump     │ └────────────┘
+                       │       └─────────┘  └────────────┘
+                 ┌─────▼─────┐
+                 │  Bottom   │
+                 │ Discharge │
+                 │  Valve    │──▶ Product Collection Canister
+                 └───────────┘
+
+   Utility Management Skid: interfaces all of the above to
+   plant electricity, compressed air/nitrogen, process water,
+   steam (if SIP), chilled water/glycol, and drains.
+```
 
 ## Subsystem list, with what each one does and where it's covered in this package
 

@@ -2,7 +2,7 @@ import re
 import json
 from pathlib import Path
 
-md_path = Path("afd_freeze_dryer_docs/18_references_and_source_list.md")
+md_path = Path("data/1_afd_freeze_dryer_docs/stage-2/18_references_and_source_list.md")
 out_json_path = Path("research-data/hosokawa-afd-freeze-dryer/data/references.json")
 
 # Chapter mappings derived from file 18 section "How this package used these sources"
@@ -40,7 +40,16 @@ chapter_citations = {
     31: ["09"],
     32: ["09"],
     33: ["09"],
-    34: ["02", "11"]
+    34: ["02", "11"],
+    35: ["18", "19", "24"],
+    36: ["18", "21", "24"],
+    37: ["18", "19", "20"],
+    38: ["03", "18"],
+    39: ["06", "11", "23"],
+    40: ["22"],
+    41: ["20", "22"],
+    42: ["21"],
+    43: ["19"]
 }
 
 with open(md_path, encoding="utf-8") as f:
@@ -48,7 +57,7 @@ with open(md_path, encoding="utf-8") as f:
 
 current_cat = "General"
 refs = []
-cat_re = re.compile(r"^##\s+([A-J]\.\s+.*)")
+cat_re = re.compile(r"^##\s+([A-Z]\.\s+.*)")
 item_re = re.compile(r"^(\d+)\.\s+(.*)")
 
 for line in lines:

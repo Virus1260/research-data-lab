@@ -1,0 +1,63 @@
+{
+  "description": "Structured node/edge data model of the AFD-style freeze dryer P&ID (file 19). Intended for reuse as the data source behind an interactive/clickable P&ID viewer (e.g. an SVG diagram driven by this JSON) rather than a static image. Illustrative educational model, not a manufacturer drawing.",
+  "equipment": [
+    {"id": "V-101", "name": "Lyophilisation Vessel", "type": "vessel_conical_jacketed", "notes": "Double-jacketed, downward-conical, agitated. See file 05." },
+    {"id": "M-101", "name": "Agitator Drive Motor", "type": "motor_vfd", "parent": "V-101" },
+    {"id": "TCU-201", "name": "Temperature Control Unit", "type": "package_skid" },
+    {"id": "PKG-301", "name": "Cascade Refrigeration Skid", "type": "package_skid" },
+    {"id": "V-102", "name": "Material Collector / Dust Filter", "type": "vessel_filter_housing" },
+    {"id": "E-101", "name": "Condenser", "type": "heat_exchanger" },
+    {"id": "PKG-401", "name": "Vacuum Pump Train", "type": "package_skid" },
+    {"id": "PKG-501", "name": "CIP Skid", "type": "package_skid" },
+    {"id": "PKG-502", "name": "Clean Steam Package (SIP, optional)", "type": "package_skid", "optional": true }
+  ],
+  "instruments": [
+    {"tag": "PIT-101A", "variable": "pressure", "function": "transmitter", "element": "capacitance_manometer", "loop": "PIC-101", "system": "BPCS", "location": "V-101" },
+    {"tag": "PIT-101B", "variable": "pressure", "function": "transmitter", "element": "pirani_gauge", "loop": "diagnostic", "system": "BPCS", "location": "V-101" },
+    {"tag": "PIC-101", "variable": "pressure", "function": "controller", "system": "BPCS", "output_to": "PV-102" },
+    {"tag": "TT-201", "variable": "temperature", "function": "transmitter", "system": "BPCS", "location": "jacket_supply" },
+    {"tag": "TT-202", "variable": "temperature", "function": "transmitter", "system": "BPCS", "location": "jacket_return" },
+    {"tag": "TIC-201", "variable": "temperature", "function": "controller", "system": "BPCS", "output_to": "FCV-201" },
+    {"tag": "SIC-101", "variable": "speed", "function": "controller", "system": "BPCS", "output_to": "M-101" },
+    {"tag": "JIT-101", "variable": "torque_current", "function": "transmitter", "system": "BPCS", "location": "M-101" },
+    {"tag": "PDT-102", "variable": "differential_pressure", "function": "transmitter", "system": "BPCS", "location": "V-102" },
+    {"tag": "TT-103", "variable": "temperature", "function": "transmitter", "system": "BPCS", "location": "E-101" },
+    {"tag": "ZS-401", "variable": "state", "function": "switch", "system": "BPCS", "location": "PKG-401" },
+    {"tag": "FT-501", "variable": "flow", "function": "transmitter", "system": "BPCS", "location": "PKG-501" },
+    {"tag": "TT-503", "variable": "temperature", "function": "transmitter", "system": "BPCS", "location": "SIP_boundary", "multiplicity": "multi-point" },
+    {"tag": "ZS-101", "variable": "position", "function": "switch", "system": "SIS", "location": "V-101_lid", "safety_function": "lid_closed_permissive" },
+    {"tag": "PSH-101", "variable": "pressure", "function": "switch_high", "system": "SIS", "location": "V-101", "safety_function": "near_atmospheric_unlock_permissive" },
+    {"tag": "AT-601", "variable": "analysis_o2", "function": "transmitter", "system": "SIS", "location": "equipment_room", "conditional_on": "LN2_or_dry_ice_option" }
+  ],
+  "valves": [
+    {"tag": "FCV-201", "type": "control_diaphragm", "function": "jacket_fluid_temperature_control", "system": "BPCS" },
+    {"tag": "PV-102", "type": "control_motorized", "function": "vessel_to_collector_throttle", "system": "BPCS", "positions": ["open","closed","throttle"] },
+    {"tag": "XV-103", "type": "onoff_motorized", "function": "bypass_around_PV-102", "system": "BPCS" },
+    {"tag": "XV-104", "type": "onoff_motorized", "function": "vent_vacuum_break", "system": "BPCS" },
+    {"tag": "VRV-101", "type": "relief_passive", "function": "vacuum_relief_safety", "system": "safety_passive" },
+    {"tag": "XV-105", "type": "onoff_motorized_ball_segment", "function": "bottom_discharge", "system": "BPCS", "sis_interlocked": true },
+    {"tag": "XV-106", "type": "onoff_motorized", "function": "filter_blowback_purge", "system": "BPCS" },
+    {"tag": "PV-502", "type": "control_motorized", "function": "SIP_steam_control", "system": "BPCS", "optional": true },
+    {"tag": "PSV-501", "type": "relief_passive", "function": "steam_overpressure_safety", "system": "safety_passive", "optional": true }
+  ],
+  "lines": [
+    {"from": "TCU-201", "to": "V-101", "medium": "heat_transfer_fluid", "role": "jacket_supply" },
+    {"from": "V-101", "to": "TCU-201", "medium": "heat_transfer_fluid", "role": "jacket_return" },
+    {"from": "PKG-301", "to": "TCU-201", "medium": "refrigerant_or_cold_duty", "role": "cold_duty" },
+    {"from": "V-101", "to": "V-102", "medium": "process_vapor", "role": "vessel_to_collector", "through": ["PV-102"], "bypass_through": ["XV-103"] },
+    {"from": "V-102", "to": "E-101", "medium": "process_vapor", "role": "collector_to_condenser" },
+    {"from": "E-101", "to": "PKG-401", "medium": "process_vapor", "role": "condenser_to_vacuum_pump" },
+    {"from": "PKG-401", "to": "atmosphere_or_abatement", "medium": "exhaust_gas", "role": "vacuum_pump_exhaust" },
+    {"from": "V-101", "to": "atmosphere", "medium": "vent_gas", "role": "vacuum_break", "through": ["XV-104"] },
+    {"from": "V-101", "to": "product_canister", "medium": "dry_product", "role": "discharge", "through": ["XV-105"] },
+    {"from": "PKG-501", "to": "V-101", "medium": "CIP_fluid", "role": "clean_in_place" },
+    {"from": "PKG-502", "to": "V-101", "medium": "clean_steam", "role": "sterilize_in_place", "optional": true, "through": ["PV-502"] }
+  ],
+  "safety_instrumented_functions": [
+    {"id": "SIF-01", "description": "Emergency stop", "trigger": "ESD-001", "action": ["stop_agitator","stop_heating","stop_refrigeration_compressor","stop_vacuum_pump","hold_batch"] },
+    {"id": "SIF-02", "description": "Lid-closed permissive for agitator start", "trigger": "ZS-101", "action": ["block_agitator_start"] },
+    {"id": "SIF-03", "description": "Near-atmospheric permissive for lid unlock", "trigger": "PSH-101", "action": ["block_lid_unlock"] },
+    {"id": "SIF-04", "description": "Near-atmospheric permissive for discharge valve", "trigger": "PIT-101A", "action": ["block_discharge_valve_open"] },
+    {"id": "SIF-05", "description": "Oxygen deficiency protection (LN2/dry-ice option)", "trigger": "AT-601", "action": ["stop_agitator","stop_heating","stop_refrigeration_compressor","hold_batch"] }
+  ]
+}

@@ -1,0 +1,102 @@
+# 18 — References & Source List
+
+All sources below were accessed/verified in September 2026. Where a fact in this package is genuinely load-bearing (a specific number, a design claim), it traces to one of these.
+
+## A. Hosokawa primary sources (AFD-specific)
+
+1. Hosokawa Micron B.V., "Freeze Dryer" (AFD product page) — https://hosokawa-micron-bv.com/technologies/drying/freeze-dryer
+2. Hosokawa Micron B.V., "Drying Systems" (general drying-platform components page) — https://hosokawa-micron-bv.com/technologies/drying/drying-systems
+3. Hosokawa Micron B.V., "Nauta® Conical Screw Mixer" — https://hosokawa-micron-bv.com/technologies/mixing/nauta-conical-screw-mixer
+4. Hosokawa Micron B.V., "CIP/SIP Cleaning" technology page — https://hosokawa-micron-bv.com/technologies/cip-sip-cleaning
+5. Hosokawa Micron B.V., "New Patent for Active Freeze Dryer" (news article) — https://hosokawa-micron-bv.com/company/news-events/news/new-patent-for-active-freeze-dryer
+
+## B. Patents (the core AFD engineering-detail sources — file 03)
+
+6. **NL1022668C2 / EP1601919B1**, "Stirred freeze drying," Hosokawa Micron B.V. (inventor: Peter Gerardus Van Der Wel), filed 2003 — https://patents.google.com/patent/NL1022668C2/en
+7. **NL2026893B1 / WO2022103268A1**, "Freeze dryer and method for freeze drying," Hosokawa Micron B.V., filed 2020, granted 2022 — https://patents.google.com/patent/NL2026893B1/en
+8. WO2012018320A1 (IMA Life), "Bulk freeze drying using spray freezing and stirred drying" — competitor patent citing "the stirred freeze dryer marketed by Hosokawa Micron Powder Systems" as prior art, useful corroborating context — https://patents.google.com/patent/WO2012018320A1/en
+
+## C. Freeze-drying physics & process science
+
+9. Tang, X. (Charlie) & Pikal, M.J., "Design of Freeze-Drying Processes for Pharmaceuticals: Practical Advice," *Pharmaceutical Research* 21(2):191–200, 2004. DOI: 10.1023/B:PHAM.0000016234.73023.75 — https://link.springer.com/article/10.1023/B:PHAM.0000016234.73023.75
+10. Fissore et al., "Practical Advice on Scientific Design of Freeze-Drying Process: 2023 Update," *Pharmaceutical Research*, PMC10661802 — https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10661802/
+11. Patel, S.M. et al., "Determination of End Point of Primary Drying in Freeze-Drying Process Control," *AAPS PharmSciTech* 11(1), March 2010 — https://link.springer.com/article/10.1208/s12249-009-9362-7
+12. "Best Practices and Guidelines (2022) for Scale-up and Technology Transfer in Freeze Drying... Part 2," *AAPS PharmSciTech* — https://link.springer.com/article/10.1208/s12249-023-02553-4
+13. "Recent trends in pharmaceutical freeze-drying and control strategies observed in human drug applications and manufacturing inspections" — https://link.springer.com/article/10.1186/s41120-025-00132-4
+14. Drug Development & Delivery, "LYOPHILIZATION – Process Monitoring During Freeze-Drying" (Pirani/capacitance manometer mechanism explainer) — https://drug-dev.com/lyophilization-process-monitoring-during-freeze-drying/
+
+## D. Refrigeration & vacuum systems
+
+15. GEA, "A Natural Gas Combination for Improved Freeze Dryer Cooling" (ethane cascade refrigeration, indirect silicone-oil-cooled condenser) — https://www.gea.com/en/stories/natural-gas-combination-improved-freeze-dryer-cooling/
+16. GEA, "Sustainable Cooling for Freeze-Drying Applications" (LYOAIR® system) — https://www.gea.com/en/products/dryers-particle-processing/lyophilizers/lyoair/
+17. Edwards Vacuum, freeze-drying vacuum pump application literature (dry/oil-free pump trains for pharma freeze-drying) — https://www.edwardsvacuum.com (general reference; consult current application notes)
+
+## E. Sanitary design, materials & standards
+
+18. AstroPak, "ASME BPE Surface Finish Designations: Ensuring Purity and Smooth Surfaces" — https://astropak.com/asme-bpe-surface-finish-designations/
+19. Harrison Electropolishing, "ASME BPE Guidelines for Pharmaceutical Equipment" — https://harrisonep.com/electropolishing/asme-bpe-specifications
+20. ASME Bioprocessing Equipment Standard (BPE), current edition — ASME (standard itself is a paid publication; the two sources above summarize its Part SF surface-finish tables accurately against the standard's published Ra figures)
+
+## F. Pressure/vacuum vessel design
+
+21. ASME Boiler & Pressure Vessel Code, Section VIII, Division 1, paragraphs UG-28 through UG-30 (external pressure design) — ASME (standard itself is a paid publication)
+22. Pressure Vessel Engineering Ltd., "External Pressure" (jacket closures as vacuum stiffening rings — practitioner discussion with worked examples) — https://www.pveng.com/home/asme-code-design/external-pressure-methods/
+23. Codeware, "External Pressure Design with COMPRESS" (UG-28 methodology overview) — https://www.codeware.com/products/compress/external-pressure-design/
+
+## G. Agitator drives & seals
+
+24. ZETA, "Magnetic Agitators" (magnetically coupled agitator drives for GMP/aseptic production, up to 2,500 N·m) — https://www.zeta.com/product/magnetic-agitators/
+25. Alfa Laval, "LeviMag® UltraPure" aseptic magnetic agitator — https://www.alfalaval.us/products/fluid-handling/mixing-equipment/tank-mixers/levimag-ultrapure/
+
+## H. Control systems, validation & GMP compliance
+
+26. ISPE, GAMP 5 (Good Automated Manufacturing Practice), 2nd edition — International Society for Pharmaceutical Engineering (standard itself is a paid publication; summarized accurately in source 27 below)
+27. IntuitionLabs, "Understanding GAMP 5 Guidelines for System Validation" — https://intuitionlabs.ai/articles/gamp-5-guidelines-system-validation
+28. U.S. FDA, 21 CFR Part 11 (Electronic Records; Electronic Signatures) — https://www.ecfr.gov (eCFR, Title 21, Part 11)
+29. TeepTrak, "Pharma FDA 21 CFR Part 11 validation: GAMP 5, IQ/OQ/PQ, electronic records, data integrity" — https://teeptrak.com/en/pharmaceutical-fda-21-cfr-part-11-validation-2027/
+
+## I. Safety — combustible dust / ATEX / NFPA
+
+30. NFPA 652, "Standard on the Fundamentals of Combustible Dust," 2019 edition — https://www.awpa.org/wp-content/uploads/2020/06/NFPA-652-2019.pdf
+31. OSHA Technical Manual, Section IV, Chapter 6, "Combustible Dusts" (Kst reference ranges, DHA framework) — https://www.osha.gov/sites/default/files/otm_secIV_chap6.pdf
+32. SG Systems Global, "Dust Explosion Hazard Assessment for Powder Handling Systems (NFPA 652, ATEX)" — https://sgsystemsglobal.com/glossary/dust-explosion-hazard-nfpa-652-atex/
+33. AIChE, "Venting the Blast — NFPA 68 Fundamentals, Design Guidance and Limitations" (Kst hazard-class table) — https://aiche.confex.com/aiche/s26/mediafile/ExtendedAbstract/Paper725405/
+
+## J. Fundamental physical/thermodynamic data
+
+34. Standard water thermodynamic property references (triple point 0.01 °C / 6.11 mbar; latent heats of fusion 334 kJ/kg, vaporization 2,501 kJ/kg, sublimation ≈2,838 kJ/kg; ice vapor-pressure vs. temperature table) — standard physical-chemistry/engineering reference data, consistent across NIST and standard steam-table sources.
+
+## K. Added for the P&ID / controls / CAD extension (files 19–24)
+
+35. Hosokawa Micron, Japan, "Active Freeze Dryer AFD" product page — confirms "ACTIVE FREEZE DRYER" is a registered trademark of Hosokawa Micron Corporation, and that the technology has been applied beyond pharma to nano-materials, polymers, ceramics, pigments, and metal oxides — https://www.hosokawamicron.co.jp/en/product/machines/detail/218.html
+36. Hosokawa Micron B.V., "Validation of Pharmaceutical Drying Process" — confirms sterile bulk API production "even in quantities as small as a few hundred grams," the crevice-free aseptic vessel design, sterile-gas vacuum break, and direct aseptic docking of the discharge canister to a vial-filling machine — https://hosokawa-micron-bv.com/company/news-events/news/freeze-drying-lyophilization-validation-pharmaceutical
+37. Hosokawa Micron BV / hmicronpowder.com, "Nauta® Active Freeze Dryer" — independently confirms the dust filter, vacuum pump skid, and 1–1,500 L size range already cited from the main AFD page — https://www.hmicronpowder.com/products/product/vrieco-nauta-active-freeze-dryer/
+38. Independent third-party corroboration of the two patents this package relies on (file B, sources 6–7): a patent-attorney public Q&A discussing a customer's 2011 purchase of a Hosokawa "stir freeze dry machine" patented in 2004 (expiring November 2024) and Hosokawa's related 2022 patent — used here only to independently cross-check that the patent filing dates and general claim scope this package cites are consistent with an unrelated, independent source — https://www.justanswer.com/law/qa83p-company-purchased-freeze-dry-machine-2011.html
+39. Dow, SYLTHERM™ XLT Technical Data Sheet (silicone heat-transfer fluid, usable range −100 °C to 260 °C, freeze point < −111 °C, explicitly marketed for pharmaceutical/fine-chemical batch process heating-and-cooling systems) — https://www.dow.com/documents/176/176-01468-01-syltherm-xlt-heat-transfer-fluid.pdf
+40. IEC 62881, "Process industries — Cause and effect matrices" (standard format for documenting interlock logic, file 22) — IEC (standard itself is a paid publication)
+41. IEC 61511, "Functional safety — Safety instrumented systems for the process industry sector" (BPCS/SIS separation, SIL levels, file 20/22) — IEC (standard itself is a paid publication)
+42. ISA-88 / IEC 61512, "Batch control" (Procedure/Unit Procedure/Operation/Phase model, file 21) — ISA/IEC (standard itself is a paid publication; widely summarized in industry literature, e.g. exida/ISA education material)
+43. ANSI/ISA-5.1, "Instrumentation Symbols and Identification" (P&ID tag letter conventions, file 19) — ISA (standard itself is a paid publication)
+
+## How this package used these sources
+
+- **Files 03, 05, 06 (the AFD-specific technical core)** rely primarily on sources 1–8 — Hosokawa's own public pages and its own patents. Every specific number attributed to Hosokawa's design (wall clearance, freezing rate, vacuum range, condenser coil spacing, etc.) traces to sources 6 or 7 specifically, and is flagged as such in-line.
+- **File 02 (physics)** relies on sources 9, 10, and 34.
+- **File 06 (vacuum instrumentation)** relies on sources 11–14.
+- **File 06 (refrigeration)** relies on sources 15–17.
+- **Files 05, 10 (materials/surface finish)** rely on sources 18–20.
+- **File 05 (external pressure design)** relies on sources 21–23.
+- **File 05 (agitator drive)** relies on sources 24–25, alongside patent sources 6–7.
+- **File 14 (validation/GMP)** relies on sources 26–29.
+- **File 09 (combustible dust)** relies on sources 30–33.
+
+## What this package could not find publicly (stated explicitly, per your request)
+
+- Exact AFD vessel dimensions (diameter, height, cone angle) at any specific model size.
+- Exact wall thickness or a specific alloy grade beyond "stainless steel" (implied throughout Hosokawa's materials but not stated as a specific grade on public pages).
+- Exact agitator motor power, gearbox ratio, or rotational speed for any AFD model.
+- Exact vacuum pump model/manufacturer or refrigeration compressor model/capacity used in any AFD installation.
+- Exact condenser or material-collector surface area for any specific model size.
+- Pricing for any AFD model or its components.
+
+Every one of these gaps is treated in this package as a design variable for you to solve using the sizing methodology in file 11, not as a number to guess at or infer from indirect sources.

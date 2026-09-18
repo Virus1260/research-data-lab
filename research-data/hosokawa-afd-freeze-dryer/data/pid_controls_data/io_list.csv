@@ -1,0 +1,30 @@
+Tag,Description,System,Signal Type,Range/Notes,P&ID Ref
+PIT-101A,Vessel pressure - capacitance manometer (primary control signal),BPCS,AI (4-20mA),0.001-1000 mbar abs,V-101 top
+PIT-101B,Vessel pressure - Pirani gauge (diagnostic / end-of-drying detection),BPCS,AI (4-20mA),0.001-1000 mbar (gas-composition dependent),V-101 top
+PIC-101,Vessel pressure controller (software function block in BPCS),BPCS,Internal (PID),Output to PV-102,BPCS logic
+TT-201,Jacket fluid supply temperature,BPCS,AI (RTD/4-20mA),-60 to +160 degC,TCU-201 to V-101
+TT-202,Jacket fluid return temperature,BPCS,AI (RTD/4-20mA),-60 to +160 degC,V-101 to TCU-201
+TIC-201,Jacket supply temperature controller (software function block),BPCS,Internal (PID),Output to FCV-201,BPCS logic
+FCV-201,Jacket fluid flow/temperature control valve,BPCS,AO (4-20mA) + DI position feedback,0-100% open,TCU-201 supply line
+SIC-101,Agitator speed controller (VFD setpoint),BPCS,AO (4-20mA),0-100% speed,M-101
+JIT-101,Agitator drive torque/current transmitter,BPCS,AI (4-20mA),0-100% rated torque,M-101 shaft
+LG-101,Sight glass (visual only - no electronic signal),Field,None (visual),N/A,V-101 lid
+PV-102,Vessel-to-collector vacuum path throttle valve,BPCS,AO (4-20mA) + DI(x2) open/closed limits,Open/Closed/Throttle,Vapor line
+XV-103,Bypass valve around PV-102,BPCS,DO + DI(x2) open/closed limits,Open/Closed,Vapor line bypass
+XV-104,Vent/vacuum-break valve,BPCS,DO + DI(x2) open/closed limits,Open/Closed,V-101 to F-101
+F-101,Sterile vent filter (passive - no signal),Field,None,N/A,Vent line
+VRV-101,Vacuum relief valve (passive mechanical safety device),Safety (passive),None (self-acting),Set point per vessel MAWP/full-vacuum rating,V-101 lid
+PDT-102,Material collector filter differential pressure,BPCS,AI (4-20mA),0-500 mbar diff,V-102
+XV-106,Filter blowback/purge gas valve,BPCS,DO,Open/Closed (pulsed),V-102 top
+TT-103,Condenser coil temperature,BPCS,AI (RTD/4-20mA),-90 to +30 degC,E-101
+ZS-401,Vacuum pump train running feedback,BPCS,DI,Run/Stopped,PKG-401
+XV-105,Bottom discharge (ball-segment) valve,BPCS,DO + DI(x2) open/closed limits,Open/Closed,V-101 bottom
+FT-501,CIP supply flow transmitter,BPCS,AI (4-20mA),0-worst-case CIP flow,PKG-501 to V-101
+PV-502,SIP clean steam control valve,BPCS,AO (4-20mA),0-100% open,PKG-502 to V-101 jacket
+TT-503,SIP heat-distribution RTD (multiple physical points; one representative tag shown),BPCS,AI (RTD) x N points,0-150 degC,Distributed through SIP boundary
+PSV-501,SIP steam relief valve (passive mechanical safety device),Safety (passive),None (self-acting),Set per steam system design pressure,PKG-502 line
+ZS-101,Lid closed position switch,SIS,DI (safety-rated),Closed/Not-closed,V-101 lid
+PSH-101,Vessel near-atmospheric pressure switch (lid-unlock permissive),SIS,DI (safety-rated),Trips above set near-atm threshold,V-101
+ESD-001,Hardwired emergency stop pushbutton(s),SIS,DI (hardwired, safety relay),Normally closed loop,Multiple field locations
+AT-601,Oxygen-deficiency monitor (required only if LN2/dry ice direct-freeze option used),SIS,AI (4-20mA) + DI alarm,0-25% vol O2,Equipment room
+PIT-701,Agitator double mechanical seal - nitrogen barrier gas pressure (only if double-seal option per file 05 is used instead of magnetic coupling or single seal),SIS,AI (4-20mA) + safety-rated switch function,Set above vessel process pressure at all times,M-101 seal housing

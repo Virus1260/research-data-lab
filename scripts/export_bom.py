@@ -3,7 +3,7 @@ import zipfile
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-xlsx_path = Path("afd_freeze_dryer_docs/bom/AFD_replica_BOM.xlsx")
+xlsx_path = Path("data/1_afd_freeze_dryer_docs/stage-2/bom/AFD_replica_BOM.xlsx")
 out_json_path = Path("research-data/hosokawa-afd-freeze-dryer/data/bom.json")
 
 with zipfile.ZipFile(xlsx_path) as z:

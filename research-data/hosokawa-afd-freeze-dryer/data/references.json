@@ -396,5 +396,114 @@
       "02",
       "11"
     ]
+  },
+  {
+    "id": 35,
+    "category": "K. Added for the P&ID / controls / CAD extension (files 19–24)",
+    "raw": "Hosokawa Micron, Japan, \"Active Freeze Dryer AFD\" product page — confirms \"ACTIVE FREEZE DRYER\" is a registered trademark of Hosokawa Micron Corporation, and that the technology has been applied beyond pharma to nano-materials, polymers, ceramics, pigments, and metal oxides — https://www.hosokawamicron.co.jp/en/product/machines/detail/218.html",
+    "title": "Hosokawa Micron, Japan, \"Active Freeze Dryer AFD\" product page",
+    "description": "confirms \"ACTIVE FREEZE DRYER\" is a registered trademark of Hosokawa Micron Corporation, and that the technology has been applied beyond pharma to nano-materials, polymers, ceramics, pigments, and metal oxides",
+    "url": "https://www.hosokawamicron.co.jp/en/product/machines/detail/218.html",
+    "citedByChapters": [
+      "18",
+      "19",
+      "24"
+    ]
+  },
+  {
+    "id": 36,
+    "category": "K. Added for the P&ID / controls / CAD extension (files 19–24)",
+    "raw": "Hosokawa Micron B.V., \"Validation of Pharmaceutical Drying Process\" — confirms sterile bulk API production \"even in quantities as small as a few hundred grams,\" the crevice-free aseptic vessel design, sterile-gas vacuum break, and direct aseptic docking of the discharge canister to a vial-filling machine — https://hosokawa-micron-bv.com/company/news-events/news/freeze-drying-lyophilization-validation-pharmaceutical",
+    "title": "Hosokawa Micron B.V., \"Validation of Pharmaceutical Drying Process\"",
+    "description": "confirms sterile bulk API production \"even in quantities as small as a few hundred grams,\" the crevice-free aseptic vessel design, sterile-gas vacuum break, and direct aseptic docking of the discharge canister to a vial-filling machine",
+    "url": "https://hosokawa-micron-bv.com/company/news-events/news/freeze-drying-lyophilization-validation-pharmaceutical",
+    "citedByChapters": [
+      "18",
+      "21",
+      "24"
+    ]
+  },
+  {
+    "id": 37,
+    "category": "K. Added for the P&ID / controls / CAD extension (files 19–24)",
+    "raw": "Hosokawa Micron BV / hmicronpowder.com, \"Nauta® Active Freeze Dryer\" — independently confirms the dust filter, vacuum pump skid, and 1–1,500 L size range already cited from the main AFD page — https://www.hmicronpowder.com/products/product/vrieco-nauta-active-freeze-dryer/",
+    "title": "Hosokawa Micron BV / hmicronpowder.com, \"Nauta® Active Freeze Dryer\"",
+    "description": "independently confirms the dust filter, vacuum pump skid, and 1–1,500 L size range already cited from the main AFD page",
+    "url": "https://www.hmicronpowder.com/products/product/vrieco-nauta-active-freeze-dryer/",
+    "citedByChapters": [
+      "18",
+      "19",
+      "20"
+    ]
+  },
+  {
+    "id": 38,
+    "category": "K. Added for the P&ID / controls / CAD extension (files 19–24)",
+    "raw": "Independent third-party corroboration of the two patents this package relies on (file B, sources 6–7): a patent-attorney public Q&A discussing a customer's 2011 purchase of a Hosokawa \"stir freeze dry machine\" patented in 2004 (expiring November 2024) and Hosokawa's related 2022 patent — used here only to independently cross-check that the patent filing dates and general claim scope this package cites are consistent with an unrelated, independent source — https://www.justanswer.com/law/qa83p-company-purchased-freeze-dry-machine-2011.html",
+    "title": "Independent third-party corroboration of the two patents this package relies on (file B, sources 6–7): a patent-attorney public Q&A discussing a customer's 2011 purchase of a Hosokawa \"stir freeze dry machine\" patented in 2004 (expiring November 2024) and Hosokawa's related 2022 patent",
+    "description": "used here only to independently cross-check that the patent filing dates and general claim scope this package cites are consistent with an unrelated, independent source",
+    "url": "https://www.justanswer.com/law/qa83p-company-purchased-freeze-dry-machine-2011.html",
+    "citedByChapters": [
+      "03",
+      "18"
+    ]
+  },
+  {
+    "id": 39,
+    "category": "K. Added for the P&ID / controls / CAD extension (files 19–24)",
+    "raw": "Dow, SYLTHERM™ XLT Technical Data Sheet (silicone heat-transfer fluid, usable range −100 °C to 260 °C, freeze point < −111 °C, explicitly marketed for pharmaceutical/fine-chemical batch process heating-and-cooling systems) — https://www.dow.com/documents/176/176-01468-01-syltherm-xlt-heat-transfer-fluid.pdf",
+    "title": "Dow, SYLTHERM™ XLT Technical Data Sheet (silicone heat-transfer fluid, usable range −100 °C to 260 °C, freeze point < −111 °C, explicitly marketed for pharmaceutical/fine-chemical batch process heating-and-cooling systems)",
+    "description": "https://www.dow.com/documents/176/176-01468-01-syltherm-xlt-heat-transfer-fluid.pdf",
+    "url": "https://www.dow.com/documents/176/176-01468-01-syltherm-xlt-heat-transfer-fluid.pdf",
+    "citedByChapters": [
+      "06",
+      "11",
+      "23"
+    ]
+  },
+  {
+    "id": 40,
+    "category": "K. Added for the P&ID / controls / CAD extension (files 19–24)",
+    "raw": "IEC 62881, \"Process industries — Cause and effect matrices\" (standard format for documenting interlock logic, file 22) — IEC (standard itself is a paid publication)",
+    "title": "IEC 62881, \"Process industries",
+    "description": "Cause and effect matrices\" (standard format for documenting interlock logic, file 22)",
+    "url": "",
+    "citedByChapters": [
+      "22"
+    ]
+  },
+  {
+    "id": 41,
+    "category": "K. Added for the P&ID / controls / CAD extension (files 19–24)",
+    "raw": "IEC 61511, \"Functional safety — Safety instrumented systems for the process industry sector\" (BPCS/SIS separation, SIL levels, file 20/22) — IEC (standard itself is a paid publication)",
+    "title": "IEC 61511, \"Functional safety",
+    "description": "Safety instrumented systems for the process industry sector\" (BPCS/SIS separation, SIL levels, file 20/22)",
+    "url": "",
+    "citedByChapters": [
+      "20",
+      "22"
+    ]
+  },
+  {
+    "id": 42,
+    "category": "K. Added for the P&ID / controls / CAD extension (files 19–24)",
+    "raw": "ISA-88 / IEC 61512, \"Batch control\" (Procedure/Unit Procedure/Operation/Phase model, file 21) — ISA/IEC (standard itself is a paid publication; widely summarized in industry literature, e.g. exida/ISA education material)",
+    "title": "ISA-88 / IEC 61512, \"Batch control\" (Procedure/Unit Procedure/Operation/Phase model, file 21)",
+    "description": "ISA/IEC (standard itself is a paid publication; widely summarized in industry literature, e.g. exida/ISA education material)",
+    "url": "",
+    "citedByChapters": [
+      "21"
+    ]
+  },
+  {
+    "id": 43,
+    "category": "K. Added for the P&ID / controls / CAD extension (files 19–24)",
+    "raw": "ANSI/ISA-5.1, \"Instrumentation Symbols and Identification\" (P&ID tag letter conventions, file 19) — ISA (standard itself is a paid publication)",
+    "title": "ANSI/ISA-5.1, \"Instrumentation Symbols and Identification\" (P&ID tag letter conventions, file 19)",
+    "description": "ISA (standard itself is a paid publication)",
+    "url": "",
+    "citedByChapters": [
+      "19"
+    ]
   }
 ]

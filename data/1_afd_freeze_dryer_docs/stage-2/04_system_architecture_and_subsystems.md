@@ -1,0 +1,72 @@
+# 04 — System Architecture & Subsystem Breakdown
+
+See `diagrams/system_block_diagram.png` for an original block diagram of the full system described below.
+
+## Top-level subsystem map
+
+This structure follows Hosokawa's own named subsystem list (from the AFD page and the general drying-systems page) combined with the mechanical detail from the two patents (file 03), organized the way you'd actually plan a build:
+
+```
+                       ┌─────────────────────────┐
+                       │   Control System (PLC/   │
+                       │   HMI, 21 CFR Part 11)   │
+                       └────────────┬─────────────┘
+                                    │ I/O
+        ┌────────────┬─────────────┼─────────────┬─────────────┐
+        │             │             │             │             │
+   ┌────▼───┐   ┌─────▼─────┐ ┌────▼────┐  ┌─────▼─────┐ ┌─────▼──────┐
+   │  TCU   │   │  Vessel/  │ │ Vacuum  │  │  Material  │ │ CIP/SIP    │
+   │ (heat/ │──▶│  Chamber  │▶│  Path   │─▶│ Collector  │▶│  Skid      │
+   │  cool) │   │ + Agitator│ │ (valve, │  │ + Vacuum   │ │            │
+   └────────┘   └─────┬─────┘ │ bypass) │  │   Pump     │ └────────────┘
+                       │       └─────────┘  └────────────┘
+                 ┌─────▼─────┐
+                 │  Bottom   │
+                 │ Discharge │
+                 │  Valve    │──▶ Product Collection Canister
+                 └───────────┘
+
+   Utility Management Skid: interfaces all of the above to
+   plant electricity, compressed air/nitrogen, process water,
+   steam (if SIP), chilled water/glycol, and drains.
+```
+
+## Subsystem list, with what each one does and where it's covered in this package
+
+| # | Subsystem | Function | Covered in |
+|---|---|---|---|
+| 1 | **Lyophilisation vessel/chamber** | Downward-conical, jacketed pressure/vacuum vessel that holds the product through freeze + dry | File 05 |
+| 2 | **Agitator & drive** | Orbiting screw/paddle/ribbon; scrapes vessel wall; magnetic or sealed drive | File 05 |
+| 3 | **Vessel jacket & TCU** | Double-jacketed wall; external skid circulates heat-transfer fluid for both cooling (freeze) and heating (dry) | File 06 |
+| 4 | **Refrigeration system** | Supplies cold duty to TCU and (in classic designs) the condenser | File 06 |
+| 5 | **Vacuum system** | Pump train, gauges, isolation valves, piping — pulls and holds process vacuum | File 06 |
+| 6 | **Material collector / dust filter** | External filter housing in the vacuum line; recovers dry powder from the vapor stream; AFD-specific valve/bypass arrangement | File 06 |
+| 7 | **Bottom discharge valve** | Ball-segment (or equivalent) valve for full product dump at end of cycle | File 05 |
+| 8 | **CIP system** | Spray balls/rotary nozzles, chemical dosing, water rinse cycles | File 07 |
+| 9 | **SIP system (optional)** | Clean steam generation/distribution for in-place sterilization | File 07 |
+| 10 | **Seals, gaskets, insulation** | Elastomer door/lid seals, agitator shaft seal or magnetic coupling, external insulation jacket | File 07 |
+| 11 | **Instrumentation** | Pressure gauges (Pirani + capacitance manometer), temperature (product/jacket/condenser), level, torque | File 08 |
+| 12 | **Valves & piping** | Sanitary process valves, vacuum isolation valves, utility piping | File 08 |
+| 13 | **Control system (PLC/HMI/SCADA)** | Recipe execution, data logging, alarms, 21 CFR Part 11 electronic records | File 08 |
+| 14 | **Electrical system** | Motor drives, control power, ATEX-rated equipment in dust zones | File 08 |
+| 15 | **Structural frame** | Skid/frame supporting the vessel, drive, and services; access platform if tall | File 08 |
+| 16 | **Utility Management Skid** | Single interface point to plant electricity, compressed air/N₂, process water, steam, chilled water, drains | File 08 |
+| 17 | **Safety systems** | Vacuum/pressure relief, interlocks, ATEX-rated components in dust zones, e-stop circuits | File 09 |
+
+## How the process cycle exercises each subsystem
+
+See `diagrams/freeze_drying_cycle_profile.png` for an original time/temperature/pressure chart of a representative cycle.
+
+1. **Charge** — product loaded into vessel (top port, per patent drawings), lid closed and clamped/sealed.
+2. **Pre-cool / freeze** — TCU circulates cold fluid through jacket; agitator running slowly; vessel at or near atmospheric pressure initially, per NL2026893B1's description ("temperature within the freeze-drying chamber is lowered to a temperature close to and above the freezing temperature... by introducing a heat-exchanging medium into the double-jacketed vessel wall"), then vacuum is drawn to induce final freezing.
+3. **Vacuum draw / vacuum-induced freezing** — vacuum system pulls chamber down; as pressure drops, product temperature drops further (evaporative/flash cooling) until freezing is complete and the mass has broken into free-flowing granular ice, assisted by continuous agitation.
+4. **Primary drying** — jacket temperature raised under TCU control while vacuum is held; agitator continues at low speed; sublimed vapor flows out through the material-collector valve path (open early, closed/bypass later per NL2026893B1); dried powder accumulates in the collector.
+5. **Secondary drying** — jacket temperature raised further; vacuum held; remaining bound moisture desorbed.
+6. **End-of-cycle blowback & post-blend** — filter purge dislodges collected powder into the heated recipient; valve reopens to return collected material to vessel for post-blending into one uniform batch (per NL2026893B1).
+7. **Vacuum release** — controlled break to atmosphere (via sterile air/N₂ if aseptic).
+8. **Discharge** — bottom valve opens; product drops to collection canister.
+9. **CIP (and SIP if required)** — automated wash/sterilize cycle before next batch.
+
+## Why this maps well to a workshop build
+
+Every one of the 17 subsystems above is either (a) a mechanical/plumbing assembly a well-equipped workshop can fabricate or adapt commercial components for, or (b) a component you should simply buy (vacuum pump, PLC, sensors, seals). File 10 draws that make/buy line item-by-item; file 12 turns it into an actual BOM.

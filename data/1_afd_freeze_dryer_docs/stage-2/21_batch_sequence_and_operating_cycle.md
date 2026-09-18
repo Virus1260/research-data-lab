@@ -47,6 +47,36 @@ Take "Hold vacuum setpoint" as a concrete example: it goes **RUNNING** when the 
 
 Most phase transitions are simple (a timer expires, an operator confirms something). One transition on this machine is worth calling out because it's a real, elegant piece of process logic: the **Primary Drying → Secondary Drying** transition can be driven automatically by watching the gap between `PIT-101A` (true pressure) and `PIT-101B` (Pirani, reads high while water vapor dominates) close to a small, near-zero value (file 06 §3b, file 19 §3) — rather than by guessing a fixed drying time and hoping it's long enough. This is a good first target for your own control logic once you have a working prototype, because it's directly observable and testable against real data (file 15's commissioning plan asks you to log exactly this).
 
-## 5. Recipe vs. equipment — the other half of ISA-88
+## 5. The full batch as one state diagram
+
+Section 3 showed the generic state pattern *every individual phase* follows. This section shows the top-level state machine for **the whole batch procedure** — the sequence an operator or a supervisory recipe manager actually watches move forward. This is a good artifact to keep in this exact form (Mermaid renders natively in GitHub, most modern documentation tools, and — per your Research Data site's own publishing rules — directly in a `.md` file or inside a `<pre class="mermaid">` block on a published page) rather than only as a picture:
+
+```mermaid
+stateDiagram-v2
+    [*] --> IDLE
+    IDLE --> PRE_STERILIZE: SIP requested
+    IDLE --> LEAK_TEST: SIP not required
+    PRE_STERILIZE --> LEAK_TEST: SIP cycle complete
+    LEAK_TEST --> PRODUCT_CHARGE: rate-of-rise pass
+    LEAK_TEST --> IDLE: leak test fail (abort)
+    PRODUCT_CHARGE --> PRE_COOL: lid closed & confirmed (ZS-101)
+    PRE_COOL --> VACUUM_INDUCED_FREEZING: jacket at freeze setpoint
+    VACUUM_INDUCED_FREEZING --> PRIMARY_DRYING: product fully frozen
+    PRIMARY_DRYING --> SECONDARY_DRYING: PIT-101A/101B convergence (file 06 §3b)
+    SECONDARY_DRYING --> FILTER_BLOWBACK_POSTBLEND: desorption hold time met
+    FILTER_BLOWBACK_POSTBLEND --> VACUUM_BREAK: post-blend complete
+    VACUUM_BREAK --> STERILE_DISCHARGE: vessel at atmospheric (PSH-101)
+    STERILE_DISCHARGE --> CIP_WASH: XV-105 confirmed closed, canister removed
+    CIP_WASH --> IDLE: CIP cycle complete
+
+    VACUUM_INDUCED_FREEZING --> ABORT: SIS trip (file 22)
+    PRIMARY_DRYING --> ABORT: SIS trip (file 22)
+    SECONDARY_DRYING --> ABORT: SIS trip (file 22)
+    ABORT --> IDLE: fault cleared & acknowledged
+```
+
+A few things worth noticing in this diagram: **`VACUUM_BREAK` uses sterile gas (nitrogen or filtered sterile air), never plant compressed air directly** — this is what keeps the whole discharge aseptic, consistent with Hosokawa's own description of the AFD as a fully sterile, closed process (file 03). **`ABORT` is reachable from every drying-related state, but only the SIS decides when that transition fires** — the BPCS recipe logic itself never overrides a genuine safety trip; it only reacts to one after the fact (file 20 §3). And **`LEAK_TEST` sits before `PRODUCT_CHARGE`**, not after — verifying vacuum integrity on an empty, cleaned vessel before committing real product to a batch is the same discipline file 15's commissioning plan asks for, just now built into the routine production cycle itself rather than only being a one-time commissioning step.
+
+## 6. Recipe vs. equipment — the other half of ISA-88
 
 ISA-88 also separates **what you want to do** (the recipe: target temperatures, hold times, vacuum setpoints — the "formula") from **how the equipment physically does it** (the phase logic wired to `TIC-201`, `PIC-101`, etc.). In practice this means: if you later need to run a *different* product with different hold times and temperatures on the *same* machine, you write a new recipe (a new set of parameters) rather than a new PLC program. This is the standard's biggest practical payoff for anyone planning to iterate on process development (file 16's roadmap) rather than build one fixed, never-changing cycle.

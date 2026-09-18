@@ -48,7 +48,7 @@ export default async function ReferencesPage({
               The Shelf — Cited References
             </h1>
             <p className="text-xs sm:text-sm text-ink-muted max-w-2xl">
-              All 34 verifiable engineering sources backing this research package: Hosokawa patents, ASME BPVC
+              All {references.length} verifiable engineering sources backing this research package: Hosokawa patents, ASME BPVC
               and BPE bioprocessing standards, GAMP 5 validation protocols, NFPA 652 combustible dust guidelines,
               and peer-reviewed freeze-drying physics.
             </p>

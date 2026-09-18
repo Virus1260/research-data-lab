@@ -122,6 +122,17 @@
   },
   {
     "id": 12,
+    "subsystem": "2. Agitator & Drive",
+    "item": "Double mechanical seal + N2 barrier gas system (alternative to mag coupling / single seal)",
+    "notes": "Sterile barrier gas held above process pressure; leak path runs into vessel, not out (file 05 addendum)",
+    "makeOrBuy": "Buy",
+    "source": "Aseptic reactor mechanical seal manufacturer (e.g. John Crane, EagleBurgmann, or equivalent)",
+    "packageRef": "05, 22",
+    "qty": "",
+    "unitCost": ""
+  },
+  {
+    "id": 13,
     "subsystem": "3. Vessel Jacket & TCU",
     "item": "TCU (Temperature Control Unit) package",
     "notes": "Heats/cools jacket heat-transfer fluid across full cycle",
@@ -132,7 +143,7 @@
     "unitCost": ""
   },
   {
-    "id": 13,
+    "id": 14,
     "subsystem": "3. Vessel Jacket & TCU",
     "item": "Heat-transfer fluid (silicone oil)",
     "notes": "Wide-range (-55C to +50C+) jacket fluid",
@@ -143,7 +154,7 @@
     "unitCost": ""
   },
   {
-    "id": 14,
+    "id": 15,
     "subsystem": "3. Vessel Jacket & TCU",
     "item": "Jacket circulation pump",
     "notes": "Circulates heat-transfer fluid through jacket",
@@ -154,7 +165,7 @@
     "unitCost": ""
   },
   {
-    "id": 15,
+    "id": 16,
     "subsystem": "3. Vessel Jacket & TCU",
     "item": "Jacket supply/return piping + insulation",
     "notes": "Delivers fluid to/from jacket",
@@ -165,7 +176,7 @@
     "unitCost": ""
   },
   {
-    "id": 16,
+    "id": 17,
     "subsystem": "4. Refrigeration System",
     "item": "Compressor(s) - cascade low & high stage",
     "notes": "Refrigeration duty for TCU (and condenser if shared plant)",
@@ -176,7 +187,7 @@
     "unitCost": ""
   },
   {
-    "id": 17,
+    "id": 18,
     "subsystem": "4. Refrigeration System",
     "item": "Refrigerant charge",
     "notes": "Working fluid for refrigeration circuit",
@@ -187,7 +198,7 @@
     "unitCost": ""
   },
   {
-    "id": 18,
+    "id": 19,
     "subsystem": "4. Refrigeration System",
     "item": "Refrigeration-side heat exchangers (condensers/evaporators)",
     "notes": "Refrigerant-to-fluid heat exchange",
@@ -198,7 +209,7 @@
     "unitCost": ""
   },
   {
-    "id": 19,
+    "id": 20,
     "subsystem": "4. Refrigeration System",
     "item": "Refrigerant piping, receivers, safety devices",
     "notes": "Refrigerant containment and relief",
@@ -209,7 +220,7 @@
     "unitCost": ""
   },
   {
-    "id": 20,
+    "id": 21,
     "subsystem": "4. Refrigeration System",
     "item": "Oxygen-deficiency monitor",
     "notes": "Required if LN2/dry ice used for direct freezing",
@@ -220,7 +231,7 @@
     "unitCost": ""
   },
   {
-    "id": 21,
+    "id": 22,
     "subsystem": "5. Vacuum System",
     "item": "Dry screw pump / Roots blower train (2+ stage)",
     "notes": "Primary vacuum generation, oil-free",
@@ -231,7 +242,7 @@
     "unitCost": ""
   },
   {
-    "id": 22,
+    "id": 23,
     "subsystem": "5. Vacuum System",
     "item": "Backing pump",
     "notes": "Final stage of pump train",
@@ -242,7 +253,7 @@
     "unitCost": ""
   },
   {
-    "id": 23,
+    "id": 24,
     "subsystem": "5. Vacuum System",
     "item": "Pirani gauge (chamber + condenser, x2)",
     "notes": "Thermal-conductivity pressure gauge; end-of-drying detection",
@@ -253,7 +264,7 @@
     "unitCost": ""
   },
   {
-    "id": 24,
+    "id": 25,
     "subsystem": "5. Vacuum System",
     "item": "Capacitance manometer (chamber + condenser, x2)",
     "notes": "True absolute pressure; primary control signal",
@@ -264,7 +275,7 @@
     "unitCost": ""
   },
   {
-    "id": 25,
+    "id": 26,
     "subsystem": "5. Vacuum System",
     "item": "Vacuum isolation valve, vessel-to-collector (open/closed/throttle)",
     "notes": "Controls vapor path per NL2026893B1 recirculation strategy",
@@ -275,7 +286,7 @@
     "unitCost": ""
   },
   {
-    "id": 26,
+    "id": 27,
     "subsystem": "5. Vacuum System",
     "item": "Bypass valve & piping around isolation valve",
     "notes": "Routes dust-laden vapor to filter once valve closed",
@@ -286,7 +297,7 @@
     "unitCost": ""
   },
   {
-    "id": 27,
+    "id": 28,
     "subsystem": "5. Vacuum System",
     "item": "Vent/break valve + sterile air or N2 filter",
     "notes": "Controlled return to atmosphere",
@@ -297,7 +308,7 @@
     "unitCost": ""
   },
   {
-    "id": 28,
+    "id": 29,
     "subsystem": "5. Vacuum System",
     "item": "Vacuum piping (short runs, large diameter)",
     "notes": "Connects vessel, collector, condenser, pump",
@@ -308,7 +319,7 @@
     "unitCost": ""
   },
   {
-    "id": 29,
+    "id": 30,
     "subsystem": "6. Material Collector / Dust Filter",
     "item": "Filter housing",
     "notes": "External vacuum-line housing per NL2026893B1",
@@ -319,7 +330,7 @@
     "unitCost": ""
   },
   {
-    "id": 30,
+    "id": 31,
     "subsystem": "6. Material Collector / Dust Filter",
     "item": "Filter screen / cartridge element",
     "notes": "Traps dry product dust from vapor stream",
@@ -330,7 +341,7 @@
     "unitCost": ""
   },
   {
-    "id": 31,
+    "id": 32,
     "subsystem": "6. Material Collector / Dust Filter",
     "item": "Filter blowback / purge valve + gas supply",
     "notes": "Dislodges caked powder from filter screen",
@@ -341,7 +352,7 @@
     "unitCost": ""
   },
   {
-    "id": 32,
+    "id": 33,
     "subsystem": "6. Material Collector / Dust Filter",
     "item": "Heated collection hopper / recipient, double-jacketed",
     "notes": "Post-collection secondary drying of collected powder",
@@ -352,7 +363,7 @@
     "unitCost": ""
   },
   {
-    "id": 33,
+    "id": 34,
     "subsystem": "6. Material Collector / Dust Filter",
     "item": "Filter differential-pressure transmitter",
     "notes": "Detects filter loading / triggers blowback",
@@ -363,7 +374,7 @@
     "unitCost": ""
   },
   {
-    "id": 34,
+    "id": 35,
     "subsystem": "7. Bottom Discharge Valve",
     "item": "Ball-segment discharge valve",
     "notes": "Full-emptying bottom discharge",
@@ -374,7 +385,7 @@
     "unitCost": ""
   },
   {
-    "id": 35,
+    "id": 36,
     "subsystem": "7. Bottom Discharge Valve",
     "item": "Pneumatic valve actuator",
     "notes": "Automated open/close of discharge valve",
@@ -385,7 +396,7 @@
     "unitCost": ""
   },
   {
-    "id": 36,
+    "id": 37,
     "subsystem": "7. Bottom Discharge Valve",
     "item": "Product collection canister",
     "notes": "Receives discharged dry powder",
@@ -396,7 +407,7 @@
     "unitCost": ""
   },
   {
-    "id": 37,
+    "id": 38,
     "subsystem": "8. CIP System",
     "item": "CIP skid (pump, chemical dosing, heater)",
     "notes": "Automated wash-cycle utility supply",
@@ -407,7 +418,7 @@
     "unitCost": ""
   },
   {
-    "id": 38,
+    "id": 39,
     "subsystem": "8. CIP System",
     "item": "Rotational spray nozzle(s) in vessel",
     "notes": "Cleans internal vessel/lid surfaces",
@@ -418,7 +429,7 @@
     "unitCost": ""
   },
   {
-    "id": 39,
+    "id": 40,
     "subsystem": "8. CIP System",
     "item": "CIP supply/return piping",
     "notes": "Connects CIP skid to vessel",
@@ -429,7 +440,7 @@
     "unitCost": ""
   },
   {
-    "id": 40,
+    "id": 41,
     "subsystem": "9. SIP System (optional)",
     "item": "Clean steam generator or plant clean-steam interface",
     "notes": "Supplies >121C saturated steam for sterilization",
@@ -440,7 +451,7 @@
     "unitCost": ""
   },
   {
-    "id": 41,
+    "id": 42,
     "subsystem": "9. SIP System (optional)",
     "item": "Steam distribution piping & traps",
     "notes": "Delivers steam through vessel/jacket/lines",
@@ -451,7 +462,7 @@
     "unitCost": ""
   },
   {
-    "id": 42,
+    "id": 43,
     "subsystem": "9. SIP System (optional)",
     "item": "SIP-rated RTDs (multiple distribution points)",
     "notes": "Heat-distribution/penetration validation",
@@ -462,7 +473,7 @@
     "unitCost": ""
   },
   {
-    "id": 43,
+    "id": 44,
     "subsystem": "10. Seals, Gaskets & Insulation",
     "item": "Lid/door gasket",
     "notes": "Vacuum + (optional) SIP-rated seal",
@@ -473,7 +484,7 @@
     "unitCost": ""
   },
   {
-    "id": 44,
+    "id": 45,
     "subsystem": "10. Seals, Gaskets & Insulation",
     "item": "Port/nozzle seals (sight glass, vent, spray nozzle, etc.)",
     "notes": "Independent leak points at every lid penetration",
@@ -484,7 +495,7 @@
     "unitCost": ""
   },
   {
-    "id": 45,
+    "id": 46,
     "subsystem": "10. Seals, Gaskets & Insulation",
     "item": "Valve stem seals (bellows/diaphragm type)",
     "notes": "Vacuum-integrity on all vacuum-side valves",
@@ -495,7 +506,7 @@
     "unitCost": ""
   },
   {
-    "id": 46,
+    "id": 47,
     "subsystem": "10. Seals, Gaskets & Insulation",
     "item": "Closed-cell foam / mineral wool insulation",
     "notes": "Thermal insulation of vessel/jacket/piping",
@@ -506,7 +517,7 @@
     "unitCost": ""
   },
   {
-    "id": 47,
+    "id": 48,
     "subsystem": "10. Seals, Gaskets & Insulation",
     "item": "Removable stainless cladding",
     "notes": "Weatherproof, cleanable, inspectable insulation cover",
@@ -517,7 +528,7 @@
     "unitCost": ""
   },
   {
-    "id": 48,
+    "id": 49,
     "subsystem": "11. Instrumentation (general)",
     "item": "Jacket RTDs, supply & return (PT100)",
     "notes": "TCU control loop feedback",
@@ -528,7 +539,7 @@
     "unitCost": ""
   },
   {
-    "id": 49,
+    "id": 50,
     "subsystem": "11. Instrumentation (general)",
     "item": "Product temperature probe(s)",
     "notes": "In-process product temperature monitoring",
@@ -539,7 +550,7 @@
     "unitCost": ""
   },
   {
-    "id": 50,
+    "id": 51,
     "subsystem": "11. Instrumentation (general)",
     "item": "Level / fill sensor (or sight glass for prototype)",
     "notes": "Batch fill monitoring",
@@ -550,7 +561,7 @@
     "unitCost": ""
   },
   {
-    "id": 51,
+    "id": 52,
     "subsystem": "12. Valves & Piping (general)",
     "item": "Sanitary diaphragm valves (CIP/utility isolation)",
     "notes": "Cleanable process/utility isolation",
@@ -561,7 +572,7 @@
     "unitCost": ""
   },
   {
-    "id": 52,
+    "id": 53,
     "subsystem": "12. Valves & Piping (general)",
     "item": "BPE-grade sanitary tube & fittings",
     "notes": "Product-contact and CIP/SIP piping",
@@ -572,7 +583,7 @@
     "unitCost": ""
   },
   {
-    "id": 53,
+    "id": 54,
     "subsystem": "12. Valves & Piping (general)",
     "item": "Orbital welding (equipment or contracted service)",
     "notes": "Crevice-free sanitary tube joining",
@@ -583,7 +594,7 @@
     "unitCost": ""
   },
   {
-    "id": 54,
+    "id": 55,
     "subsystem": "13. Control System (PLC/HMI/SCADA)",
     "item": "PLC",
     "notes": "Recipe sequencing, interlocks, I/O",
@@ -594,7 +605,7 @@
     "unitCost": ""
   },
   {
-    "id": 55,
+    "id": 56,
     "subsystem": "13. Control System (PLC/HMI/SCADA)",
     "item": "HMI panel",
     "notes": "Operator interface, trending, alarms",
@@ -605,7 +616,7 @@
     "unitCost": ""
   },
   {
-    "id": 56,
+    "id": 57,
     "subsystem": "13. Control System (PLC/HMI/SCADA)",
     "item": "Data historian / batch-record software",
     "notes": "Continuous batch data logging",
@@ -616,7 +627,7 @@
     "unitCost": ""
   },
   {
-    "id": 57,
+    "id": 58,
     "subsystem": "13. Control System (PLC/HMI/SCADA)",
     "item": "I/O modules, panel wiring, enclosure",
     "notes": "Physical control panel build",
@@ -627,7 +638,7 @@
     "unitCost": ""
   },
   {
-    "id": 58,
+    "id": 59,
     "subsystem": "14. Electrical System",
     "item": "Motor VFDs",
     "notes": "Variable-speed drive for agitator/pumps",
@@ -638,7 +649,7 @@
     "unitCost": ""
   },
   {
-    "id": 59,
+    "id": 60,
     "subsystem": "14. Electrical System",
     "item": "Control power supplies (24VDC)",
     "notes": "Logic-level power distribution",
@@ -649,7 +660,7 @@
     "unitCost": ""
   },
   {
-    "id": 60,
+    "id": 61,
     "subsystem": "14. Electrical System",
     "item": "ATEX-rated motors/junction boxes/lighting (dust zone)",
     "notes": "Ignition-source control in powder-handling zone",
@@ -660,7 +671,7 @@
     "unitCost": ""
   },
   {
-    "id": 61,
+    "id": 62,
     "subsystem": "14. Electrical System",
     "item": "E-stop circuit hardware (hardwired, PLC-independent)",
     "notes": "Safety-critical emergency stop",
@@ -671,7 +682,7 @@
     "unitCost": ""
   },
   {
-    "id": 62,
+    "id": 63,
     "subsystem": "14. Electrical System",
     "item": "Main disconnect & panel protection",
     "notes": "Electrical safety isolation",
@@ -682,7 +693,7 @@
     "unitCost": ""
   },
   {
-    "id": 63,
+    "id": 64,
     "subsystem": "15. Structural Frame",
     "item": "Skid/frame (structural steel)",
     "notes": "Supports vessel, drive, and services",
@@ -693,7 +704,7 @@
     "unitCost": ""
   },
   {
-    "id": 64,
+    "id": 65,
     "subsystem": "15. Structural Frame",
     "item": "Access platform / steps (if vessel tall)",
     "notes": "Safe operator access to top fittings",
@@ -704,7 +715,7 @@
     "unitCost": ""
   },
   {
-    "id": 65,
+    "id": 66,
     "subsystem": "15. Structural Frame",
     "item": "Vibration isolation mounts",
     "notes": "Isolates rotating equipment vibration from vessel/frame",
@@ -715,7 +726,7 @@
     "unitCost": ""
   },
   {
-    "id": 66,
+    "id": 67,
     "subsystem": "16. Utility Management Skid / Interface",
     "item": "Utility junction panel/manifold",
     "notes": "Single documented interface to building services",
@@ -726,7 +737,7 @@
     "unitCost": ""
   },
   {
-    "id": 67,
+    "id": 68,
     "subsystem": "16. Utility Management Skid / Interface",
     "item": "Compressed air/N2 supply connection & filtration",
     "notes": "Instrument air, blow-nozzle gas, vacuum-break gas",
@@ -737,7 +748,7 @@
     "unitCost": ""
   },
   {
-    "id": 68,
+    "id": 69,
     "subsystem": "16. Utility Management Skid / Interface",
     "item": "Process/purified water connection",
     "notes": "CIP rinse water supply",
@@ -748,7 +759,7 @@
     "unitCost": ""
   },
   {
-    "id": 69,
+    "id": 70,
     "subsystem": "16. Utility Management Skid / Interface",
     "item": "Drain connection",
     "notes": "CIP/SIP effluent and condensate removal",
@@ -759,7 +770,7 @@
     "unitCost": ""
   },
   {
-    "id": 70,
+    "id": 71,
     "subsystem": "17. Safety Systems",
     "item": "Vacuum relief/vent path (manual + interlocked)",
     "notes": "Safe return to atmosphere before any access",
@@ -770,7 +781,7 @@
     "unitCost": ""
   },
   {
-    "id": 71,
+    "id": 72,
     "subsystem": "17. Safety Systems",
     "item": "Lid/access interlock switch",
     "notes": "Prevents opening under vacuum",
@@ -781,7 +792,7 @@
     "unitCost": ""
   },
   {
-    "id": 72,
+    "id": 73,
     "subsystem": "17. Safety Systems",
     "item": "Dust Hazard Analysis (DHA) - professional service",
     "notes": "Documented combustible-dust risk assessment (not a physical part)",
@@ -792,7 +803,7 @@
     "unitCost": ""
   },
   {
-    "id": 73,
+    "id": 74,
     "subsystem": "17. Safety Systems",
     "item": "Explosion venting or suppression hardware (per DHA outcome)",
     "notes": "Physical explosion protection at material collector/discharge zone",
@@ -803,7 +814,7 @@
     "unitCost": ""
   },
   {
-    "id": 74,
+    "id": 75,
     "subsystem": "17. Safety Systems",
     "item": "Combustible-gas / O2-deficiency monitors",
     "notes": "Refrigerant leak / cryogen asphyxiation detection",
