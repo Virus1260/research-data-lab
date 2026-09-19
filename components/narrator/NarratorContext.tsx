@@ -90,8 +90,8 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
   const [selectedPersona, setSelectedPersona] = useState<VoicePersona>(VOICE_PERSONAS[0]); // Default to Dr. Ananya Sharma
   const [pacingMode, setPacingMode] = useState<PacingMode>("academic");
   const [speechEngine, setSpeechEngineState] = useState<SpeechEngine>("neural"); // Default to Ultra HD Edge Neural
-  const [vocalWarmth, setVocalWarmthState] = useState<number>(2.0); // +2.0 dB Low-shelf warmth
-  const [vocalClarity, setVocalClarityState] = useState<number>(1.8); // +1.8 dB High-shelf clarity
+  const [vocalWarmth, setVocalWarmthState] = useState<number>(1.5); // +1.5 dB Low-shelf warmth (Umbriel baritone profile)
+  const [vocalClarity, setVocalClarityState] = useState<number>(2.0); // +2.0 dB High-shelf clarity
   const [audioLevel, setAudioLevel] = useState(0);
   const [frequencyBands, setFrequencyBands] = useState<number[]>(new Array(16).fill(6));
   const [activeSpokenPhrase, setActiveSpokenPhrase] = useState("");
@@ -115,8 +115,8 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
   const pacingModeRef = useRef<PacingMode>("academic");
   const selectedPersonaRef = useRef<VoicePersona>(selectedPersona);
   const speechEngineRef = useRef<SpeechEngine>("neural");
-  const vocalWarmthRef = useRef<number>(2.0);
-  const vocalClarityRef = useRef<number>(1.8);
+  const vocalWarmthRef = useRef<number>(1.5);
+  const vocalClarityRef = useRef<number>(2.0);
   const pauseTimeoutRef = useRef<any>(null);
   const visualizerRafRef = useRef<number | null>(null);
   const lastSelectedTextRef = useRef<string>("");

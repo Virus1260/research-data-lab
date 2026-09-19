@@ -12,7 +12,8 @@ export interface VoicePersona {
   name: string;
   role: string;
   gender: "female" | "male";
-  accent: "Indian English (IN)" | "British" | "American" | "Studio Master";
+  accent: "Indian English (IN)" | "British" | "American" | "Studio Master" | "Google Gemini";
+  isGemini?: boolean; // Google Gemini TTS voice badge
   description: string;
   avatar: string;
   pitch: number;
@@ -22,6 +23,58 @@ export interface VoicePersona {
 }
 
 export const VOICE_PERSONAS: VoicePersona[] = [
+  // ─── GOOGLE GEMINI TTS VOICES (Featured) ────────────────────────────────────
+  // Umbriel: Google's warm, baritone lead narrator voice (modeled after Gemini Umbriel)
+  // Edge Neural counterpart: en-US-AndrewMultilingualNeural — warm, smooth, relaxed
+  {
+    id: "umbriel",
+    name: "Umbriel",
+    role: "Google Gemini AI Narrator",
+    gender: "male",
+    accent: "Google Gemini",
+    isGemini: true,
+    description: "Google's signature warm baritone narrator. Smooth, grounded, conversational delivery with natural academic authority.",
+    avatar: "✦",
+    pitch: 0.935,   // -3Hz relative to 120 Hz male base → deep warm baritone
+    rate: 0.95,     // Relaxed cadence, matching Google Umbriel's unhurried pacing
+    pauseScale: 1.1,
+    voiceKeywords: [
+      "andrew",
+      "andrewmultilingual",
+      "brian",
+      "christopher",
+      "en-us",
+      "google us english male",
+      "natural",
+    ],
+  },
+  // Gacrux: Google's crisp, articulate female research narrator (modeled after Gemini Gacrux)
+  // Edge Neural counterpart: en-US-AvaMultilingualNeural — mature, sharp, high-clarity
+  {
+    id: "gacrux",
+    name: "Gacrux",
+    role: "Google Gemini AI Narrator",
+    gender: "female",
+    accent: "Google Gemini",
+    isGemini: true,
+    description: "Google's premier female narrator — mature, articulate, and precise. Crystal-clear academic delivery with natural research authority.",
+    avatar: "✧",
+    pitch: 1.005,   // +1Hz relative to 220 Hz female base → crisp, present alto
+    rate: 1.0,      // Precise, measured cadence matching Google Gacrux's sharp delivery
+    pauseScale: 1.05,
+    voiceKeywords: [
+      "ava",
+      "avamultilingual",
+      "emma",
+      "emmamultilingual",
+      "aria",
+      "en-us",
+      "google us english female",
+      "natural",
+      "female",
+    ],
+  },
+  // ─── RESEARCH LAB PERSONAS ──────────────────────────────────────────────────
   {
     id: "ananya",
     name: "Dr. Ananya Sharma",
@@ -143,7 +196,9 @@ export const VOICE_PERSONAS: VoicePersona[] = [
   },
 ];
 
+// Default to Umbriel — Google's warm lead narrator (first entry)
 export const DEFAULT_PERSONA = VOICE_PERSONAS[0];
+export const GEMINI_VOICES = VOICE_PERSONAS.filter((p) => p.isGemini === true);
 
 export interface SpeechChunk {
   rawText: string;

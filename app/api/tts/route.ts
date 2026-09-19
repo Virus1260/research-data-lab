@@ -5,7 +5,12 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 // Persona to Microsoft Edge Neural Voice mapping
+// Google Gemini voice counterparts use top-tier Multilingual Neural voices
 const PERSONA_VOICE_MAP: Record<string, string> = {
+  // ─ Google Gemini AI Narrators (Featured) ─────────────────────────────────────
+  umbriel: "en-US-AndrewMultilingualNeural", // Warm, deep baritone — mirrors Google Umbriel
+  gacrux: "en-US-AvaMultilingualNeural",     // Crisp, mature alto — mirrors Google Gacrux
+  // ─ Research Lab Personas ───────────────────────────────────────────────────
   ananya: "en-IN-NeerjaNeural",
   rajesh: "en-IN-PrabhatNeural",
   elena: "en-GB-SoniaNeural",
@@ -30,7 +35,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Determine target voice
-    const voiceName = PERSONA_VOICE_MAP[persona.toLowerCase()] || "en-IN-NeerjaNeural";
+    const voiceName = PERSONA_VOICE_MAP[persona.toLowerCase()] || "en-US-AndrewMultilingualNeural";
 
     // Format rate and pitch adjustments
     const ratePercent = Math.round((rateParam - 1.0) * 100);

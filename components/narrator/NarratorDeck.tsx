@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useNarrator, type PacingMode } from "./NarratorContext";
-import { VOICE_PERSONAS, type VoicePersona } from "@/lib/voice-engine";
+import { VOICE_PERSONAS, GEMINI_VOICES, type VoicePersona } from "@/lib/voice-engine";
 import { RealtimeVoiceGraph } from "./RealtimeVoiceGraph";
 import {
   Play,
@@ -116,52 +116,129 @@ export function NarratorDeck() {
               </button>
             </div>
 
-            {/* Persona Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-5">
-              {VOICE_PERSONAS.map((persona) => {
-                const isSelected = selectedPersona.id === persona.id;
-                return (
-                  <div
-                    key={persona.id}
-                    onClick={() => setSelectedPersona(persona)}
-                    className={`cursor-pointer rounded-xl p-3 border transition-all flex flex-col justify-between ${
-                      isSelected
-                        ? "bg-amber-subtle border-amber shadow-md shadow-amber/10 ring-1 ring-amber"
-                        : "bg-bg-surface hover:bg-bg-hover border-hairline"
-                    }`}
-                  >
-                    <div className="space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <span className="text-2xl">{persona.avatar}</span>
-                        <div className="flex items-center gap-1">
-                          <span className="text-[8px] font-mono px-1.5 py-0.5 rounded bg-bg-panel border border-hairline text-ink-muted">
-                            {persona.accent.split(" ")[0]}
-                          </span>
-                          {isSelected && <Check className="w-3 h-3 text-amber" />}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-xs font-bold text-ink-primary truncate">{persona.name}</div>
-                        <div className="text-[9px] text-ink-muted font-mono truncate">{persona.role}</div>
-                      </div>
-                      <p className="text-[10px] text-ink-secondary leading-snug line-clamp-2">
-                        {persona.description}
-                      </p>
-                    </div>
-
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        previewPersona(persona);
+            {/* ── Featured: Google Gemini Voices ── */}
+            <div className="mb-4">
+              <div className="flex items-center gap-2 mb-2.5">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-blue-400 font-bold">✦ Google Gemini Featured Voices</span>
+                <div className="flex-1 h-px bg-gradient-to-r from-blue-500/40 to-transparent" />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {GEMINI_VOICES.map((persona) => {
+                  const isSelected = selectedPersona.id === persona.id;
+                  const isUmbriel = persona.id === "umbriel";
+                  return (
+                    <div
+                      key={persona.id}
+                      onClick={() => setSelectedPersona(persona)}
+                      className={`cursor-pointer rounded-xl p-3.5 border transition-all flex flex-col justify-between relative overflow-hidden ${
+                        isSelected
+                          ? "border-blue-400/70 shadow-lg shadow-blue-500/15 ring-1 ring-blue-400/60"
+                          : "bg-bg-surface hover:bg-bg-hover border-blue-500/20 hover:border-blue-400/40"
+                      }`}
+                      style={isSelected ? {
+                        background: "linear-gradient(135deg, color-mix(in srgb, #3b82f6 8%, var(--bg-panel)), color-mix(in srgb, #60a5fa 4%, var(--bg-panel)))"
+                      } : {
+                        background: "linear-gradient(135deg, color-mix(in srgb, #1e3a5f 6%, var(--bg-surface)), var(--bg-surface))"
                       }}
-                      className="mt-2.5 w-full py-1 text-[10px] font-mono rounded bg-bg-panel hover:bg-amber hover:text-on-amber text-ink-primary border border-hairline transition flex items-center justify-center gap-1"
                     >
-                      <Volume2 className="w-3 h-3" />
-                      <span>Test Voice</span>
-                    </button>
-                  </div>
-                );
-              })}
+                      {/* Google Gemini badge */}
+                      <div className="absolute top-2.5 right-2.5 flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-gradient-to-r from-blue-600/30 to-blue-400/20 border border-blue-400/30">
+                        <span className="text-[8px] font-mono font-bold text-blue-300 uppercase tracking-widest">Gemini AI</span>
+                      </div>
+
+                      <div className="space-y-1.5 pr-14">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xl text-blue-300">{persona.avatar}</span>
+                          {isSelected && <Check className="w-3.5 h-3.5 text-blue-400" />}
+                        </div>
+                        <div>
+                          <div className="text-sm font-bold text-ink-primary">{persona.name}</div>
+                          <div className="text-[9px] font-mono text-blue-400/80">
+                            {isUmbriel ? "en-US-AndrewMultilingualNeural" : "en-US-AvaMultilingualNeural"}
+                          </div>
+                        </div>
+                        <p className="text-[10px] text-ink-secondary leading-snug">
+                          {persona.description}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center justify-between mt-3">
+                        <div className="flex items-center gap-2 text-[9px] font-mono text-blue-400/70">
+                          <span>{isUmbriel ? "♂ Baritone" : "♀ Alto"}</span>
+                          <span>•</span>
+                          <span>{isUmbriel ? "Rate 0.95×" : "Rate 1.0×"}</span>
+                          <span>•</span>
+                          <span>{isUmbriel ? "−3 Hz" : "+1 Hz"}</span>
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            previewPersona(persona);
+                          }}
+                          className="py-1 px-2.5 text-[10px] font-mono rounded-lg bg-blue-500/15 hover:bg-blue-500/30 text-blue-300 border border-blue-400/30 transition flex items-center gap-1"
+                        >
+                          <Volume2 className="w-3 h-3" />
+                          <span>Preview</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* ── Research Lab Personas ── */}
+            <div>
+              <div className="flex items-center gap-2 mb-2.5">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-ink-muted font-bold">Research Lab Personas</span>
+                <div className="flex-1 h-px bg-gradient-to-r from-hairline to-transparent" />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                {VOICE_PERSONAS.filter(p => !p.isGemini).map((persona) => {
+                  const isSelected = selectedPersona.id === persona.id;
+                  return (
+                    <div
+                      key={persona.id}
+                      onClick={() => setSelectedPersona(persona)}
+                      className={`cursor-pointer rounded-xl p-3 border transition-all flex flex-col justify-between ${
+                        isSelected
+                          ? "bg-amber-subtle border-amber shadow-md shadow-amber/10 ring-1 ring-amber"
+                          : "bg-bg-surface hover:bg-bg-hover border-hairline"
+                      }`}
+                    >
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-2xl">{persona.avatar}</span>
+                          <div className="flex items-center gap-1">
+                            <span className="text-[8px] font-mono px-1.5 py-0.5 rounded bg-bg-panel border border-hairline text-ink-muted">
+                              {persona.accent.split(" ")[0]}
+                            </span>
+                            {isSelected && <Check className="w-3 h-3 text-amber" />}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-xs font-bold text-ink-primary truncate">{persona.name}</div>
+                          <div className="text-[9px] text-ink-muted font-mono truncate">{persona.role}</div>
+                        </div>
+                        <p className="text-[10px] text-ink-secondary leading-snug line-clamp-2">
+                          {persona.description}
+                        </p>
+                      </div>
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          previewPersona(persona);
+                        }}
+                        className="mt-2.5 w-full py-1 text-[10px] font-mono rounded bg-bg-panel hover:bg-amber hover:text-on-amber text-ink-primary border border-hairline transition flex items-center justify-center gap-1"
+                      >
+                        <Volume2 className="w-3 h-3" />
+                        <span>Test Voice</span>
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Engine Selection & Acoustic Mastering Equalizer */}
@@ -283,7 +360,9 @@ export function NarratorDeck() {
                   <Sparkles className="w-3.5 h-3.5 text-amber" />
                   <span>
                     {speechEngine === "neural"
-                      ? `Active: ${selectedPersona.gender === "female" ? "en-IN-NeerjaNeural" : "en-IN-PrabhatNeural"} (DSP Active)`
+                      ? `Active: ${selectedPersona.isGemini
+                          ? (selectedPersona.id === "umbriel" ? "AndrewMultilingualNeural" : "AvaMultilingualNeural")
+                          : selectedPersona.gender === "female" ? "NeerjaNeural" : "PrabhatNeural"} (DSP Active)`
                       : "DRAT relational tables active"}
                   </span>
                 </div>
