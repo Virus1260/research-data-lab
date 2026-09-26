@@ -546,7 +546,7 @@ export function VesselSizingSuite() {
                 {/* Jacket Fluid Outlet Nozzle J2 (Top Left, Tri-Clamp connection) */}
                 <rect
                   x={cx - jacketRadiusTopPx - 18}
-                  y={jacketTopY + 6}
+                  y={jacketTopY + 8}
                   width="18"
                   height="10"
                   fill={jacketFill}
@@ -555,21 +555,21 @@ export function VesselSizingSuite() {
                 />
                 <line
                   x1={cx - jacketRadiusTopPx - 18}
-                  y1={jacketTopY + 2}
+                  y1={jacketTopY + 4}
                   x2={cx - jacketRadiusTopPx - 18}
-                  y2={jacketTopY + 20}
+                  y2={jacketTopY + 22}
                   stroke={jacketStroke}
                   strokeWidth="2.5"
                 />
-                {/* J2 label placed above nozzle body to never collide with left dimension ladders */}
+                {/* J2 label placed cleanly to the left with textAnchor end to prevent line overlaps */}
                 <text
-                  x={cx - jacketRadiusTopPx - 9}
-                  y={jacketTopY + 2}
+                  x={cx - jacketRadiusTopPx - 24}
+                  y={jacketTopY + 16}
                   fill={jacketStroke}
                   fontSize="8.5"
                   fontFamily="monospace"
                   fontWeight="bold"
-                  textAnchor="middle"
+                  textAnchor="end"
                 >
                   J2 (Outlet)
                 </text>
@@ -615,22 +615,22 @@ export function VesselSizingSuite() {
                 <line
                   x1={cx + fillRadiusPx}
                   y1={fillLevelY}
-                  x2={cx + coneRadiusPx + 25}
-                  y2={fillLevelY - 14}
+                  x2={cx + coneRadiusPx + 24}
+                  y2={fillLevelY + 14}
                   stroke={fluidStroke}
                   strokeWidth="1"
                 />
                 <line
-                  x1={cx + coneRadiusPx + 25}
-                  y1={fillLevelY - 14}
-                  x2={cx + coneRadiusPx + 130}
-                  y2={fillLevelY - 14}
+                  x1={cx + coneRadiusPx + 24}
+                  y1={fillLevelY + 14}
+                  x2={cx + coneRadiusPx + 145}
+                  y2={fillLevelY + 14}
                   stroke={fluidStroke}
                   strokeWidth="1"
                 />
                 <text
                   x={cx + coneRadiusPx + 30}
-                  y={fillLevelY - 18}
+                  y={fillLevelY + 10}
                   fill={dimTextColor}
                   fontSize="8.5"
                   fontFamily="monospace"
@@ -640,7 +640,7 @@ export function VesselSizingSuite() {
                 </text>
                 <text
                   x={cx + coneRadiusPx + 30}
-                  y={fillLevelY - 5}
+                  y={fillLevelY + 23}
                   fill={fluidStroke}
                   fontSize="8"
                   fontFamily="monospace"
@@ -860,23 +860,23 @@ export function VesselSizingSuite() {
                 {/* RIGHT SIDE CALLOUT: ANNULAR JACKET 50 MM GAP (AUTOCAD DOGLEG LEADER) */}
                 <line
                   x1={cx + jacketRadiusTopPx}
-                  y1={jacketTopY + 25}
+                  y1={jacketTopY + 10}
                   x2={cx + jacketRadiusTopPx + 24}
-                  y2={jacketTopY + 45}
+                  y2={jacketTopY - 14}
                   stroke={jacketStroke}
                   strokeWidth="1"
                 />
                 <line
                   x1={cx + jacketRadiusTopPx + 24}
-                  y1={jacketTopY + 45}
+                  y1={jacketTopY - 14}
                   x2={cx + jacketRadiusTopPx + 130}
-                  y2={jacketTopY + 45}
+                  y2={jacketTopY - 14}
                   stroke={jacketStroke}
                   strokeWidth="1"
                 />
                 <text
                   x={cx + jacketRadiusTopPx + 30}
-                  y={jacketTopY + 40}
+                  y={jacketTopY - 19}
                   fill={jacketStroke}
                   fontSize="8.5"
                   fontFamily="monospace"
@@ -886,7 +886,7 @@ export function VesselSizingSuite() {
                 </text>
                 <text
                   x={cx + jacketRadiusTopPx + 30}
-                  y={jacketTopY + 53}
+                  y={jacketTopY - 6}
                   fill={dimColor}
                   fontSize="7.5"
                   fontFamily="monospace"
@@ -990,7 +990,13 @@ export function VesselSizingSuite() {
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-1.5 rounded-xl bg-bg-panel border border-hairline">
               <button
-                onClick={() => setDrivingMode("volume")}
+                onClick={() => {
+                  setDrivingMode("volume");
+                  if (drivingMode === "height" || drivingMode === "diameter") {
+                    setIsCustomMode(true);
+                    setCustomWorkingVolumeL(coneGeom.calculatedWorkingVolumeL);
+                  }
+                }}
                 className={`py-2 px-3 rounded-lg text-xs font-mono font-semibold transition cursor-pointer text-center ${
                   drivingMode === "volume"
                     ? "bg-cyan-600 text-white shadow-xs"
@@ -1016,6 +1022,10 @@ export function VesselSizingSuite() {
                 onClick={() => {
                   setDrivingMode("vol_and_height");
                   setTargetHeightCm(coneGeom.heightCm);
+                  if (drivingMode === "height" || drivingMode === "diameter") {
+                    setIsCustomMode(true);
+                    setCustomWorkingVolumeL(coneGeom.calculatedWorkingVolumeL);
+                  }
                 }}
                 className={`py-2 px-3 rounded-lg text-xs font-mono font-semibold transition cursor-pointer text-center ${
                   drivingMode === "vol_and_height"
@@ -1041,8 +1051,8 @@ export function VesselSizingSuite() {
             </div>
           </div>
 
-          {/* 2. Direct Primary Parameter Controls Grid (Volume & Height Always Controllable) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* 2. Direct Primary Parameter Controls Grid (Volume, Height & Top Diameter Dynamically Coupled) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Vessel Volume Slider */}
             <div className={`p-5 sm:p-6 rounded-2xl bg-bg-panel border space-y-3.5 transition-all ${
               drivingMode === "volume" || drivingMode === "vol_and_height"
@@ -1054,7 +1064,7 @@ export function VesselSizingSuite() {
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <span className="text-xs font-bold text-ink-primary">Vessel Volume</span>
                     <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-bg-surface text-ink-dim border border-hairline font-semibold">V</span>
-                    {drivingMode === "volume" && (
+                    {(drivingMode === "volume" || drivingMode === "vol_and_height") && (
                       <span className="text-[9px] px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 font-mono font-bold border border-cyan-500/30">
                         Active Driver
                       </span>
@@ -1077,10 +1087,16 @@ export function VesselSizingSuite() {
                   min="1"
                   max="1500"
                   step="1"
-                  value={drivingMode === "height" || drivingMode === "diameter" ? coneGeom.calculatedNominalVolumeL : (isCustomMode ? customWorkingVolumeL / 0.5 : currentPreset.nominalVolumeL)}
+                  value={
+                    drivingMode === "height" || drivingMode === "diameter"
+                      ? coneGeom.calculatedNominalVolumeL
+                      : isCustomMode
+                      ? customWorkingVolumeL / 0.5
+                      : currentPreset.nominalVolumeL
+                  }
                   onChange={(e) => {
                     const val = Number(e.target.value);
-                    if (drivingMode === "height" || drivingMode === "diameter") {
+                    if (drivingMode !== "vol_and_height") {
                       setDrivingMode("volume");
                     }
                     setIsCustomMode(true);
@@ -1130,13 +1146,13 @@ export function VesselSizingSuite() {
                 <input
                   type="range"
                   min="15"
-                  max="220"
+                  max="250"
                   step="0.5"
-                  value={targetHeightCm}
+                  value={drivingMode === "height" || drivingMode === "vol_and_height" ? targetHeightCm : coneGeom.heightCm}
                   onChange={(e) => {
                     const val = Number(e.target.value);
                     setTargetHeightCm(val);
-                    if (drivingMode === "volume" || drivingMode === "diameter") {
+                    if (drivingMode !== "vol_and_height") {
                       setDrivingMode("height");
                     }
                   }}
@@ -1146,7 +1162,58 @@ export function VesselSizingSuite() {
                   <span>15 cm</span>
                   <span className="text-amber font-bold">44.5 cm (20L)</span>
                   <span>120 cm</span>
-                  <span>220 cm</span>
+                  <span>250 cm</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Top Major Diameter Slider */}
+            <div className={`p-5 sm:p-6 rounded-2xl bg-bg-panel border space-y-3.5 transition-all ${
+              drivingMode === "diameter"
+                ? "border-emerald-500/50 shadow-sm"
+                : "border-hairline"
+            }`}>
+              <div className="flex items-start justify-between gap-3">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-xs font-bold text-ink-primary">Top Major Diameter</span>
+                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-bg-surface text-ink-dim border border-hairline font-semibold">D_major</span>
+                    {drivingMode === "diameter" && (
+                      <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-mono font-bold border border-emerald-500/40">
+                        Active Driver
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-[11px] font-mono text-ink-muted">
+                    Shell OD: <strong className="text-ink-secondary">{coneGeom.outerDiameterMm.toFixed(0)} mm</strong>
+                  </div>
+                </div>
+                <div className="text-right shrink-0">
+                  <div className="font-mono text-emerald-600 dark:text-emerald-400 font-black text-xl leading-none">
+                    {coneGeom.diameterCm.toFixed(1)} <span className="text-xs font-bold text-ink-muted">cm</span>
+                  </div>
+                  <div className="text-[10px] font-mono text-ink-muted mt-1">Inside Flange Bore</div>
+                </div>
+              </div>
+              <div className="pt-2">
+                <input
+                  type="range"
+                  min="20"
+                  max="250"
+                  step="0.5"
+                  value={drivingMode === "diameter" ? targetDiameterCm : coneGeom.diameterCm}
+                  onChange={(e) => {
+                    const val = Number(e.target.value);
+                    setTargetDiameterCm(val);
+                    setDrivingMode("diameter");
+                  }}
+                  className="w-full accent-emerald-600 dark:accent-emerald-400 cursor-pointer h-2"
+                />
+                <div className="flex justify-between text-[11px] font-mono text-ink-muted mt-2">
+                  <span>20 cm</span>
+                  <span className="text-emerald-600 dark:text-emerald-400 font-bold">41.5 cm (20L)</span>
+                  <span>120 cm</span>
+                  <span>250 cm</span>
                 </div>
               </div>
             </div>
