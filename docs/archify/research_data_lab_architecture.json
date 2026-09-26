@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "AFD Conical Freeze-Dryer Research Data Lab Architecture",
+    "quality_profile": "showcase",
+    "animation": "trace",
+    "views": [
+      {
+        "id": "full-stack",
+        "label": "Complete System Flow",
+        "focus": ["engineer", "nextjs", "sizing_suite", "frustum_engine", "cad_projection", "export_cad"],
+        "note": "Follow user interactions from browser input down to CAD blueprint projection and JSON schedule generation."
+      },
+      {
+        "id": "physics-core",
+        "label": "Thermodynamics & ASME Engine",
+        "focus": ["frustum_engine", "asme_engine", "thermo_engine"],
+        "note": "Isolate the ASME Section VIII UG-32, Windenburg-Trilling buckling, and sublimation heat duty solvers."
+      },
+      {
+        "id": "content-monographs",
+        "label": "Technical Monograph Pipeline",
+        "focus": ["engineer", "nextjs", "chapter_reader", "katex_engine"],
+        "note": "See how the 26 peer-reviewed technical monograph chapters and KaTeX math workbenches are delivered."
+      }
+    ]
+  },
+  "components": [
+    { "id": "engineer", "type": "external", "label": "Chemical Engineer", "sublabel": "Process Designer", "pos": [40, 260], "size": [130, 60] },
+    { "id": "nextjs", "type": "frontend", "label": "Next.js 14 App Router", "sublabel": "React 19 / Tailwind CSS", "pos": [240, 260], "size": [150, 60] },
+    { "id": "chapter_reader", "type": "backend", "label": "Chapter Reader & MDX", "sublabel": "26 Technical Monographs", "pos": [240, 90], "size": [150, 60] },
+    { "id": "katex_engine", "type": "frontend", "label": "KaTeX Math Renderer", "sublabel": "GoverningEquationStepStack", "pos": [490, 90], "size": [160, 60] },
+    { "id": "sizing_suite", "type": "frontend", "label": "Vessel Sizing Suite", "sublabel": "Bi-directional Slider Grid", "pos": [490, 260], "size": [160, 60], "tag": "Chapter 25" },
+    { "id": "frustum_engine", "type": "backend", "label": "Frustum Geometry Solver", "sublabel": "vesselSizing.ts (V, h, D, α, d)", "pos": [760, 260], "size": [170, 60] },
+    { "id": "asme_engine", "type": "backend", "label": "ASME UG-32 & Buckling", "sublabel": "Formed Heads & Stability", "pos": [1040, 160], "size": [170, 60] },
+    { "id": "thermo_engine", "type": "backend", "label": "Thermal Kinetic Solver", "sublabel": "physics.ts (Jacket & Duty)", "pos": [1040, 360], "size": [170, 60] },
+    { "id": "cad_projection", "type": "frontend", "label": "AutoCAD Blueprint SVG", "sublabel": "Dimensioned CAD Section", "pos": [760, 460], "size": [170, 60] },
+    { "id": "export_cad", "type": "database", "label": "CAD Schedule Generator", "sublabel": "SolidWorks JSON Export", "pos": [490, 460], "size": [160, 60], "tag": "ASME BPE" }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Research Data Lab Platform (research-data-lab)", "wraps": ["nextjs", "chapter_reader", "katex_engine", "sizing_suite", "frustum_engine", "asme_engine", "thermo_engine", "cad_projection", "export_cad"] },
+    { "kind": "security-group", "label": "Core Physics & Structural Computation Tier", "wraps": ["frustum_engine", "asme_engine", "thermo_engine"] }
+  ],
+  "connections": [
+    { "id": "eng-to-next", "from": "engineer", "to": "nextjs", "label": "HTTPS :3000", "variant": "emphasis" },
+    { "id": "next-to-chapter", "from": "nextjs", "to": "chapter_reader", "fromSide": "top", "toSide": "bottom" },
+    { "id": "chapter-to-katex", "from": "chapter_reader", "to": "katex_engine", "label": "LaTeX AST" },
+    { "id": "next-to-suite", "from": "nextjs", "to": "sizing_suite" },
+    { "id": "suite-to-frustum", "from": "sizing_suite", "to": "frustum_engine", "label": "Frustum Geometry", "variant": "emphasis" },
+    { "id": "frustum-to-asme", "from": "frustum_engine", "to": "asme_engine", "fromSide": "right", "toSide": "left", "label": "Flange Diameters" },
+    { "id": "frustum-to-thermo", "from": "frustum_engine", "to": "thermo_engine", "fromSide": "right", "toSide": "left", "label": "Surface Area" },
+    { "id": "frustum-to-cad", "from": "frustum_engine", "to": "cad_projection", "fromSide": "bottom", "toSide": "top", "label": "CAD Coordinates", "labelAt": [845, 390] },
+    { "id": "suite-to-export", "from": "sizing_suite", "to": "export_cad", "fromSide": "bottom", "toSide": "top", "label": "Schedule Data", "labelAt": [570, 390], "variant": "dashed" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Presentation & UI Tier",
+      "items": [
+        "Next.js 14 App Router client with responsive typography and dark/paper themes",
+        "Dynamic unstackable 'What is What' variable cards using GoverningEquationStepStack",
+        "Vector AutoCAD drafting canvas with auto-scaled dimension ladders and dogleg callouts"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Rigorous Engineering Solvers",
+      "items": [
+        "Exact truncated cone frustum volume and height calculations with 50% batch rule",
+        "ASME Section VIII Div 1 UG-32(e)/(d) minimum wall thickness for formed heads",
+        "Windenburg-Trilling elastic instability verification against full vacuum collapse"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Data & CAD Export",
+      "items": [
+        "26 comprehensive technical chapters and peer-reviewed reference citations",
+        "Parametric JSON nozzle schedule export for direct import into SolidWorks CAD"
+      ]
+    }
+  ]
+}
