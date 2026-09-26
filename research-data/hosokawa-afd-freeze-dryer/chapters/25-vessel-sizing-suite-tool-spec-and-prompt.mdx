@@ -1,0 +1,87 @@
+---
+title: "Vessel Sizing Suite: Tool Specification & Antigravity Build Prompt"
+chapterNumber: "25"
+slug: "25-vessel-sizing-suite-tool-spec-and-prompt"
+act: "Automation, P&ID & CAD"
+actId: "act-5"
+readTime: "8 min read"
+simulators: ['VesselSizingSuite']
+---
+
+# 25: Vessel Sizing Suite: Tool Specification & Antigravity Build Prompt
+
+This file turns files 05 §1a/§1b and 11 §6-7 into an operational software tool specification: a parametric vessel-sizing calculator with presets mirroring Hosokawa's published model range.
+
+## 1. What this tool is and what it is not
+
+**It is**: a fast, interactive way to explore vessel geometry across the size range (1 L to 1,500 L nominal, matching Hosokawa's 10 published models). It shows how working volume, cone angle, height, diameter, surface area, and preliminary wall thickness move together. It exports dimensioned schedules for CAD modeling (file 24).
+
+**It is not**: a replacement for PV Elite, a certified pressure vessel solver, or a source of truth for fabrication cut dimensions. File 11 §7 establishes this boundary. This tool provides rapid preliminary sizing. PV Elite provides certified code calculations before fabrication. The tool states this boundary prominently in its user interface.
+
+## 2. Core calculation modules
+
+1. **Working-volume module**: Input target batch volume or select a preset. Nominal vessel volume computes as working volume divided by 0.5 (file 05 §1a 50% design constant).
+2. **Cone geometry module**: Input nominal volume and half-angle (20° to 35° range). Solve:
+   $$h = \left[\frac{3 \cdot V}{\pi \cdot \tan^2(\alpha)}\right]^{1/3}$$
+   $$D = 2 \cdot h \cdot \tan(\alpha)$$
+   $$\text{Slant Length } L_{\text{slant}} = \frac{D / 2}{\sin(\alpha)}$$
+   $$\text{Lateral Area } A_{\text{lat}} = \pi \cdot \left(\frac{D}{2}\right) \cdot L_{\text{slant}}$$
+   Show 50% fill height fraction ($f^{1/3} \approx 79.4\%$). Make this non-linear height-to-volume relationship clearly visible in the UI.
+3. **Jacket cross-check module**: Compute required heat transfer area:
+   $$A_{\text{req}} = \frac{Q}{U \cdot \Delta T}$$
+   Compare against cone lateral area. If the cone falls short, calculate required straight-side cylinder height to close the thermal deficit.
+4. **Head selector module**:
+   - Flat head: flag as unsuitable above 300 mm diameter under vacuum.
+   - Torispherical ASME F&D: $L = D$, $r = 0.06D$, $M = \frac{3+\sqrt{L/r}}{4} \approx 1.77$.
+   - 2:1 Ellipsoidal: $L = 0.9D$, $r = 0.17D$, $K = 1.0$.
+   - Internal steam pressure thickness (UG-32) and external vacuum equivalent sphere radius (UG-33).
+5. **Preliminary external-pressure module**: Implement the classical Windenburg-Trilling elastic-buckling equation for preliminary estimation. Mark clearly as a non-certified estimate. Do not attempt to fabricate without PV Elite verification.
+6. **Preset library**: 10 Hosokawa sizes (1, 5, 20, 60, 100, 200, 500, 800, 1,000, 1,500 L nominal) with 50% batch volume pre-filled.
+7. **CAD export**: Export dimensioned geometry as JSON matching the schema of `pid_controls_data/cad_equipment_nozzle_schedule.json`.
+
+## 3. The build prompt for Antigravity
+
+```
+You are building a parametric mechanical sizing calculator for a stirred conical
+pharma freeze-dryer vessel, as a companion tool to this research lab.
+
+SCOPE: This is a preliminary sizing tool, not a certified pressure-vessel code solver.
+State this limitation clearly in the UI. The tool must never present external-pressure
+output as a substitute for licensed ASME Section VIII software (such as PV Elite).
+
+CORE FEATURES:
+1. Preset picker with 10 buttons matching Hosokawa AFD models:
+   Nominal [L]: 1, 5, 20, 60, 100, 200, 500, 800, 1000, 1500
+   Max batch volume [L] (50% ratio): 0.5, 2.5, 10, 30, 50, 100, 250, 400, 500, 750
+
+2. Custom input mode: Enter batch volume; compute nominal volume = batch / 0.5.
+
+3. Cone angle slider (20° to 35° half-angle, default 25°):
+   - Height h = [3V / (pi * tan^2(alpha))]^(1/3)
+   - Top diameter D = 2 * h * tan(alpha)
+   - Slant length = (D/2) / sin(alpha)
+   - Lateral area = pi * (D/2) * slant_length
+   - Liquid fill height at 50% = h * (0.5)^(1/3) = 79.4% of total height.
+   Render a live, to-scale 2D SVG cross-section of the cone showing fill line,
+   freeboard, angle, and dimensions.
+
+4. Jacket cross-check panel:
+   Inputs: Sublimation rate (kg/h), U (50-200 W/m^2K), delta-T (10-30 K).
+   Compute required area = Q / (U * deltaT).
+   Compare against cone lateral area with pass/fail indicator and cylinder extension height.
+
+5. Head type selector (Flat, Torispherical ASME F&D, 2:1 Ellipsoidal):
+   - Internal pressure thickness (UG-32).
+   - Equivalent sphere external vacuum check (UG-33).
+
+6. Preliminary external-pressure check:
+   - Compute critical elastic buckling via Windenburg-Trilling formula.
+   - Display prominent disclaimer: "Preliminary estimate only. Verify in PV Elite before fabrication."
+
+7. Export:
+   - JSON export matching cad_equipment_nozzle_schedule.json schema.
+```
+
+## 4. Architectural role within the project
+
+This specification sits in Act 5 alongside file 13 (drawings) and file 24 (CAD nozzle schedule). It bridges engineering theory from files 05 and 11 into interactive computational tools and CAD models.

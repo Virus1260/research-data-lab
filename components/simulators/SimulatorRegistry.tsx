@@ -10,6 +10,7 @@ import { CycleProfileScrubber } from "./CycleProfileScrubber";
 import { VesselCrossSection3D } from "./VesselCrossSection3D";
 import { AfdComparisonFlip } from "./AfdComparisonFlip";
 import { RefrigerationCascadeDiagram } from "./RefrigerationCascadeDiagram";
+import { VesselSizingSuite } from "./VesselSizingSuite";
 import { LawEquationsPlayground } from "@/components/exhibit/LawEquationsPlayground";
 
 interface RegistryProps {
@@ -39,6 +40,8 @@ export function SimulatorComponent({ name }: RegistryProps) {
       return <AfdComparisonFlip />;
     case "RefrigerationCascadeDiagram":
       return <RefrigerationCascadeDiagram />;
+    case "VesselSizingSuite":
+      return <VesselSizingSuite />;
     default:
       return null;
   }

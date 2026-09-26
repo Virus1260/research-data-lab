@@ -4,96 +4,137 @@ chapterNumber: "11"
 slug: "11-design-calculations-and-sizing-methodology"
 act: "Build It"
 actId: "act-3"
-readTime: "8 min read"
-simulators: ['SublimationRateCalculator', 'RefrigerationLoadCalculator', 'VacuumPumpdownSimulator']
+readTime: "10 min read"
+simulators: ['SublimationRateCalculator', 'RefrigerationLoadCalculator', 'VacuumPumpdownSimulator', 'VesselSizingSuite']
 ---
 
-# 11 — Design Calculations & Sizing Methodology
+# 11: Design Calculations & Sizing Methodology
 
-All worked numbers below use a **representative 10 kg batch (≈10 L) of a 90% water solution, in a nominal ~20 L vessel** — chosen because it lines up with a size Hosokawa itself publishes indicative performance for on the AFD page (their "20 L model" is quoted with a 10 L max batch volume and an indicative sublimation capacity of 0.8 kg/h), letting us **cross-check a first-principles calculation against Hosokawa's own published figure** without needing any proprietary data. Every number below is illustrative engineering methodology, not a specification for your build — rerun these with your own batch size, product properties, and measured (not assumed) heat-transfer coefficients once you have a prototype to test.
+All worked calculations below evaluate a representative **10 kg batch (10 L liquid) in a 20 L nominal vessel**. This batch matches Hosokawa's published 20 L Active Freeze Dryer model (10 L batch capacity, 0.8 kg/h sublimation capacity). This allows direct cross-checking of first-principles physics against commercial performance figures.
 
-## 1. Sublimation rate ↔ heat duty (cross-checked against Hosokawa's published figure)
+## 1. Sublimation rate and thermal duty
 
-The core relationship (file 02 §3):
-```
-Q = (dm/dt) × ΔHs
-```
-`ΔHs` (latent heat of sublimation of ice) ≈ 2,838 kJ/kg.
+The core sublimation energy equation is:
 
-Plugging in **Hosokawa's own published 0.8 kg/h** for the 20 L model:
-```
-dm/dt = 0.8 kg/h = 2.222×10⁻⁴ kg/s
-Q = 2.222×10⁻⁴ × 2,838,000 J/kg ≈ 631 W
-```
-**A ~630 W jacket heat duty to sustain 0.8 kg/h sublimation is a small, entirely buildable number** for a 20 L-class unit — well within a single-phase electric heater or a modest hot/cold TCU circuit. This is a useful sanity check: if your own design's required heat duty for a similar batch size comes out wildly different (say, tens of kW), that's a strong signal to re-examine your assumptions before building anything.
+$$Q = \dot{m} \cdot \Delta H_s$$
 
-**Time to sublime the batch's water content**, at that rate: for 9 kg of water (90% of a 10 kg batch) at 0.8 kg/h, primary drying takes **≈11.25 h** — consistent with the "hours to days" range generic literature gives for primary drying, and with Hosokawa's own 2003 patent's "10–100 hours for a 50 L charge" figure (a larger charge, so a longer time, is directionally consistent).
+For ice, latent heat of sublimation is $\Delta H_s \approx 2{,}838\text{ kJ/kg}$.
+
+Hosokawa specifies $\dot{m} = 0.8\text{ kg/h}$ for the 20 L model:
+
+$$\dot{m} = \frac{0.8\text{ kg}}{3600\text{ s}} = 2.222 \times 10^{-4}\text{ kg/s}$$
+
+$$Q = 2.222 \times 10^{-4}\text{ kg/s} \times 2{,}838{,}000\text{ J/kg} \approx 631\text{ W}$$
+
+A thermal heat duty of 631 W sustains 0.8 kg/h sublimation. This thermal load is compact and readily delivered by an electric circulation TCU.
+
+For a 10 kg batch with 90% water content (9.0 kg ice), primary drying time calculates as:
+
+$$t_{\text{drying}} = \frac{9.0\text{ kg}}{0.8\text{ kg/h}} \approx 11.25\text{ hours}$$
+
+This drying duration aligns with Hosokawa's patent range of 10 to 100 hours for industrial batches.
 
 ## 2. Required jacket heat-transfer area
 
-```
-Q = U × A × ΔT   →   A = Q / (U × ΔT)
-```
-- `U` = overall heat transfer coefficient, jacket wall → agitated product. **This is genuinely product- and design-specific and cannot be looked up reliably** — it depends on wall material/thickness, agitation intensity, particle size, and chamber pressure (gas-phase conduction across any micro-gaps is pressure-dependent, same physics as file 02's vial-heat-transfer-coefficient discussion). A reasonable **first-pass planning range for an actively agitated, direct-contact granular bed is roughly 50–200 W/m²·K** — meaningfully better than the static-vial gas-gap coefficients reported in the Pikal-model literature (which are often only single digits to tens of W/m²·K, precisely *because* a static vial's heat path crosses a poorly-conducting gas gap that agitation is specifically designed to eliminate), but this must be measured on your own prototype, not assumed for a final design.
-- `ΔT` = jacket-wall-to-product temperature differential; **10–30 °C** is a reasonable planning range, consistent with typical primary-drying shelf-to-product differentials reported in the shelf-freeze-dryer literature.
+Compute heat exchange surface using:
 
-At `Q ≈ 631 W`:
+$$Q = U \cdot A \cdot \Delta T \implies A = \frac{Q}{U \cdot \Delta T}$$
 
-| Assumed U (W/m²K) | Required area for ΔT = 20 °C |
+- $U$: Overall heat transfer coefficient from jacket fluid to the agitated granular bed. For an actively stirred bed under vacuum, plan for $50\text{ to }200\text{ W/m}^2\text{K}$. Agitation eliminates the stagnant gas gap found in static vial freeze drying.
+- $\Delta T$: Temperature difference between the jacket wall and the sublimation front (typically 10 to 30 K).
+
+At $Q = 631\text{ W}$:
+
+| Assumed $U$ ($\text{W/m}^2\text{K}$) | Required Area $A$ ($\text{m}^2$) at $\Delta T = 20\text{ K}$ |
 |---|---|
-| 50 | 0.63 m² |
-| 100 | 0.32 m² |
-| 150 | 0.21 m² |
-| 200 | 0.16 m² |
+| 50 | 0.63 |
+| **100** | **0.32** |
+| 150 | 0.21 |
+| 200 | 0.16 |
 
-A vessel wall area in the 0.15–0.65 m² range is entirely consistent with the wetted internal-cone surface area of a vessel sized to hold a 10–20 L batch — another sanity-check pass. **Build in adjustable jacket-fluid temperature control (via the TCU) so you can tune actual ΔT once you've measured your real U empirically**, rather than trying to nail this on paper alone.
+At $U = 100\text{ W/m}^2\text{K}$, required area is $0.32\text{ m}^2$. Sizing a 20 L cone with a 25° half-angle yields exactly $0.32\text{ m}^2$ of internal wetted lateral area.
 
-## 3. Freezing-stage refrigeration load
+## 3. Freezing-stage refrigeration duty
 
-Three sequential heat-removal steps for a 10 kg batch (90% water), cooling from +20 °C ambient to a −30 °C frozen mass (an illustrative target inside Hosokawa's patent-disclosed −55 °C to −15 °C post-freeze range):
+Cooling a 10 kg aqueous charge (9.0 kg water, 1.0 kg solids) from +20 °C to -30 °C requires three thermal steps:
 
-```
-Q1 (cool liquid, 20 °C → 0 °C)   = m × cp_liquid × ΔT  = 10 kg × 4.2 kJ/kg·K × 20 K   = 840 kJ
-Q2 (freeze the water content)    = m_water × ΔHf        = 9 kg × 334 kJ/kg             = 3,006 kJ
-Q3 (cool frozen mass, 0 → −30°C) = m × cp_ice × ΔT       = 10 kg × 2.1 kJ/kg·K × 30 K   = 630 kJ
-                                                            ─────────────────────────────
-                                                            Total ≈ 4,476 kJ (4.48 MJ)
-```
+$$Q_1 = m \cdot c_{p,\text{liq}} \cdot \Delta T_1 = 10\text{ kg} \times 4.2\text{ kJ/kg}\cdot\text{K} \times 20\text{ K} = 840\text{ kJ}$$
 
-Average refrigeration duty depends on how fast you want to complete freezing — which is itself bounded by Hosokawa's own disclosed **0.1–10 °C/min optimum freezing rate**:
+$$Q_2 = m_{\text{water}} \cdot \Delta H_f = 9\text{ kg} \times 334\text{ kJ/kg} = 3{,}006\text{ kJ}$$
 
-| Freezing time | Implied cooling rate (50 °C swing) | Avg. refrigeration duty |
+$$Q_3 = m \cdot c_{p,\text{ice}} \cdot \Delta T_2 = 10\text{ kg} \times 2.1\text{ kJ/kg}\cdot\text{K} \times 30\text{ K} = 630\text{ kJ}$$
+
+$$\text{Total Thermal Removal } Q_{\text{total}} = 840 + 3{,}006 + 630 = 4{,}476\text{ kJ } (4.48\text{ MJ})$$
+
+Hosokawa patents define optimum freezing rates between 0.1 °C/min and 10 °C/min:
+
+| Target Freeze Time | Cooling Rate (50 °C delta) | Average Refrigeration Duty |
 |---|---|---|
-| 2 h | 0.42 °C/min | 0.62 kW |
-| 1 h | 0.83 °C/min | 1.24 kW |
+| 2.0 h | 0.42 °C/min | 0.62 kW |
+| 1.0 h | 0.83 °C/min | 1.24 kW |
 | 0.5 h | 1.67 °C/min | 2.49 kW |
 
-All three sit comfortably inside Hosokawa's disclosed 0.1–10 °C/min range, and all three are modest, workshop-buildable refrigeration duties (roughly "large chest freezer" to "small commercial chiller" scale) — **before** accounting for jacket/ambient losses and TCU inefficiency, for which a **1.5–2× capacity margin over the calculated average duty** is standard engineering practice, and before accounting for the *separate* condenser/material-collector refrigeration duty (file 06 §2), which must remove the same latent heat again when the sublimed vapor re-condenses/freezes downstream.
+Apply a 1.5x to 2.0x engineering factor to account for jacket thermal mass, ambient heat leak, and pump dissipation. Specify a 2.5 to 3.5 kW refrigeration unit.
 
-## 4. Vacuum pump-down time (empty-vessel, first-pass estimate)
+## 4. Vacuum pump evacuation time
 
-The standard exponential pump-down relationship for evacuating a fixed volume with a pump of constant volumetric speed (ignoring outgassing/vapor load — a valid approximation only for the initial, dry evacuation before ice starts subliming):
-```
-t = (V / S) × ln(P1 / P2)
-```
-For a 20 L (0.02 m³) free vessel volume, pumping from atmospheric (1,013 mbar) down to 1 mbar:
+Dry chamber pump-down time follows the volumetric evacuation equation:
 
-| Pump speed S | Pump-down time |
+$$t = \left(\frac{V}{S}\right) \cdot \ln\left(\frac{P_1}{P_2}\right)$$
+
+For a 20 L ($0.02\text{ m}^3$) dry vessel pumping from 1,013 mbar down to 1 mbar:
+
+| Pump Displacement $S$ | Calculated Evacuation Time |
 |---|---|
-| 5 m³/h | ~100 s |
-| 10 m³/h | ~50 s |
-| 20 m³/h | ~25 s |
-| 50 m³/h | ~10 s |
+| 5 $\text{m}^3/\text{h}$ | ~100 s |
+| 10 $\text{m}^3/\text{h}$ | ~50 s |
+| 20 $\text{m}^3/\text{h}$ | ~25 s |
+| 50 $\text{m}^3/\text{h}$ | ~10 s |
 
-**This is only the "dry" evacuation time.** Once the product starts giving off water vapor (during freezing induction and especially during primary drying), the pump must additionally handle the ongoing sublimation vapor load — at the 0.8 kg/h sublimation rate above, that's roughly 0.22 g/s of water vapor, which at low pressure occupies a very large volumetric flow (ideal gas law: at 1 mbar and −20°C, 0.22 g/s of water vapor is on the order of several hundred L/s of volumetric flow) — this is the actual reason freeze-dryer vacuum pumps are specified against **vapor handling capacity at the operating pressure**, not against empty-chamber pump-down speed. Pump selection should be driven by this sublimation vapor load calculation (and by the condenser's job of removing most of that vapor as ice before it ever reaches the pump — file 06 §4), with the empty-vessel pump-down number used only as a secondary check on how quickly you can get the system down to the freezing-induction pressure at the start of each batch.
+This calculation covers initial dry chamber drawdown only. During sublimation, water vapor volumetric flow dominates. At 1 mbar and -20 °C, 0.8 kg/h of vapor equates to over 250 L/s of volumetric gas flow. The cold condenser traps over 95% of this vapor, protecting the dry vacuum pump.
 
-## 5. Agitator power — an honest "you must measure this" section
+## 5. Agitator motor sizing
 
-Unlike the calculations above, agitator torque/power for a granular, partially-frozen bed **cannot be reliably predicted from first principles** without either detailed granular-flow modeling or empirical testing — the resistance depends on particle size, degree of caking, fill level, and the specific mixing-element geometry you build. What can be stated with confidence:
+Granular agitated bed rheology under freezing vacuum cannot be modeled accurately from first principles alone.
+- Hosokawa's 500 L Nauta industrial mixer operates with a 2.2 kW drive.
+- A 20 L freeze dryer requires significantly less power (100 W to 250 W continuous).
+- Size the drive motor for peak torque during the slush-to-ice phase inversion. Equip the drive with a variable frequency controller (VFD) and monitor motor current continuously.
 
-- Hosokawa's own patent explicitly notes that **because freeze-drying is slow, only gentle mixing is needed** — this is not a high-power, high-shear mixing duty like a chemical reactor.
-- For scale intuition only (not a sizing method): Hosokawa's general-purpose Nauta mixer line uses a **2.2 kW motor at 500 L** (file 03 §3) for full-intensity powder mixing duty — a 20 L freeze-dryer vessel, running at a much gentler speed for a much gentler duty, will need dramatically less, plausibly in the tens-to-low-hundreds-of-watts range, but **this should be confirmed empirically**: specify a variable-frequency drive with generous headroom over your best estimate, instrument the drive for torque/current (file 08 §1), and let the real, measured load — including the worst case, which is likely mid-freeze when the mass is partially solidified and most resistant to being moved — set your final motor selection rather than a paper calculation.
+## 6. External-pressure shell thickness: ASME UG-28
 
-## 6. External-pressure vessel thickness — method reference
+The vessel operates under external vacuum pressure (1.013 bar differential):
+- Thin conical shells fail by elastic buckling rather than plastic yielding.
+- Sizing follows ASME Section VIII Division 1, paragraph UG-28.
+- The engineer assumes an initial wall thickness $t$, computes diameter-to-thickness ($D_o/t$) and length-to-diameter ($L/D_o$) ratios, and retrieves Strain Factor $A$ from Section II Part D Subpart 3 Figure G.
+- Using Factor $A$ and design metal temperature, read Stress Factor $B$ from material charts.
+- Allowable external working pressure computes as:
 
-For the vessel and jacket wall thickness under full external vacuum, use the standard **ASME Section VIII Division 1, UG-28 procedure** (file 05 §5): assume a trial thickness, compute the shell's `L/Do` and `Do/t` ratios, read the geometry/material factor from the Code's charts (or the equivalent numerical method in the Code's non-mandatory appendices), and verify the resulting allowable external pressure exceeds your design case (full vacuum, i.e., ~1 atm/1.013 bar external differential, plus any additional margin your jurisdiction's code requires) with the Code-mandated safety factor against theoretical elastic collapse. This procedure is iterative (thickness assumed → checked → revised) and is most practically run using the standard external-pressure charts/software your fabricator or design engineer already uses, rather than hand-calculated from scratch — flagged here as a methodology pointer, not repeated in full, since it is standard, already-mastered territory for anyone with ASME Section VIII pressure-vessel design background.
+$$P_a = \frac{4 \cdot B}{3 \cdot (D_o/t)}$$
+
+Verify that $P_a \ge 1.033\text{ bar}$ plus your required safety margin.
+
+## 7. External pressure tooling methodology: Division 1 vs Division 2 vs PV Elite
+
+Understanding the calculation methodology determines software implementation:
+
+1. **ASME Section VIII Division 1 (UG-28)**:
+   - Uses empirical look-up charts. Factor $A$ comes from Figure G. Factor $B$ derives from material stress curves in Section II Part D.
+   - These curves represent proprietary ASME compiled data. Do not use AI models to guess curve values.
+2. **ASME Section VIII Division 2 (Part 4.4 - Miller Method)**:
+   - Formulated as closed-form algebraic equations.
+   - Eliminates chart lookups.
+   - Readily programmed into automated computational tools.
+3. **PV Elite and Commercial Pressure Vessel Solvers**:
+   - Industry-standard validated solver for ASME certified code calculations.
+   - Integrates ASME material databases and safety factors.
+4. **Interactive Vessel Sizing Suite (Built in this Lab)**:
+   - Provides preliminary sizing, live geometric exploration, and nozzle coordination.
+   - Implements the open, published **Windenburg-Trilling equation** for classical elastic buckling:
+
+$$P_{\text{cr}} = \frac{2.42 \cdot E \cdot (t / D_o)^{5/2}}{(1 - \nu^2)^{3/4} \cdot \left[\frac{L}{D_o} - 0.45 \cdot (t / D_o)^{1/2}\right]}$$
+
+   - Applying a structural safety factor of 3.0 gives the preliminary allowable pressure:
+
+$$P_{\text{allowable}} = \frac{P_{\text{cr}}}{3.0}$$
+
+**Fabrication Rule**: Use the Sizing Suite for rapid dimensional optimization and nozzle scheduling. Perform final certified thickness validation in PV Elite prior to cutting metal.

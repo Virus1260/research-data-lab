@@ -4,11 +4,11 @@ chapterNumber: "05"
 slug: "05-vessel-chamber-agitator-and-materials"
 act: "The Machine"
 actId: "act-2"
-readTime: "9 min read"
-simulators: ['VesselCrossSection3D']
+readTime: "12 min read"
+simulators: ['VesselCrossSection3D', 'VesselSizingSuite']
 ---
 
-# 05 — Vessel, Chamber, Agitator & Materials
+# 05: Vessel, Chamber, Agitator & Materials
 
 ![Hosokawa Active Freeze Dryer (AFD) Isolated Machine Architecture](/photos/hosokawa_afd_equipment.webp)
 
@@ -16,71 +16,161 @@ simulators: ['VesselCrossSection3D']
 
 ## 1. Vessel geometry
 
-Per NL1022668C2 and NL2026893B1 (file 03), the vessel is:
-- **Downward-conical** (cone point at bottom), optionally with a short cylindrical section at the top near the lid to give room for the drive, seals, and top-mounted nozzles/fittings — the patent explicitly notes this is common on "classical" conical mixers.
-- A cylindrical vessel with only a conical *bottom* section is called out as an acceptable, more space-efficient variant, provided the cylindrical-to-conical proportion is chosen so mixing still works well (no numeric ratio is given in the patent — this is a design/test parameter, not a published constant).
-- **Double-jacketed wall**: two concentric compartments (per NL2026893B1's Figure 1B description) around the vessel wall, each able to carry a heat-exchange medium, so the same wall can be cooled during freezing and heated during drying without swapping fluids.
-- **Open top**, closed by a **top lid** fixed with clamping screws (a quick-release clamp/tri-clamp-style closure is the generic sanitary-industry equivalent and a very reasonable workshop substitute).
-- **Open bottom**, closed by a **releasable outlet** (ball-segment valve type per the patent drawings) for full discharge.
+Per NL1022668C2 and NL2026893B1 (file 03), the vessel features:
+- **Downward-conical geometry** (cone point at bottom), optionally with a short cylindrical section at the top near the lid to give room for the drive, seals, and top-mounted nozzles. The patent explicitly notes this is common on classical conical mixers.
+- A cylindrical vessel with only a conical bottom section is an acceptable, more space-efficient variant. The cylindrical-to-conical proportion must preserve mixing action.
+- **Double-jacketed wall**: two concentric compartments (per NL2026893B1 Figure 1B) around the vessel wall. Each carries heat-exchange media, allowing wall cooling during freezing and heating during drying without fluid cross-contamination.
+- **Open top**, closed by a top lid fixed with clamping screws. Quick-release clamp closures provide sanitary equivalents in workshop builds.
+- **Open bottom**, closed by a releasable outlet (ball-segment valve) for complete discharge.
 
-No vessel diameter, height, wall thickness, or exact cone angle is published for the AFD. For your own build, treat the vessel geometry as a design variable you solve for in file 11 based on your target batch volume, not a number to look up.
+Hosokawa does not publish vessel diameter, height, wall thickness, or exact cone angle for the AFD. Treat vessel geometry as a design variable you calculate based on your target batch volume.
 
-## 2. Fittings on the lid (per NL2026893B1's worked example — useful as a checklist)
+## 1a. Sizing the vessel: working-volume ratio, cone angle, and closures
 
-- Fluid outlet (vacuum) port to the material collector, with a flanged, quick-couple connection carrying a safety switch that confirms proper coupling before the cycle can run.
-- Attachment flanges for: an illumination source (sight light), a vent valve (for controlled atmosphere break), and a **sight glass** (visual inspection during the cycle — valuable for a first-time builder too).
-- One or more **blow nozzles**, plumbed to a gas source, aimed into the chamber for the end-of-cycle cleanup gas pulse.
-- Spray nozzle(s) for CIP (per the 2003 patent's "rotational washing nozzle").
+![Vessel Sizing Geometry and Working Volume Relationship](/diagrams/vessel_sizing_geometry.png)
+
+### The working-volume ratio is published data: 50%, not 80%
+
+Hosokawa publishes a table of 10 nominal models from 1 L to 1,500 L. Every model specifies a maximum batch volume of exactly 50% nominal vessel volume:
+- 1 L vessel holds 0.5 L batch.
+- 20 L vessel holds 10 L batch.
+- 100 L vessel holds 50 L batch.
+- 1,500 L vessel holds 750 L batch.
+
+This constant holds across two orders of magnitude. Use 50% as your design basis.
+
+The AFD requires more headroom than an ordinary liquid tank for four physical reasons:
+1. **The orbiting agitator needs headspace.** A Nauta-style screw lifts and folds product along the wall. Filling beyond 50% restricts product turnover at the top.
+2. **The frozen bed occupies more volume than liquid.** Ice is 9% less dense than water. In addition, agitated freezing breaks the mass into loose, snow-like granules. Loose powder beds contain substantial gas voids. Total bulking frequently exceeds 30% to 50%. A 50% fill leaves a 2x volume safety factor. An 80% fill leaves only 1.25x margin.
+3. **Vapor needs an unobstructed disengagement zone.** Sublimed water vapor travels from the bed to the top nozzle. Ample headspace reduces vapor superficial velocity, preventing fine powder carryover into the dust collector.
+4. **Aqueous solutions foam under vacuum pull.** Dissolved gases boil out during initial evacuation, raising the liquid surface temporarily.
+
+### Volume fraction versus height fraction in a cone
+
+In a downward cone, volume scales with the cube of liquid height:
+
+$$h_{\text{fill}} = h_{\text{total}} \cdot \left(\frac{V_{\text{fill}}}{V_{\text{nominal}}}\right)^{1/3}$$
+
+| Volume Fill (%) | Liquid Height (% of Total) | Freeboard Height (%) |
+|---|---|---|
+| 30% | 66.9% | 33.1% |
+| 40% | 73.7% | 26.3% |
+| **50%** | **79.4%** | **20.6%** |
+| 60% | 84.3% | 15.7% |
+| 70% | 88.8% | 11.2% |
+| 80% | 92.8% | 7.2% |
+
+At 50% volume fill, liquid reaches 79.4% of total cone height. You retain only 20.6% of vertical height as freeboard. At 80% volume fill, freeboard collapses to 7.2% of height.
+
+To add physical headroom without widening the floor footprint, add a short cylindrical straight-side above the cone. Cylinder volume scales linearly with height, providing freeboard more efficiently than cone elongation.
+
+### Selecting cone half-angle
+
+Hosokawa Nauta mixer dimensions indicate half-angles between 20° and 22.5° from vertical. Practical builds operate between 20° and 35°:
+- **Steeper cone (20°)**: Taller vessel with smaller top diameter. Improves gravity powder discharge. Maximizes external pressure buckling resistance by reducing unsupported shell span.
+- **Shallower cone (35°)**: Shorter overall height. Larger top diameter increases buckling risk under vacuum. Leaves larger residual powder heels at the apex.
+
+### Worked sizing example: 10 L working volume (20 L nominal vessel)
+
+For a 10 L liquid batch, size a 20 L nominal vessel. Select a 25° half-angle ($\alpha = 25^\circ$):
+
+$$V_{\text{cone}} = \frac{\pi}{3} \cdot \tan^2(\alpha) \cdot h^3 \implies h = \left[\frac{3 \cdot V}{\pi \cdot \tan^2(\alpha)}\right]^{1/3}$$
+
+For $V = 20{,}000\text{ cm}^3$ and $\alpha = 25^\circ$:
+- Height $h \approx 44.5\text{ cm}$.
+- Top internal diameter $D = 2 \cdot h \cdot \tan(\alpha) \approx 41.5\text{ cm}$.
+- Liquid level at 50% fill ($0.7937 \cdot h$) sits at $35.3\text{ cm}$ above apex. Freeboard equals $9.2\text{ cm}$.
+- Cone lateral surface area:
+
+$$A_{\text{lat}} = \frac{\pi \cdot R^2}{\sin(\alpha)} = \frac{\pi \cdot (20.75)^2}{\sin(25^\circ)} \approx 0.32\text{ m}^2$$
+
+This $0.32\text{ m}^2$ lateral area matches the required jacket heat-transfer area calculated independently in Chapter 11 ($0.32\text{ m}^2$ at $U = 100\text{ W/m}^2\text{K}$ and $\Delta T = 20\text{ K}$).
+
+## 1b. Top closure and bottom apex: head geometry selection
+
+![Comparison of Vessel Head Profiles: Flat vs Torispherical vs Ellipsoidal](/diagrams/head_type_comparison.png)
+
+### Comparing head types for vacuum and pressure service
+
+| Head Type | Geometry Ratios | External Pressure (Vacuum) Behavior | Application Recommendation |
+|---|---|---|---|
+| **Flat Cover** | Simple plate | Resists load by bending only. Requires thick, heavy plate as diameter grows. | Avoid on vessels above 200 mm diameter. Impractical thickness under vacuum. |
+| **Torispherical (ASME F&D)** | Crown radius $L \approx D$, knuckle $r \ge 0.06D$. Knuckle factor $M = \frac{3+\sqrt{L/r}}{4} \approx 1.77$. | Equivalent sphere radius $R_o = L \approx D$ under ASME UG-33. | **Practical default.** Readily stocked, economical to form. Knuckle thickness penalty is minimal at modest diameters. |
+| **2:1 Ellipsoidal** | Crown radius $L = 0.9D$, knuckle $r = 0.17D$. Depth equals $D/4$. | Equivalent sphere radius $R_o = 0.9D$ under ASME UG-33. Continuous curvature eliminates stress concentrations. | Premium upgrade. Provides lower wall thickness and higher buckling resistance. Tooling costs are higher. |
+
+### Dual load case verification
+
+You must evaluate two distinct load cases:
+1. **Full vacuum (external pressure, ASME UG-33)**: Governs baseline wall thickness. Evaluated using the equivalent sphere radius $R_o$.
+2. **Steam sterilization (internal pressure, ASME UG-32)**: Clean steam at 2 to 4 barg.
+   - For 2:1 Ellipsoidal: $t = \frac{P \cdot D \cdot K}{2 \cdot S \cdot E - 0.2 \cdot P}$ with $K = 1.0$.
+   - For Torispherical: $t = \frac{P \cdot L \cdot M}{2 \cdot S \cdot E - 0.2 \cdot P}$ with $M \approx 1.77$.
+
+Run both checks. External vacuum governs minimum thickness in almost all conical freeze dryers.
+
+### Bottom apex transition
+
+The conical shell must not terminate in a sharp point. Truncate the apex into a cylindrical nozzle stub sized for your bottom discharge valve (DN100 to DN150, per file 24). Form a knuckle radius at the cone-to-cylinder transition to mitigate bending stresses per ASME Section VIII Appendix 1.
+
+## 2. Fittings on the lid
+
+Fittings on the top cover include:
+- Vacuum vapor outlet port leading to the material collector. Features a sanitary clamp flange and interlock proximity sensor.
+- Flanged sight glass port with LED illuminator for process viewing.
+- Nitrogen vent valve port for controlled atmosphere release.
+- Clean gas blow nozzles aimed at chamber walls for powder discharge assist.
+- Rotary spray devices for automated CIP cleaning.
 
 ## 3. Agitator
 
-- **Type**: centrally-driven ribbon, centrally-driven paddle/blade, or an **orbital screw with a swing arm** — all three explicitly disclosed as viable in NL1022668C2. The orbital-screw-with-swing-arm design is the Nauta mixer's signature mechanism and the one most consistent with Hosokawa's marketing imagery.
-- **Wall clearance**: **0.5–15 mm, preferably 1–10 mm** — tight enough to continuously prevent caking without metal-to-metal rubbing. This is a genuinely demanding machining/assembly tolerance for a conical geometry and is one of the harder things to get right in a workshop build (see file 10).
-- **Speed**: the patent notes that because freeze-drying is inherently slow (10–100 h for a 50 L charge), **only gentle mixing action is required** — vigorous mixing isn't needed and would only add unwanted heat via mechanical work. For reference, the related Nauta mixer product line runs its screw at roughly 70 rpm with the orbiting arm at 1–2 rpm and a screw tip speed of 0.5–2 m/s (general Nauta figures, not AFD-specific — treat as a starting point, not a target).
-- **Drive/seal**: two options, both explicitly disclosed:
-  1. **Magnetic coupling** between an external drive motor and the internal agitator shaft — no shaft penetration through the vessel wall, essentially eliminating that vacuum leak path. This is the higher-integrity, harder-to-source-cheaply option; magnetically coupled agitator drives are a mature, commercially available product category (used widely in pressure reactors and pharma mixers) but a costed, purchased component, not something to fabricate from scratch — see file 10.
-  2. **Single rotary shaft seal** where the shaft does penetrate the wall — mechanically simpler, cheaper, and easier for a first prototype, at the cost of a wear part that is also your primary vacuum leak risk.
-  3. **Double mechanical seal with a pressurized sterile gas barrier** (nitrogen is standard) between the two seal faces, held at a pressure above the process side — this is not disclosed in Hosokawa's patents specifically, but it is standard, well-proven practice across the wider pharma/aseptic-reactor industry for exactly this problem (a rotating shaft penetrating an aseptic, vacuum-capable vessel). The logic is simple and worth understanding: with the barrier gas held higher than vessel pressure, any seal leakage path runs *into* the vessel (sterile nitrogen entering the product side), never product or process gas escaping outward — so a slow seal leak is a nuisance (nitrogen consumption, a pressure trend to watch) rather than a containment failure. A barrier-gas pressure switch/transmitter feeding an alarm (and, on a GMP system, a genuine SIS interlock — file 22) for low barrier pressure is standard practice alongside this seal type.
-- **Bearings located outside the vessel** in both cases, specifically to keep lubricant away from cryogenic wall temperatures where it could stiffen/seize.
+- **Type**: Centrally-driven ribbon, paddle blade, or orbital screw with swing arm. The orbital screw reflects Hosokawa standard practice.
+- **Wall clearance**: Maintain 0.5 to 15 mm clearance, targeting 1 to 10 mm. This clearance prevents wall caking while avoiding metal contact.
+- **Operating speed**: Gentle mixing suffices. Target screw speeds near 70 rpm with arm orbit at 1 to 2 rpm. Tip speeds range from 0.5 to 2.0 m/s.
+- **Drive and shaft sealing**:
+  1. **Magnetic coupling**: Eliminates dynamic seals through the pressure boundary. Prevents vacuum leakage. Requires specialized vendor procurement.
+  2. **Single mechanical rotary seal**: Low initial cost for bench prototypes. Poses highest risk for vacuum ingress.
+  3. **Double mechanical seal with sterile gas barrier**: Industry standard for aseptic vacuum vessels. Pressurized nitrogen buffer (held above vessel pressure) ensures any seal leakage directs pure gas into the vessel, preventing batch contamination.
+- **Bearings**: Position drive bearings outside the vessel shell to isolate lubricant from cryogenic operating temperatures.
 
-### Jacket construction — three real, buildable options
-Hosokawa doesn't publish which jacket construction the AFD uses, but this is a well-understood, generic pressure-vessel-jacket decision worth naming explicitly, since it directly affects both your external-pressure calculation (§5 below) and your fabrication plan (file 10):
-- **Plain annular jacket** (a second shell wrapped around the vessel with a simple gap): cheapest and simplest to fabricate, but gives the least uniform flow distribution and is generally limited to lower jacket-side pressure/flow.
-- **Half-pipe coil jacket** (a half-round pipe section welded helically around the outside of the vessel wall): handles higher jacket-side pressure and flow (commonly 6–10 bar hydraulic, consistent with what a TCU circulating pump can readily deliver) and gives more predictable, higher-velocity flow along the helix — a common choice specifically because it suits the wide temperature swing and reasonably high flow this application needs.
-- **Dimple jacket** (a pattern of welded dimples forming many small flow channels): lighter and often cheaper than a half-pipe jacket for a given heat-transfer area, popular on stainless bioprocess vessels, though typically rated for somewhat lower jacket-side pressure than a half-pipe design.
+### Jacket construction options
 
-For a vessel cycling through this equipment's full temperature swing (roughly −55 °C to +80 °C or higher if used for post-SIP bake-out), a half-pipe coil jacket is the most common real-world choice in comparable stirred-vessel/reactor practice, precisely because it tolerates the higher circulation pressure a fast-responding TCU loop tends to need — but this is a design choice for you to make and cost out, not a confirmed AFD specification.
+Three jacket configurations suit the conical body:
+- **Plain annular jacket**: Simple fabrication. Yields lower heat-transfer fluid velocities and lower pressure ratings.
+- **Half-pipe coil jacket**: Welded semicircular pipe wrapped helically around the cone. Supports 6 to 10 bar fluid circulation from high-flow TCUs. Provides uniform velocity and heat transfer.
+- **Dimple jacket**: Spot-welded sheet with hydraulic expansion. Light weight, suitable for moderate circulation pressures.
+
+For temperature cycling between -55 °C and +80 °C, half-pipe coil jackets offer optimal structural rigidity and heat-transfer performance.
 
 ## 4. Materials of construction
 
-Hosokawa does not publish the AFD's exact material spec, but the applicable industry standard for anything touching a pharmaceutical product is unambiguous:
+- **316L Stainless Steel (UNS S31603)**: Required for all product-contact surfaces. Resists corrosive CIP chemicals and provides cryogenic toughness. Exterior structural members use 304 stainless steel.
+- **ASME BPE Sanitary Finishes**: Surface finish dictates cleaning efficacy.
 
-- **316L stainless steel** (low-carbon 316, UNS S31603) is the default product-contact material across essentially the entire pharma/biotech process equipment industry, chosen for its corrosion resistance, weldability, and compatibility with CIP/SIP chemistries and cleaning validation. Non-product-contact structural members are commonly 304/304L stainless or, for the outer frame only, coated carbon steel.
-- **ASME BPE (Bioprocessing Equipment)** is the standard governing sanitary design, dimensions/tolerances, surface finish, material joining (orbital welding), and seals for this equipment class. Its surface-finish tables (Part SF) define a series of designations:
-
-| Designation | Max Ra (µm) | Max Ra (µin) | Preparation |
+| BPE Designation | Maximum $R_a$ ($\mu\text{m}$) | Maximum $R_a$ ($\mu\text{in}$) | Surface Treatment |
 |---|---|---|---|
-| SF0 | no requirement | no requirement | — |
-| SF1 | 0.51 | 20 | Mechanical polish |
-| SF2 | 0.64 | 25 | Mechanical polish |
-| SF3 | 0.76 | 30 | Mechanical polish |
-| SF4 | 0.38 | 15 | Electropolish |
-| SF5 | ~0.50 | ~20 | Electropolish |
-| SF6 | ~0.64 | ~25 | Electropolish |
+| SF1 | 0.51 | 20 | Mechanical Polish |
+| SF2 | 0.64 | 25 | Mechanical Polish |
+| SF3 | 0.76 | 30 | Mechanical Polish |
+| **SF4** | **0.38** | **15** | **Electropolished** |
+| SF5 | 0.50 | 20 | Electropolished |
 
-  **SF4 (Ra ≤ 0.38 µm, electropolished)** is the most common specification for actual pharmaceutical product-contact surfaces (WFI systems, bioreactors, product-contact vessel walls). Electropolishing is a controlled electrochemical process that removes a thin surface layer to eliminate micro-asperities, leaving a smooth, passivated, low-Ra finish; it is not mandated for every surface (e.g., steam-only surfaces may use a rougher mechanical polish), but is standard practice for anything the product itself touches.
-- **Passivation** (commonly per ASTM A967 or the equipment-specific ASTM B912 for electropolished surfaces) chemically restores/enhances the chromium-oxide passive layer after fabrication and welding, which is otherwise disrupted by heat-affected zones and mechanical work — required alongside surface-finish specification, not a substitute for it.
-- **Elastomer seals**: typically EPDM (good steam/SIP resistance) or PTFE-faced silicone for product-contact gaskets and lid seals; material selection depends on your specific SIP temperature and any product-contact chemical compatibility requirements.
+Specify **SF4 ($R_a \le 0.38\,\mu\text{m}$, electropolished)** for all internal product-contact walls. Electropolishing removes micro-roughness and enriches surface chromium content.
+- **Chemical Passivation**: Perform acid passivation per ASTM A967 or ASTM B912 following welding and polishing.
+- **Elastomer Gaskets**: Use steam-resistant EPDM or PTFE-sheathed fluoroelastomers meeting USP Class VI and FDA 21 CFR 177.2600.
 
-## 5. Pressure/vacuum vessel design (structural)
+### ASME Section VIII and ASME BPE are complementary
 
-The vessel operates under **external pressure** (full vacuum on the inside relative to atmosphere outside) — mechanically, this is a fundamentally different, and often more demanding, design case than the same vessel holding internal pressure, because thin cylindrical/conical shells are prone to **elastic buckling** under external pressure long before the material's yield strength is reached.
+ASME Section VIII governs mechanical pressure containment, calculating shell thickness to resist buckling and rupture. ASME BPE governs hygienic integrity, defining radius geometries, weld profiles, drainability, and surface roughness. Apply both standards simultaneously to the vessel.
 
-- **ASME BPVC Section VIII, Division 1, UG-28 through UG-30** is the governing US code section: UG-28 gives the procedure for determining the required shell thickness under external pressure (using the vessel's L/Do and Do/t ratios against the code's material/geometry charts to find a factor used in the allowable-pressure formula); UG-29 covers when and how stiffening rings are required if a plain shell of reasonable thickness isn't enough on its own; UG-30 covers stiffening-ring attachment details. The general design margin is a **minimum 3:1 safety factor against theoretical elastic collapse**.
-- In Europe, the equivalent frameworks are **EN 13445** (unfired pressure vessels) and the **Pressure Equipment Directive (PED, 2014/68/EU)**, which sets the conformity-assessment and CE-marking regime a vessel like this would need to go through for legal sale/use in the EU above its exemption thresholds.
-- **Jacket walls themselves are also an external-pressure case** (the jacket's own outer wall sees the jacket fluid pressure pushing out, while the vessel's inner wall — shared with the process side — can see external pressure from the vacuum side and, depending on jacket fluid pressure and sequencing, from the jacket side too). Design guidance published by pressure-vessel engineering practitioners (e.g., Pressure Vessel Engineering Ltd.'s public "External Pressure" reference) specifically discusses jacket closures functioning (or not) as adequate vacuum-stiffening rings — this is a real, non-obvious failure mode worth deliberately checking rather than assuming the jacket automatically stiffens the inner wall.
-- Given Shekhar's existing ASME Section VIII Division 1/2 pressure-vessel design background (per this package's professional-context notes), the external-pressure calculation itself (UG-28's iterative thickness/stiffening-ring procedure) is directly transferable and not new territory — the freeze-dryer-specific twist is combining it with the cryogenic operating temperature range (down to roughly −55 °C at the wall) for material toughness/MDMT (minimum design metal temperature) checks per UCS-66, and with the double-jacket geometry.
+## 5. Pressure and vacuum vessel design
+
+The vessel operates under full external vacuum (1.013 bar differential):
+- Thin conical shells fail through **elastic buckling** before reaching material yield stress.
+- Design to **ASME BPVC Section VIII, Division 1, UG-28 through UG-30**. UG-28 specifies external pressure thickness calculations with a minimum 3:1 safety margin against elastic collapse.
+- In Europe, design to **EN 13445** under the **Pressure Equipment Directive (PED 2014/68/EU)**.
+- Jacket shells experience simultaneous internal fluid pressure and external vacuum. Verify inner cone stability under combined loads.
+- Verify cryogenic impact toughness per ASME UCS-66 for design metal temperatures down to -55 °C.
 
 ## 6. Bottom discharge valve
 
-Both patents describe (and Hosokawa's Nauta mixer literature independently confirms) a **ball-segment valve** at the vessel's bottom outlet for full-emptying discharge — Hosokawa's own branded version of this component is sold as an "ISEM ball segment valve," explicitly marketed for conical powder mixers/dryers. Functionally, this is a quarter-turn valve with a spherical-segment closure member sized to match the cone's outlet bore with minimal dead space when closed (the patent specifically notes the closed valve sits flush with the agitator's rotational path "to eliminate any dead space"). This class of valve is a purchased sanitary process-valve component, not something to fabricate from raw stock — see file 10.
+Hosokawa utilizes a sanitary **ball-segment valve** (such as the ISEM series). The spherical segment closure sits flush with the internal cone contour. This design eliminates dead legs and prevents unmixed product pockets. Sized for DN100 to DN150 clamp flanges.
