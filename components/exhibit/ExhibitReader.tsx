@@ -42,7 +42,12 @@ import {
   IdealGasVacuumVolumeWorkbench,
   SublimationTheoreticalFormulaCard,
   UniversalInteractiveEquationCard,
+  ConeGeometryWorkbench,
+  NonlinearFillHeightWorkbench,
+  HeadThicknessWorkbench,
+  BucklingPressureWorkbench,
 } from "@/components/exhibit/InteractiveEquationWorkbench";
+import { VesselSizingSuite } from "@/components/simulators/VesselSizingSuite";
 
 interface ExhibitReaderProps {
   chapter: ChapterMeta;
@@ -159,6 +164,59 @@ function formulaToLatex(formula: string): string | null {
     return "\\frac{dm}{dt} = \\frac{A_p \\cdot (P_{ice} - P_{chamber})}{R_p}";
   }
   return null;
+}
+
+function renderInteractiveEquation(expr: string): React.ReactNode {
+  const trimmed = expr.trim();
+
+  // 1. Cone geometry equations (height, diameter, slant, lateral area)
+  if (
+    trimmed.includes("\\tan^2(\\alpha)") ||
+    trimmed.includes("\\tan^2") ||
+    (trimmed.includes("3 \\cdot V") && trimmed.includes("\\tan")) ||
+    trimmed.includes("L_{\\text{slant}}") ||
+    trimmed.includes("A_{\\text{lat}}")
+  ) {
+    return <ConeGeometryWorkbench />;
+  }
+
+  // 2. Non-linear cone fill height fraction
+  if (
+    trimmed.includes("f^{1/3}") ||
+    trimmed.includes("0.5)^{1/3}") ||
+    (trimmed.includes("79.4") && trimmed.includes("height"))
+  ) {
+    return <NonlinearFillHeightWorkbench />;
+  }
+
+  // 3. Jacket surface area requirement
+  if (
+    trimmed.includes("A_{\\text{req}} = \\frac{Q}{U \\cdot \\Delta T}") ||
+    (trimmed.includes("A_{\\text{req}}") && trimmed.includes("U \\cdot"))
+  ) {
+    return <JacketSurfaceAreaWorkbench />;
+  }
+
+  // 4. Head thickness ASME UG-32
+  if (
+    trimmed.includes("2SE - 0.2P") ||
+    trimmed.includes("UG-32") ||
+    (trimmed.includes("P \\cdot L \\cdot M") && trimmed.includes("2SE"))
+  ) {
+    return <HeadThicknessWorkbench />;
+  }
+
+  // 5. Buckling pressure Windenburg-Trilling
+  if (
+    trimmed.includes("P_{\\text{cr}}") ||
+    trimmed.includes("Windenburg") ||
+    trimmed.includes("(t / D_o)^{5/2}") ||
+    trimmed.includes("(t / D_o)^{2.5}")
+  ) {
+    return <BucklingPressureWorkbench />;
+  }
+
+  return <UniversalInteractiveEquationCard latexFormula={trimmed} />;
 }
 
 export function ExhibitReader({
@@ -478,12 +536,82 @@ export function ExhibitReader({
         continue;
       }
 
+      if (
+        line.trim() === "<ConeGeometryWorkbench />" ||
+        line.trim() === "<ConeGeometryWorkbench/>" ||
+        line.trim() === "::ConeGeometryWorkbench"
+      ) {
+        elements.push(
+          <div key={key++} className="my-6">
+            <ConeGeometryWorkbench />
+          </div>
+        );
+        i++;
+        continue;
+      }
+
+      if (
+        line.trim() === "<NonlinearFillHeightWorkbench />" ||
+        line.trim() === "<NonlinearFillHeightWorkbench/>" ||
+        line.trim() === "::NonlinearFillHeightWorkbench"
+      ) {
+        elements.push(
+          <div key={key++} className="my-6">
+            <NonlinearFillHeightWorkbench />
+          </div>
+        );
+        i++;
+        continue;
+      }
+
+      if (
+        line.trim() === "<HeadThicknessWorkbench />" ||
+        line.trim() === "<HeadThicknessWorkbench/>" ||
+        line.trim() === "::HeadThicknessWorkbench"
+      ) {
+        elements.push(
+          <div key={key++} className="my-6">
+            <HeadThicknessWorkbench />
+          </div>
+        );
+        i++;
+        continue;
+      }
+
+      if (
+        line.trim() === "<BucklingPressureWorkbench />" ||
+        line.trim() === "<BucklingPressureWorkbench/>" ||
+        line.trim() === "::BucklingPressureWorkbench"
+      ) {
+        elements.push(
+          <div key={key++} className="my-6">
+            <BucklingPressureWorkbench />
+          </div>
+        );
+        i++;
+        continue;
+      }
+
+      if (
+        line.trim() === "<VesselSizingSuite />" ||
+        line.trim() === "<VesselSizingSuite/>" ||
+        line.trim() === "::VesselSizingSuite"
+      ) {
+        elements.push(
+          <div key={key++} className="my-6">
+            <VesselSizingSuite />
+          </div>
+        );
+        i++;
+        continue;
+      }
+
       // Single-line display equation: $$ ... $$
       if (line.trim().startsWith("$$") && line.trim().endsWith("$$") && line.trim().length > 4) {
         const expr = line.trim().slice(2, -2).trim();
         elements.push(
           <div key={key++} className="my-6">
-            <UniversalInteractiveEquationCard latexFormula={expr} />
+            {renderInteractiveEquation(expr)}
           </div>
         );
         i++;
@@ -502,7 +630,7 @@ export function ExhibitReader({
         const expr = eqLines.join("\n").trim();
         elements.push(
           <div key={key++} className="my-6">
-            <UniversalInteractiveEquationCard latexFormula={expr} />
+            {renderInteractiveEquation(expr)}
           </div>
         );
         continue;
@@ -1053,7 +1181,7 @@ export function ExhibitReader({
       while (
         i < lines.length &&
         lines[i].trim() &&
-        !lines[i].match(/^(#{1,6} |[-*+] |\d+\. |```|> |---|\*\*\*|\|)/)
+        !lines[i].trim().match(/^(#{1,6} |[-*+] |\d+\. |```|> |---|\*\*\*|\||\$\$|::|<|!\[)/)
       ) {
         paraLines.push(lines[i]);
         i++;
@@ -1230,7 +1358,7 @@ export function ExhibitReader({
                   paddingLeft: h.level === 1 ? "8px" : h.level === 2 ? "14px" : "22px",
                 }}
               >
-                {h.text}
+                {renderInline(h.text)}
               </a>
             ))}
           </nav>
@@ -1311,7 +1439,7 @@ export function ExhibitReader({
                       paddingLeft: h.level === 1 ? "10px" : h.level === 2 ? "16px" : "24px",
                     }}
                   >
-                    {h.text}
+                    {renderInline(h.text)}
                   </a>
                 ))}
               </nav>

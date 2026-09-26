@@ -1,6 +1,7 @@
 /**
  * Parametric Mechanical Sizing Calculator for Conical Freeze-Dryer Vessels
  * Derived from Hosokawa AFD Technical Package (Chapters 05, 11, 24, and 25)
+ * Deep engineering parameters including ASME BPE geometry, annular jacket gaps, and code heads.
  */
 
 export interface HosokawaPreset {
@@ -9,87 +10,186 @@ export interface HosokawaPreset {
   maxBatchVolumeL: number;
   sublimationCapacityKg_h: number;
   scaleCategory: "R&D / Pilot" | "Production / cGMP";
+  defaultMinorDiaMm: number;
 }
 
 export const HOSOKAWA_PRESETS: HosokawaPreset[] = [
-  { modelL: 1, nominalVolumeL: 1, maxBatchVolumeL: 0.5, sublimationCapacityKg_h: 0.1, scaleCategory: "R&D / Pilot" },
-  { modelL: 5, nominalVolumeL: 5, maxBatchVolumeL: 2.5, sublimationCapacityKg_h: 0.3, scaleCategory: "R&D / Pilot" },
-  { modelL: 20, nominalVolumeL: 20, maxBatchVolumeL: 10, sublimationCapacityKg_h: 0.8, scaleCategory: "R&D / Pilot" },
-  { modelL: 60, nominalVolumeL: 60, maxBatchVolumeL: 30, sublimationCapacityKg_h: 1.7, scaleCategory: "Production / cGMP" },
-  { modelL: 100, nominalVolumeL: 100, maxBatchVolumeL: 50, sublimationCapacityKg_h: 2.2, scaleCategory: "Production / cGMP" },
-  { modelL: 200, nominalVolumeL: 200, maxBatchVolumeL: 100, sublimationCapacityKg_h: 3.4, scaleCategory: "Production / cGMP" },
-  { modelL: 500, nominalVolumeL: 500, maxBatchVolumeL: 250, sublimationCapacityKg_h: 7.2, scaleCategory: "Production / cGMP" },
-  { modelL: 800, nominalVolumeL: 800, maxBatchVolumeL: 400, sublimationCapacityKg_h: 9.9, scaleCategory: "Production / cGMP" },
-  { modelL: 1000, nominalVolumeL: 1000, maxBatchVolumeL: 500, sublimationCapacityKg_h: 11.4, scaleCategory: "Production / cGMP" },
-  { modelL: 1500, nominalVolumeL: 1500, maxBatchVolumeL: 750, sublimationCapacityKg_h: 13.7, scaleCategory: "Production / cGMP" },
+  { modelL: 1, nominalVolumeL: 1, maxBatchVolumeL: 0.5, sublimationCapacityKg_h: 0.1, scaleCategory: "R&D / Pilot", defaultMinorDiaMm: 80 },
+  { modelL: 5, nominalVolumeL: 5, maxBatchVolumeL: 2.5, sublimationCapacityKg_h: 0.3, scaleCategory: "R&D / Pilot", defaultMinorDiaMm: 80 },
+  { modelL: 20, nominalVolumeL: 20, maxBatchVolumeL: 10, sublimationCapacityKg_h: 0.8, scaleCategory: "R&D / Pilot", defaultMinorDiaMm: 100 },
+  { modelL: 60, nominalVolumeL: 60, maxBatchVolumeL: 30, sublimationCapacityKg_h: 1.7, scaleCategory: "Production / cGMP", defaultMinorDiaMm: 100 },
+  { modelL: 100, nominalVolumeL: 100, maxBatchVolumeL: 50, sublimationCapacityKg_h: 2.2, scaleCategory: "Production / cGMP", defaultMinorDiaMm: 150 },
+  { modelL: 200, nominalVolumeL: 200, maxBatchVolumeL: 100, sublimationCapacityKg_h: 3.4, scaleCategory: "Production / cGMP", defaultMinorDiaMm: 150 },
+  { modelL: 500, nominalVolumeL: 500, maxBatchVolumeL: 250, sublimationCapacityKg_h: 7.2, scaleCategory: "Production / cGMP", defaultMinorDiaMm: 150 },
+  { modelL: 800, nominalVolumeL: 800, maxBatchVolumeL: 400, sublimationCapacityKg_h: 9.9, scaleCategory: "Production / cGMP", defaultMinorDiaMm: 200 },
+  { modelL: 1000, nominalVolumeL: 1000, maxBatchVolumeL: 500, sublimationCapacityKg_h: 11.4, scaleCategory: "Production / cGMP", defaultMinorDiaMm: 200 },
+  { modelL: 1500, nominalVolumeL: 1500, maxBatchVolumeL: 750, sublimationCapacityKg_h: 13.7, scaleCategory: "Production / cGMP", defaultMinorDiaMm: 250 },
 ];
 
 export interface ConeGeometryParams {
-  nominalVolumeL: number;
-  workingVolumeL: number;
+  nominalVolumeL?: number;
+  workingVolumeL?: number;
   halfAngleDeg: number; // 20° to 35°
+  minorDiaMm?: number; // Apex discharge bore (e.g. 100 mm for DN100)
+  shellThicknessMm?: number; // e.g. 4.0 mm
+  drivingMode?: 'volume' | 'height' | 'diameter' | 'vol_and_height';
+  targetHeightCm?: number;
+  targetDiameterCm?: number;
 }
 
 export interface ConeGeometryResult {
   heightCm: number;
+  heightMm: number;
   diameterCm: number;
+  diameterMm: number;
   radiusCm: number;
+  radiusMm: number;
+  minorDiameterMm: number;
+  minorRadiusMm: number;
   slantLengthCm: number;
+  slantLengthMm: number;
   lateralAreaM2: number;
   fillHeightCm: number;
+  fillHeightMm: number;
   fillHeightPercent: number;
   freeboardHeightCm: number;
+  freeboardHeightMm: number;
   freeboardPercent: number;
   volumeRatio: number; // workingVolumeL / nominalVolumeL
+  halfAngleDeg: number;
+  includedAngleDeg: number; // 2 * halfAngleDeg
+  shellThicknessMm: number;
+  outerDiameterMm: number;
+  calculatedNominalVolumeL: number;
+  calculatedWorkingVolumeL: number;
 }
 
 /**
- * Calculates conical vessel geometry based on nominal volume and half-angle.
- * V_cone = (π / 3) * tan²(α) * h³
- * h = [3 * V / (π * tan²(α))]^(1/3)
- * D = 2 * h * tan(α)
+ * Calculates true conical frustum vessel geometry with exact mathematical coupling
+ * between top major diameter, bottom nozzle bore (minor diameter), height, and cone half-angle.
+ * 
+ * Governing Frustum Relations:
+ * tan(α) = (R_major - R_minor) / h_cone
+ * D_major = D_minor + 2 * h_cone * tan(α)
+ * V_cone = (π / [3 * tan(α)]) * [R_major³ - R_minor³]
  */
 export function calculateConeGeometry(params: ConeGeometryParams): ConeGeometryResult {
-  const { nominalVolumeL, workingVolumeL, halfAngleDeg } = params;
-  const alphaRad = (halfAngleDeg * Math.PI) / 180;
-  const volumeCm3 = nominalVolumeL * 1000;
+  const {
+    nominalVolumeL = 20,
+    workingVolumeL = 10,
+    halfAngleDeg,
+    minorDiaMm = 100,
+    shellThicknessMm = 4.0,
+    drivingMode = 'volume',
+    targetHeightCm = 44.5,
+    targetDiameterCm = 41.5,
+  } = params;
 
-  const tanAlpha = Math.tan(alphaRad);
-  const tan2Alpha = tanAlpha * tanAlpha;
+  let actualHalfAngleDeg = halfAngleDeg;
+  let alphaRad = (halfAngleDeg * Math.PI) / 180;
+  let tanAlpha = Math.tan(alphaRad);
+  let sinAlpha = Math.sin(alphaRad);
 
-  // Total cone height in cm
-  const heightCm = Math.cbrt((3 * volumeCm3) / (Math.PI * tan2Alpha));
-  const radiusCm = heightCm * tanAlpha;
-  const diameterCm = 2 * radiusCm;
+  const minorRadiusCm = (minorDiaMm / 10) / 2;
+  const rMinor3 = Math.pow(minorRadiusCm, 3);
 
-  // Slant length in cm
-  const slantLengthCm = radiusCm / Math.sin(alphaRad);
+  let heightCm = 44.5;
+  let radiusCm = 20.75;
+  let diameterCm = 41.5;
+  let calcNominalVolumeL = nominalVolumeL;
 
-  // Lateral surface area A = π * R * s (in m²)
-  const lateralAreaM2 = (Math.PI * radiusCm * slantLengthCm) / 10000;
+  if (drivingMode === 'height') {
+    heightCm = Math.max(10, targetHeightCm);
+    radiusCm = minorRadiusCm + heightCm * tanAlpha;
+    diameterCm = 2 * radiusCm;
+    // Conical frustum volume: V = (π / (3 * tanα)) * (R_major³ - R_minor³)
+    const volumeCm3 = (Math.PI / (3 * tanAlpha)) * (Math.pow(radiusCm, 3) - rMinor3);
+    calcNominalVolumeL = Number((volumeCm3 / 1000).toFixed(2));
+  } else if (drivingMode === 'diameter') {
+    diameterCm = Math.max(minorDiaMm / 10 + 2, targetDiameterCm);
+    radiusCm = diameterCm / 2;
+    heightCm = (radiusCm - minorRadiusCm) / tanAlpha;
+    const volumeCm3 = (Math.PI / (3 * tanAlpha)) * (Math.pow(radiusCm, 3) - rMinor3);
+    calcNominalVolumeL = Number((volumeCm3 / 1000).toFixed(2));
+  } else if (drivingMode === 'vol_and_height') {
+    heightCm = Math.max(10, targetHeightCm);
+    calcNominalVolumeL = Math.max(0.5, nominalVolumeL);
+    const volumeCm3 = calcNominalVolumeL * 1000;
+    // Exact conical frustum volume: V = (π * h / 3) * (R² + R * r0 + r0²)
+    // Let K = 3 * V / (π * h)
+    // R² + r0 * R + (r0² - K) = 0
+    // Quadratic formula: R = (-r0 + sqrt(4K - 3*r0²)) / 2
+    const K = (3 * volumeCm3) / (Math.PI * heightCm);
+    const disc = 4 * K - 3 * Math.pow(minorRadiusCm, 2);
+    if (disc > 0) {
+      radiusCm = (-minorRadiusCm + Math.sqrt(disc)) / 2;
+      diameterCm = 2 * radiusCm;
+      const solvedTan = (radiusCm - minorRadiusCm) / heightCm;
+      actualHalfAngleDeg = Number(((Math.atan(solvedTan) * 180) / Math.PI).toFixed(1));
+      alphaRad = (actualHalfAngleDeg * Math.PI) / 180;
+      tanAlpha = Math.tan(alphaRad);
+      sinAlpha = Math.sin(alphaRad);
+    } else {
+      radiusCm = minorRadiusCm + heightCm * tanAlpha;
+      diameterCm = 2 * radiusCm;
+    }
+  } else {
+    // Volume driven (default): solve exact frustum equation for given volume and minor radius
+    calcNominalVolumeL = Math.max(0.5, nominalVolumeL);
+    const volumeCm3 = calcNominalVolumeL * 1000;
+    // R_major³ = R_minor³ + (3 * V * tanα / π)
+    const rMajor3 = rMinor3 + (3 * volumeCm3 * tanAlpha) / Math.PI;
+    radiusCm = Math.cbrt(rMajor3);
+    diameterCm = 2 * radiusCm;
+    heightCm = (radiusCm - minorRadiusCm) / tanAlpha;
+  }
 
-  // Liquid fill height at working volume:
-  // In a cone, volume fraction f = V_work / V_nom
-  // fill_height / h = f^(1/3)
-  const volumeRatio = workingVolumeL / Math.max(0.001, nominalVolumeL);
-  const fillFraction = Math.cbrt(Math.min(1.0, Math.max(0.01, volumeRatio)));
-  const fillHeightCm = heightCm * fillFraction;
-  const fillHeightPercent = fillFraction * 100;
+  // Slant length of conical frustum along generator wall
+  const slantLengthCm = (radiusCm - minorRadiusCm) / sinAlpha;
 
-  const freeboardHeightCm = heightCm - fillHeightCm;
+  // Lateral surface area of frustum: A_lat = π * (R_major + R_minor) * L_slant (in m²)
+  const lateralAreaM2 = (Math.PI * (radiusCm + minorRadiusCm) * slantLengthCm) / 10000;
+
+  // Working liquid fill height calculation in the conical frustum:
+  const effectiveWorkingL = drivingMode === 'volume' ? Math.min(calcNominalVolumeL, workingVolumeL) : calcNominalVolumeL * 0.50;
+  const workCm3 = effectiveWorkingL * 1000;
+  const rFill3 = rMinor3 + (3 * workCm3 * tanAlpha) / Math.PI;
+  const fillRadiusCm = Math.cbrt(rFill3);
+  const fillHeightCm = Math.max(0, (fillRadiusCm - minorRadiusCm) / tanAlpha);
+  const fillHeightPercent = (fillHeightCm / Math.max(0.1, heightCm)) * 100;
+
+  const freeboardHeightCm = Math.max(0, heightCm - fillHeightCm);
   const freeboardPercent = 100 - fillHeightPercent;
+
+  const volumeRatio = effectiveWorkingL / Math.max(0.001, calcNominalVolumeL);
+  const diameterMm = diameterCm * 10;
+  const outerDiameterMm = diameterMm + 2 * shellThicknessMm;
 
   return {
     heightCm: Number(heightCm.toFixed(2)),
+    heightMm: Number((heightCm * 10).toFixed(1)),
     diameterCm: Number(diameterCm.toFixed(2)),
+    diameterMm: Number(diameterMm.toFixed(1)),
     radiusCm: Number(radiusCm.toFixed(2)),
+    radiusMm: Number((radiusCm * 10).toFixed(1)),
+    minorDiameterMm: minorDiaMm,
+    minorRadiusMm: minorDiaMm / 2,
     slantLengthCm: Number(slantLengthCm.toFixed(2)),
+    slantLengthMm: Number((slantLengthCm * 10).toFixed(1)),
     lateralAreaM2: Number(lateralAreaM2.toFixed(3)),
     fillHeightCm: Number(fillHeightCm.toFixed(2)),
+    fillHeightMm: Number((fillHeightCm * 10).toFixed(1)),
     fillHeightPercent: Number(fillHeightPercent.toFixed(1)),
     freeboardHeightCm: Number(freeboardHeightCm.toFixed(2)),
+    freeboardHeightMm: Number((freeboardHeightCm * 10).toFixed(1)),
     freeboardPercent: Number(freeboardPercent.toFixed(1)),
     volumeRatio: Number(volumeRatio.toFixed(3)),
+    halfAngleDeg: actualHalfAngleDeg,
+    includedAngleDeg: actualHalfAngleDeg * 2,
+    shellThicknessMm,
+    outerDiameterMm: Number(outerDiameterMm.toFixed(1)),
+    calculatedNominalVolumeL: calcNominalVolumeL,
+    calculatedWorkingVolumeL: Number(effectiveWorkingL.toFixed(2)),
   };
 }
 
@@ -99,6 +199,9 @@ export interface JacketCrossCheckParams {
   deltaT_C: number; // °C, typical 10-30
   coneLateralAreaM2: number;
   topDiameterCm: number;
+  annularGapMm?: number; // default 50 mm as requested by user
+  jacketWallThicknessMm?: number; // default 3.0 mm
+  fluidDensityKg_m3?: number; // 920 kg/m³ for silicone oil, 1000 for water
 }
 
 export interface JacketCrossCheckResult {
@@ -108,15 +211,31 @@ export interface JacketCrossCheckResult {
   areaSurplusDeficitM2: number;
   isAdequate: boolean;
   suggestedCylinderExtensionCm: number;
+  annularGapMm: number;
+  jacketInnerDiameterMm: number;
+  jacketOuterDiameterMm: number;
+  jacketFluidVolumeLiters: number;
+  jacketFluidMassKg: number;
+  recommendedFlowRateLpm: number;
 }
 
 /**
- * Checks if the cone's own lateral heat transfer area satisfies the sublimation duty.
+ * Checks if the cone's own lateral heat transfer area satisfies the sublimation duty,
+ * and computes the annular jacket space volume, fluid mass, and flow metrics.
  * Q = ṁ_sub * ΔH_sub / 3.6 (W)
  * A_req = Q / (U * ΔT)
  */
 export function calculateJacketCrossCheck(params: JacketCrossCheckParams): JacketCrossCheckResult {
-  const { sublimationRateKg_h, heatTransferCoeffU, deltaT_C, coneLateralAreaM2, topDiameterCm } = params;
+  const {
+    sublimationRateKg_h,
+    heatTransferCoeffU,
+    deltaT_C,
+    coneLateralAreaM2,
+    topDiameterCm,
+    annularGapMm = 50,
+    jacketWallThicknessMm = 3.0,
+    fluidDensityKg_m3 = 920,
+  } = params;
 
   // Latent heat of sublimation for ice ≈ 2838 kJ/kg
   const latentHeatSubKJ_kg = 2838.0;
@@ -133,10 +252,24 @@ export function calculateJacketCrossCheck(params: JacketCrossCheckParams): Jacke
   if (!isAdequate) {
     const deficitM2 = Math.abs(areaSurplusDeficitM2);
     const topDiameterM = topDiameterCm / 100;
-    // Added cylindrical area A_cyl = π * D * h_cyl
     const hCylM = deficitM2 / (Math.PI * Math.max(0.05, topDiameterM));
     suggestedCylinderExtensionCm = hCylM * 100;
   }
+
+  // Annular jacket dimensional calculations
+  const topDiameterMm = topDiameterCm * 10;
+  const innerConeODMm = topDiameterMm + 8; // inner wall 4mm
+  const jacketInnerDiameterMm = innerConeODMm + 2 * annularGapMm;
+  const jacketOuterDiameterMm = jacketInnerDiameterMm + 2 * jacketWallThicknessMm;
+
+  // Annular volume V_ann = Area_lat * (gap in meters) * 1000 (Liters)
+  const gapMeters = annularGapMm / 1000;
+  const jacketFluidVolumeLiters = coneLateralAreaM2 * gapMeters * 1000;
+  const jacketFluidMassKg = jacketFluidVolumeLiters * (fluidDensityKg_m3 / 1000);
+
+  // Recommended circulation rate to keep temperature uniform across jacket
+  // Flow rate (LPM) for ~1.5 m/s velocity in annular gap or 3-5 K delta-T across jacket
+  const recommendedFlowRateLpm = Math.max(15, Math.round(heatDutyW / (4.184 * 3 * 60) * 10) / 10);
 
   return {
     heatDutyW: Math.round(heatDutyW),
@@ -145,6 +278,12 @@ export function calculateJacketCrossCheck(params: JacketCrossCheckParams): Jacke
     areaSurplusDeficitM2: Number(areaSurplusDeficitM2.toFixed(3)),
     isAdequate,
     suggestedCylinderExtensionCm: Number(suggestedCylinderExtensionCm.toFixed(1)),
+    annularGapMm,
+    jacketInnerDiameterMm: Number(jacketInnerDiameterMm.toFixed(1)),
+    jacketOuterDiameterMm: Number(jacketOuterDiameterMm.toFixed(1)),
+    jacketFluidVolumeLiters: Number(jacketFluidVolumeLiters.toFixed(2)),
+    jacketFluidMassKg: Number(jacketFluidMassKg.toFixed(2)),
+    recommendedFlowRateLpm,
   };
 }
 
@@ -165,8 +304,10 @@ export interface HeadCalculationResult {
   crownRadiusL_mm: number;
   knuckleRadiusR_mm: number;
   headDepthMm: number;
+  straightFlangeMm: number;
   mFactor: number;
   kFactor: number;
+  equivalentSphereRadiusRoMm: number;
   warning?: string;
 }
 
@@ -184,16 +325,18 @@ export function calculateHeadDimensions(params: HeadCalculationParams): HeadCalc
   const E = Math.min(1.0, Math.max(0.5, jointEfficiency));
 
   const denominator = 2 * S_MPa * E - 0.2 * P_MPa;
+  const straightFlangeMm = Math.max(25, Math.round(0.08 * D));
 
   if (headType === "torispherical") {
     // ASME Section VIII Div 1 UG-32(e)
     const L = D; // Crown radius equals diameter
-    const r = Math.max(0.06 * D, 3 * 1.5); // Knuckle >= 6% of diameter
+    const r = Math.max(0.06 * D, 6.0); // Knuckle >= 6% of diameter
     const mFactor = (3 + Math.sqrt(L / r)) / 4; // M factor ≈ 1.77
     const t_calc = (P_MPa * L * mFactor) / Math.max(1, denominator);
-    const thicknessMm = Math.max(1.5, t_calc + corrosionAllowanceMm);
-    // Depth ≈ D - sqrt((D-r)^2 - (D/2-r)^2) ≈ 0.169 D
-    const headDepthMm = 0.169 * D;
+    const thicknessMm = Math.max(2.5, t_calc + corrosionAllowanceMm);
+    // Depth ≈ 0.169 D + straight flange
+    const dishDepthOnly = 0.169 * D;
+    const headDepthMm = dishDepthOnly + straightFlangeMm;
 
     return {
       headType,
@@ -201,8 +344,10 @@ export function calculateHeadDimensions(params: HeadCalculationParams): HeadCalc
       crownRadiusL_mm: Math.round(L),
       knuckleRadiusR_mm: Math.round(r),
       headDepthMm: Math.round(headDepthMm),
+      straightFlangeMm,
       mFactor: Number(mFactor.toFixed(3)),
       kFactor: 1.0,
+      equivalentSphereRadiusRoMm: Math.round(L),
     };
   }
 
@@ -210,10 +355,10 @@ export function calculateHeadDimensions(params: HeadCalculationParams): HeadCalc
     // ASME Section VIII Div 1 UG-32(d) 2:1 ellipsoidal
     const L = 0.9 * D;
     const r = 0.17 * D;
-    const headDepthMm = D / 4;
+    const headDepthMm = D / 4 + straightFlangeMm;
     const kFactor = 1.0;
     const t_calc = (P_MPa * D * kFactor) / Math.max(1, denominator);
-    const thicknessMm = Math.max(1.5, t_calc + corrosionAllowanceMm);
+    const thicknessMm = Math.max(2.5, t_calc + corrosionAllowanceMm);
 
     return {
       headType,
@@ -221,14 +366,16 @@ export function calculateHeadDimensions(params: HeadCalculationParams): HeadCalc
       crownRadiusL_mm: Math.round(L),
       knuckleRadiusR_mm: Math.round(r),
       headDepthMm: Math.round(headDepthMm),
+      straightFlangeMm,
       mFactor: 1.0,
       kFactor,
+      equivalentSphereRadiusRoMm: Math.round(0.9 * D),
     };
   }
 
   // Flat Head
   const warning = D > 300
-    ? "Flat head is generally unsuitable above 300mm under vacuum: resists by pure plate bending, leading to impractical thickness and deflections. Use Torispherical or Ellipsoidal."
+    ? "Flat head is unsuitable above 300mm under vacuum: resists by pure plate bending, leading to impractical thickness and deflections. Use Torispherical or Ellipsoidal."
     : undefined;
 
   // Approximate flat plate thickness per UG-34: t = d * sqrt(C * P / (S * E)) with C = 0.3
@@ -236,12 +383,14 @@ export function calculateHeadDimensions(params: HeadCalculationParams): HeadCalc
 
   return {
     headType: "flat",
-    thicknessMm: Number((t_flat + corrosionAllowanceMm).toFixed(2)),
+    thicknessMm: Number(Math.max(6.0, t_flat + corrosionAllowanceMm).toFixed(2)),
     crownRadiusL_mm: 0,
     knuckleRadiusR_mm: 0,
-    headDepthMm: 0,
+    headDepthMm: 25, // Flange plate thickness
+    straightFlangeMm: 0,
     mFactor: 1.0,
     kFactor: 1.0,
+    equivalentSphereRadiusRoMm: 0,
     warning,
   };
 }
@@ -306,7 +455,7 @@ export function calculateWindenburgTrilling(params: WindenburgTrillingParams): W
     allowableExternalBar: Number(allowableExternalBar.toFixed(2)),
     safetyFactor,
     isSafeForFullVacuum,
-    disclaimer: "Preliminary estimate only. Verify final thickness in PV Elite (or equivalent licensed ASME Section VIII software) before fabrication.",
+    disclaimer: "Preliminary estimate only. Verify final thickness in PV Elite before fabrication.",
   };
 }
 
@@ -319,38 +468,53 @@ export function generateCadScheduleExport(
   headGeom: HeadCalculationResult,
   jacketResult: JacketCrossCheckResult
 ) {
+  const totalHeightMm = coneGeom.heightMm + headGeom.headDepthMm + 80; // 80 mm apex discharge stub
+
   return {
     export_metadata: {
-      generated_by: "Hosokawa AFD Sizing Suite",
+      generated_by: "Hosokawa AFD Sizing Suite v2.0",
       timestamp: new Date().toISOString(),
       disclaimer: "Preliminary sizing for SolidWorks CAD seed. Certified ASME Section VIII calculations must be validated in PV Elite.",
     },
     equipment_tag: "V-101",
     model_name: presetName,
-    geometry: {
-      nominal_volume_liters: Math.round(coneGeom.heightCm * Math.PI * Math.pow(coneGeom.radiusCm, 2) / 3000),
-      working_batch_volume_liters: Math.round((coneGeom.heightCm * Math.PI * Math.pow(coneGeom.radiusCm, 2) / 3000) * coneGeom.volumeRatio),
+    dimensions: {
+      nominal_volume_liters: Math.round((coneGeom.heightCm * Math.PI * Math.pow(coneGeom.radiusCm, 2)) / 3000),
+      working_batch_volume_liters: Math.round(((coneGeom.heightCm * Math.PI * Math.pow(coneGeom.radiusCm, 2)) / 3000) * coneGeom.volumeRatio),
       half_angle_degrees: Math.round(Math.atan(coneGeom.radiusCm / coneGeom.heightCm) * (180 / Math.PI)),
-      cone_height_mm: Math.round(coneGeom.heightCm * 10),
-      top_diameter_mm: Math.round(coneGeom.diameterCm * 10),
-      slant_length_mm: Math.round(coneGeom.slantLengthCm * 10),
+      included_angle_degrees: coneGeom.includedAngleDeg,
+      cone_height_mm: Math.round(coneGeom.heightMm),
+      top_major_diameter_id_mm: Math.round(coneGeom.diameterMm),
+      top_major_diameter_od_mm: Math.round(coneGeom.outerDiameterMm),
+      minor_apex_diameter_mm: coneGeom.minorDiameterMm,
+      slant_length_mm: Math.round(coneGeom.slantLengthMm),
       cone_lateral_area_m2: coneGeom.lateralAreaM2,
-      liquid_fill_height_50pct_mm: Math.round(coneGeom.fillHeightCm * 10),
+      liquid_fill_height_50pct_mm: Math.round(coneGeom.fillHeightMm),
       liquid_fill_height_percent: coneGeom.fillHeightPercent,
-      freeboard_height_mm: Math.round(coneGeom.freeboardHeightCm * 10),
+      freeboard_height_mm: Math.round(coneGeom.freeboardHeightMm),
+      total_vessel_height_mm: Math.round(totalHeightMm),
+      inner_shell_thickness_mm: coneGeom.shellThicknessMm,
+    },
+    jacket: {
+      annular_gap_mm: jacketResult.annularGapMm,
+      jacket_inner_diameter_mm: jacketResult.jacketInnerDiameterMm,
+      jacket_outer_diameter_mm: jacketResult.jacketOuterDiameterMm,
+      annular_fluid_volume_liters: jacketResult.jacketFluidVolumeLiters,
+      annular_fluid_mass_kg: jacketResult.jacketFluidMassKg,
+      sublimation_heat_duty_watts: jacketResult.heatDutyW,
+      required_heat_transfer_area_m2: jacketResult.requiredAreaM2,
+      cone_area_adequate: jacketResult.isAdequate,
+      suggested_cylinder_extension_mm: Math.round(jacketResult.suggestedCylinderExtensionCm * 10),
+      recommended_circulation_lpm: jacketResult.recommendedFlowRateLpm,
     },
     head: {
       type: headGeom.headType,
       crown_radius_mm: headGeom.crownRadiusL_mm,
       knuckle_radius_mm: headGeom.knuckleRadiusR_mm,
-      head_depth_mm: headGeom.headDepthMm,
+      dish_depth_mm: headGeom.headDepthMm,
+      straight_flange_mm: headGeom.straightFlangeMm,
+      equivalent_sphere_radius_ro_mm: headGeom.equivalentSphereRadiusRoMm,
       estimated_internal_thickness_mm: headGeom.thicknessMm,
-    },
-    thermal_cross_check: {
-      sublimation_heat_duty_watts: jacketResult.heatDutyW,
-      required_jacket_area_m2: jacketResult.requiredAreaM2,
-      cone_area_adequate: jacketResult.isAdequate,
-      suggested_cylinder_extension_mm: Math.round(jacketResult.suggestedCylinderExtensionCm * 10),
     },
     nozzles: [
       { tag: "N1", function: "Product / CIP charge inlet", size: "DN50", connection: "ASME BPE Sanitary Tri-Clamp" },
@@ -358,7 +522,9 @@ export function generateCadScheduleExport(
       { tag: "N3", function: "Sterile nitrogen vent & break", size: "DN25", connection: "ASME BPE Sanitary Tri-Clamp" },
       { tag: "N4", function: "Sight glass with illumination", size: "DN65", connection: "Hygienic sight glass assembly" },
       { tag: "N5", function: "Agitator drive penetration", size: "Custom", connection: "Sanitary double mechanical seal with N2 barrier" },
-      { tag: "N6", function: "Bottom apex product discharge", size: "DN150", connection: "Ball-segment flush valve connection" },
+      { tag: "N6", function: "Bottom apex product discharge", size: `DN${coneGeom.minorDiameterMm}`, connection: "Ball-segment flush valve connection" },
+      { tag: "J1", function: "Jacket thermal fluid inlet (bottom)", size: "DN32", connection: "Flanged ANSI 150# / Tri-Clamp" },
+      { tag: "J2", function: "Jacket thermal fluid outlet (top)", size: "DN32", connection: "Flanged ANSI 150# / Tri-Clamp" },
     ],
   };
 }

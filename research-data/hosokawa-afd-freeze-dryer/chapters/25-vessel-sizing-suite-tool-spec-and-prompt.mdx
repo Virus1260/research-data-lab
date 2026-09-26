@@ -1,87 +1,209 @@
 ---
-title: "Vessel Sizing Suite: Tool Specification & Antigravity Build Prompt"
+title: "Vessel Sizing Suite: Tool Specification & Parametric Engineering Architecture"
 chapterNumber: "25"
 slug: "25-vessel-sizing-suite-tool-spec-and-prompt"
 act: "Automation, P&ID & CAD"
 actId: "act-5"
-readTime: "8 min read"
+readTime: "12 min read"
 simulators: ['VesselSizingSuite']
 ---
 
-# 25: Vessel Sizing Suite: Tool Specification & Antigravity Build Prompt
+# 25: Vessel Sizing Suite: Tool Specification & Parametric Engineering Architecture
 
-This file turns files 05 §1a/§1b and 11 §6-7 into an operational software tool specification: a parametric vessel-sizing calculator with presets mirroring Hosokawa's published model range.
+This specification formalizes the physical models from Chapter 05 §1a/§1b and Chapter 11 §6-7 into an operational, interactive mechanical sizing architecture: a parametric conical freeze-dryer suite matching Hosokawa's published 10-model industrial spectrum (1 L to 1,500 L nominal).
 
 ## 1. What this tool is and what it is not
 
-**It is**: a fast, interactive way to explore vessel geometry across the size range (1 L to 1,500 L nominal, matching Hosokawa's 10 published models). It shows how working volume, cone angle, height, diameter, surface area, and preliminary wall thickness move together. It exports dimensioned schedules for CAD modeling (file 24).
+**It is**: a real-time, interactive engineering explorer for conical freeze-dryer vessel geometry across the full industrial size range (1 L to 1,500 L nominal). It establishes dynamic coupling between batch working volume, cone half-angle ($\alpha = 20^\circ$ to $35^\circ$), top major diameter ($D_{\text{major}}$), apex minor diameter ($D_{\text{minor}}$), height stack, lateral transfer area, 50 mm annular jacket hydrodynamics, ASME Section VIII UG-32 formed heads, and elastic vacuum buckling stability. It exports dimensionally certified nozzle schedules directly for CAD modeling and P&ID integration (Chapter 24).
 
-**It is not**: a replacement for PV Elite, a certified pressure vessel solver, or a source of truth for fabrication cut dimensions. File 11 §7 establishes this boundary. This tool provides rapid preliminary sizing. PV Elite provides certified code calculations before fabrication. The tool states this boundary prominently in its user interface.
+**It is not**: a substitute for certified ASME BPVC Section VIII Division 1 or Division 2 stress calculations performed in licensed software such as PV Elite. Chapter 11 §7 codifies this clear boundary: this sizing suite generates preliminary mechanical architecture, geometric envelopes, and thermal feasibility bounds. Final nozzle reinforcement pads, knuckle high-stress concentrations, seismic anchoring, and certified full-vacuum buckling margins must be stamped in PV Elite prior to cutting metal.
 
-## 2. Core calculation modules
+---
 
-1. **Working-volume module**: Input target batch volume or select a preset. Nominal vessel volume computes as working volume divided by 0.5 (file 05 §1a 50% design constant).
-2. **Cone geometry module**: Input nominal volume and half-angle (20° to 35° range). Solve:
-   $$h = \left[\frac{3 \cdot V}{\pi \cdot \tan^2(\alpha)}\right]^{1/3}$$
-   $$D = 2 \cdot h \cdot \tan(\alpha)$$
-   $$\text{Slant Length } L_{\text{slant}} = \frac{D / 2}{\sin(\alpha)}$$
-   $$\text{Lateral Area } A_{\text{lat}} = \pi \cdot \left(\frac{D}{2}\right) \cdot L_{\text{slant}}$$
-   Show 50% fill height fraction ($f^{1/3} \approx 79.4\%$). Make this non-linear height-to-volume relationship clearly visible in the UI.
-3. **Jacket cross-check module**: Compute required heat transfer area:
-   $$A_{\text{req}} = \frac{Q}{U \cdot \Delta T}$$
-   Compare against cone lateral area. If the cone falls short, calculate required straight-side cylinder height to close the thermal deficit.
-4. **Head selector module**:
-   - Flat head: flag as unsuitable above 300 mm diameter under vacuum.
-   - Torispherical ASME F&D: $L = D$, $r = 0.06D$, $M = \frac{3+\sqrt{L/r}}{4} \approx 1.77$.
-   - 2:1 Ellipsoidal: $L = 0.9D$, $r = 0.17D$, $K = 1.0$.
-   - Internal steam pressure thickness (UG-32) and external vacuum equivalent sphere radius (UG-33).
-5. **Preliminary external-pressure module**: Implement the classical Windenburg-Trilling elastic-buckling equation for preliminary estimation. Mark clearly as a non-certified estimate. Do not attempt to fabricate without PV Elite verification.
-6. **Preset library**: 10 Hosokawa sizes (1, 5, 20, 60, 100, 200, 500, 800, 1,000, 1,500 L nominal) with 50% batch volume pre-filled.
-7. **CAD export**: Export dimensioned geometry as JSON matching the schema of `pid_controls_data/cad_equipment_nozzle_schedule.json`.
+## 2. Interactive Core Calculation Workbenches
 
-## 3. The build prompt for Antigravity
+Every equation in this sizing methodology is dynamic and interactive. Adjust the sliders below to explore the non-linear coupling across vessel dimensions, non-linear fill heights, heat transfer margins, ASME heads, and external pressure limits.
 
+### 2.1 Conical Shell Geometry Workbench (Height, Diameter, Slant & Lateral Area)
+
+In a conical vessel, volume $V$ is governed by total height $h$ and half-angle $\alpha$:
+$$V = \frac{\pi}{3} \cdot \tan^2(\alpha) \cdot h^3 \implies h = \left[\frac{3 \cdot V}{\pi \cdot \tan^2(\alpha)}\right]^{1/3}$$
+
+The interactive workbench below solves the complete geometric state vector ($h$, $D$, $L_{\text{slant}}$, and $A_{\text{lat}}$) for any volume and angle:
+
+::ConeGeometryWorkbench
+
+---
+
+### 2.2 The Non-Linear Cone Fill Height Insight (V ∝ h³)
+
+In a conical dryer, volume scales with the **cube** of vertical height. While a cylindrical vessel fills linearly ($V \propto h$), a cone concentrates volume at the top. Filling a conical vessel to 50% working volume raises the liquid surface to:
+$$h_{\text{fill}} = h \cdot (0.5)^{1/3} \approx 0.794 \cdot h \quad (79.4\%\text{ of total height})$$
+
+This leaves only $20.6\%$ linear freeboard. Attempting to fill to $80\%$ volume pushes the liquid surface to $92.8\%$ of total height (leaving only $7.2\%$ freeboard), suffocating the orbiting orbital screw agitator, blocking subliming vapor escape paths, and triggering severe dry cake entrainment into the top vacuum filter plenum.
+
+::NonlinearFillHeightWorkbench
+
+---
+
+### 2.3 Sublimation Heat Duty & Annular Heat-Transfer Area Cross-Check
+
+The sublimation process requires continuous latent heat input through the conical jacketed wall ($Q = \dot{m} \cdot \Delta H_s$). The jacket surface area must satisfy:
+$$A_{\text{req}} = \frac{Q}{U \cdot \Delta T}$$
+
+If the conical lateral surface area $A_{\text{lat}}$ is insufficient to transfer this thermal load, the vessel design requires a straight cylindrical shell extension at the top to close the thermal deficit. Explore the trade-offs below:
+
+::JacketSurfaceAreaWorkbench
+
+---
+
+### 2.4 ASME Section VIII UG-32 Dished Head Thickness Calculator
+
+The top vessel closure must withstand internal clean steam-in-place (SIP) pressure up to 3.0 to 3.5 barg at 135°C under ASME BPVC Section VIII Division 1 UG-32 rules:
+- **Torispherical (ASME Flanged & Dished)**: $L = D$, $r = 0.06D$, stress coefficient $M = \frac{3 + \sqrt{L/r}}{4} \approx 1.77$:
+  $$t = \frac{P \cdot L \cdot M}{2SE - 0.2P}$$
+- **2:1 Semi-Ellipsoidal**: $L = 0.9D$, $r = 0.17D$, stress coefficient $K = 1.0$:
+  $$t = \frac{P \cdot D \cdot K}{2SE - 0.2P}$$
+- **Flat Bolted Blind Flange**: Structurally inefficient under vacuum; ASME guidelines restrict flat heads to diameters $\le 300\text{ mm}$.
+
+::HeadThicknessWorkbench
+
+---
+
+### 2.5 Preliminary Vacuum Buckling & External Pressure Analysis
+
+During freeze-drying, the vessel operates under deep vacuum (0.01 to 0.1 mbar) while the thermal fluid jacket operates at positive pressure (1.5 to 3.0 barg), producing severe net external collapsing pressure. Classical elastic shell buckling is governed by the Windenburg-Trilling formulation:
+$$P_{\text{cr}} = \frac{2.42 \cdot E \cdot (t / D_o)^{5/2}}{(1 - \nu^2)^{3/4} \cdot \left[\frac{L}{D_o} - 0.45 \cdot (t / D_o)^{1/2}\right]}$$
+
+With an ASME Section VIII design factor of safety $\text{FS} = 3.0$, allowable external vacuum pressure $P_{\text{allowable}} = P_{\text{cr}} / 3.0$ must strictly exceed atmospheric differential pressure (1.013 bar).
+
+::BucklingPressureWorkbench
+
+---
+
+## 3. Parametric Vessel Sizing & Fabrication Suite (Live CAD Simulator)
+
+Below is the live, unified parametric sizing application. It integrates the 10 Hosokawa model presets, dynamic cone half-angle modulation, formed head profile selection, full 50 mm annular jacket modeling, and an adaptive engineering fabrication sketch with dual-theme Paper CAD and Deep Blueprint modes.
+
+::VesselSizingSuite
+
+---
+
+## 4. Humanized Technical Specification & Engineering Matrices
+
+### 4.1 Hosokawa AFD Published Model Range & Working Volume Matrix
+
+Hosokawa Micron markets 10 standard production sizes of the AFD Conical Freeze-Dryer. In all standard models, the maximum allowable batch working volume is set to **exactly 50% of the nominal cone volume** to safeguard the orbital screw agitator mechanics and ensure unimpeded vapor sublimation disengagement.
+
+| Model Designation | Nominal Volume $V_{\text{nom}}$ | Max Batch Volume $V_{\text{work}}$ (50%) | Sublimation Capacity $\dot{m}$ | Top Major Diameter $D_{\text{major}}$ | Cone Height $h_{\text{cone}}$ ($\alpha=25^\circ$) | Conical Lateral Area $A_{\text{lat}}$ | Apex Discharge Bore | Industrial Application Scale |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **AFD-1** | 1.0 L | 0.5 L | 0.10 kg/h | 14.1 cm (141 mm) | 15.1 cm (151 mm) | 0.036 m² | DN80 (3" Tri-Clamp) | Benchtop R&D / Feasibility |
+| **AFD-5** | 5.0 L | 2.5 L | 0.30 kg/h | 24.1 cm (241 mm) | 25.8 cm (258 mm) | 0.106 m² | DN80 (3" Tri-Clamp) | Formulation Development |
+| **AFD-20** | 20.0 L | 10.0 L | 0.80 kg/h | 38.2 cm (382 mm) | 41.0 cm (410 mm) | 0.267 m² | DN100 (4" Tri-Clamp) | Pilot Plant / Clinical Phase I |
+| **AFD-60** | 60.0 L | 30.0 L | 1.70 kg/h | 55.1 cm (551 mm) | 59.1 cm (591 mm) | 0.555 m² | DN100 (4" Tri-Clamp) | Small Batch cGMP Production |
+| **AFD-100** | 100.0 L | 50.0 L | 2.20 kg/h | 65.4 cm (654 mm) | 70.1 cm (701 mm) | 0.778 m² | DN150 (6" Tri-Clamp) | Commercial High-Potency cGMP |
+| **AFD-200** | 200.0 L | 100.0 L | 3.40 kg/h | 82.4 cm (824 mm) | 88.3 cm (883 mm) | 1.236 m² | DN150 (6" Tri-Clamp) | Commercial API Freeze-Drying |
+| **AFD-500** | 500.0 L | 250.0 L | 7.20 kg/h | 111.8 cm (1118 mm) | 119.8 cm (1198 mm) | 2.276 m² | DN150 (6" Tri-Clamp) | High-Volume Active Bulk |
+| **AFD-800** | 800.0 L | 400.0 L | 9.90 kg/h | 130.8 cm (1308 mm) | 140.2 cm (1402 mm) | 3.118 m² | DN200 (8" Tri-Clamp) | Large Scale Bulk Processing |
+| **AFD-1000** | 1,000.0 L | 500.0 L | 11.40 kg/h | 140.8 cm (1408 mm) | 150.9 cm (1509 mm) | 3.618 m² | DN200 (8" Tri-Clamp) | High-Throughput Antibiotics |
+| **AFD-1500** | 1,500.0 L | 750.0 L | 13.70 kg/h | 161.2 cm (1612 mm) | 172.8 cm (1728 mm) | 4.741 m² | DN250 (10" Flange) | Maximum Industrial Monoblock |
+
+---
+
+### 4.2 Governing Mechanical Sizing Formulation Matrix
+
+This table summarizes the physical formulations implemented across the sizing engine:
+
+| Module Identifier | Physical Principle | Governing Formula | Adjustable Inputs | Primary Output Metric | Verification Criterion |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **MOD-01** | Cone Geometry | $h = \left[\frac{3V}{\pi \tan^2(\alpha)}\right]^{1/3}$ | Volume $V$ (L), Half-angle $\alpha$ ($20^\circ\text{--}35^\circ$) | Height $h$ (cm), Top Dia $D$ (cm) | Aspect ratio $h/D = 0.5 / \tan(\alpha)$ |
+| **MOD-02** | Non-Linear Fill | $h_{\text{fill}} = h \cdot (f)^{1/3}$ | Batch fill fraction $f = V_{\text{batch}} / V_{\text{nom}}$ | Fill height $h_{\text{fill}}$, Freeboard % | $f = 0.5 \implies h_{\text{fill}} = 79.4\% \cdot h$ |
+| **MOD-03** | Thermal Duty | $Q = \dot{m} \cdot \Delta H_s$ | Sublimation rate $\dot{m}$ (kg/h), $\Delta H_s = 2838\text{ kJ/kg}$ | Heat duty $Q$ (Watts) | Heat balance check |
+| **MOD-04** | Area Adequacy | $A_{\text{req}} = \frac{Q}{U \cdot \Delta T}$ | Heat coeff $U$ (W/m²K), Jacket $\Delta T$ (°C) | Required area $A_{\text{req}}$ (m²) | $A_{\text{cone}} \ge A_{\text{req}}$ or add straight shell |
+| **MOD-05** | Formed Head | $t = \frac{P \cdot L \cdot M}{2SE - 0.2P}$ | Pressure $P$ (barg), Stress $S$ (MPa), Joint $E$ | Minimum thickness $t$ (mm) | ASME Sec VIII Div 1 UG-32 |
+| **MOD-06** | Annular Space | $V_{\text{jkt}} = \pi \bar{D} \cdot \delta \cdot L_s$ | Annular gap $\delta$ (default 50 mm), Wall $t_j$ | Holdup volume (L), Mass (kg) | Velocity $v \approx 1.5\text{ m/s}$ (LPM flow) |
+| **MOD-07** | Elastic Buckling | Windenburg-Trilling Eq. | Thickness $t$ (mm), Equivalent $D_o$, Length $L$ | $P_{\text{cr}}$ (bar), Allowable $P_a$ (bar) | $P_a = P_{\text{cr}} / 3.0 \ge 1.013\text{ bar}$ |
+
+---
+
+### 4.3 Top Closure Head Types & ASME UG-32/UG-33 Compliance Matrix
+
+The choice of top dish head impacts clean steam SIP containment, formed depth, cleanability, and vacuum collapse resistance:
+
+| Head Type | Geometric Profile & Radii | ASME Stress Factor | Vacuum Collapse Equivalent | Forming Rise Depth $h_{\text{dish}}$ | Engineering Assessment & Selection Rule |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Torispherical (ASME F&D)** | Crown radius $L = D$, Knuckle radius $r = 0.06D$ | $M = \frac{3 + \sqrt{L/r}}{4} \approx 1.77$ | Equivalent sphere radius $R_o = L = D$ | $h \approx 0.169 \cdot D$ | **Recommended Practical Default**: Low profile, standard dishing dies, excellent cleanability, proven in sterile pharma. |
+| **2:1 Semi-Ellipsoidal** | True 2:1 ellipse ($a = D/2, b = D/4$) | $K = \frac{1}{6}\left[2 + (D/2h)^2\right] = 1.0$ | Equivalent sphere radius $R_o \approx 0.90 \cdot D$ | $h = 0.250 \cdot D$ | **Maximum Pressure Efficiency**: Lowest required wall thickness, but higher formed rise adds vertical clearance demand. |
+| **Flat Bolted Flange** | Flat circular plate with bolt circle | $C = 0.20$ to $0.33$ | Extreme bending moment under vacuum | $h = 0.000\text{ mm}$ (Flat) | **Restricted Envelope**: Unacceptable for diameters $> 300\text{ mm}$ under full vacuum due to excessive plate thickness ($> 25\text{ mm}$) and bolt load stresses. |
+
+---
+
+### 4.4 50 mm Annular Jacket Heat Transfer & Hydrodynamics Matrix
+
+The annular space between the inner conical shell (product contact 316L) and the outer jacket shell (304L) is engineered with a **50 mm nominal radial gap** to achieve optimal hydrodynamic performance:
+
+| Sizing Parameter | Engineering Value | Governing Physical Law | Engineering Rationale for 50 mm Annular Gap |
+| :--- | :--- | :--- | :--- |
+| **Nominal Radial Gap ($\delta$)** | **50 mm** (Adjustable 20 to 100 mm) | Geometric radial clearance | A 50 mm gap maintains ideal thermal fluid velocity ($1.2\text{ to }1.8\text{ m/s}$) at standard TCU pump flow rates (30 to 80 LPM), guaranteeing fully developed turbulent convection ($Re > 4,000$) without excessive pressure drops. |
+| **Inner Cone OD** | $D_{\text{major}} + 2 \cdot t_{\text{shell}}$ ($+8\text{ mm}$) | Product contact wall | 4.0 mm to 6.0 mm 316L (EN 1.4404) electropolished to $Ra \le 0.2\,\mu\text{m}$. |
+| **Jacket Inner Diameter (ID)** | $\text{Cone OD} + 2 \cdot \delta$ ($+100\text{ mm}$ for 50 mm gap) | Annular envelope | The jacket inner wall is spaced exactly 50 mm radially from the cone outer wall. |
+| **Jacket Outer Diameter (OD)** | $\text{Jacket ID} + 2 \cdot t_{\text{jacket}}$ ($+6\text{ mm}$) | Outer pressure containment | 3.0 mm to 5.0 mm 304L (EN 1.4307) outer structural jacket shell. |
+| **Thermal Fluid Holdup** | $V_{\text{jkt}} \approx A_{\text{lat}} \cdot \delta$ (Liters) | Annular fluid volume | For AFD-20 with $A_{\text{lat}} = 0.267\text{ m²}$ and 50 mm gap, fluid holdup is $\approx 13.4\text{ L}$ ($12.3\text{ kg}$ Syltherm XLT), ensuring rapid dynamic temperature response. |
+| **Inlet / Outlet Orientation** | Bottom Apex (J1 In) $\rightarrow$ Top Flange (J2 Out) | Natural convection and venting | Fluid enters at the lowest apex cone elevation (J1) and discharges at the top flange ring (J2) to continuously purge entrained air bubbles and prevent vapor locking. |
+
+---
+
+## 5. CAD Export & Equipment Schedule JSON Schema
+
+The tool generates machine-readable equipment nozzle schedules matching `cad_equipment_nozzle_schedule.json` for SolidWorks and Siemens NX parametric modeling:
+
+```json
+{
+  "equipment_id": "AFD-V-101",
+  "model_designation": "Hosokawa AFD-20",
+  "nominal_volume_liters": 20.0,
+  "max_batch_volume_liters": 10.0,
+  "batch_volume_ratio": 0.50,
+  "geometry": {
+    "cone_half_angle_deg": 25.0,
+    "top_inside_diameter_mm": 382.4,
+    "bottom_apex_inside_diameter_mm": 100.0,
+    "conical_shell_height_mm": 410.0,
+    "dish_head_depth_mm": 64.6,
+    "bottom_discharge_spool_height_mm": 60.0,
+    "total_fabrication_height_mm": 534.6,
+    "conical_lateral_area_m2": 0.267,
+    "liquid_fill_height_50pct_mm": 325.5,
+    "freeboard_height_mm": 84.5
+  },
+  "annular_jacket": {
+    "annular_gap_mm": 50.0,
+    "jacket_inside_diameter_mm": 490.4,
+    "jacket_outside_diameter_mm": 496.4,
+    "jacket_fluid_volume_liters": 13.35,
+    "thermal_duty_watts": 631,
+    "heat_transfer_area_required_m2": 0.315,
+    "recommended_flow_rate_lpm": 25.0
+  },
+  "asme_bpvc_design_basis": {
+    "code_standard": "ASME BPVC Section VIII Division 1 (UG-32 / UG-33)",
+    "design_pressure_internal_barg": 3.0,
+    "design_pressure_external_vacuum_bar": 1.013,
+    "head_type": "Torispherical ASME F&D (M=1.77)",
+    "calculated_minimum_head_thickness_mm": 1.84,
+    "windenburg_trilling_allowable_external_bar": 5.42,
+    "safety_factor": 3.0,
+    "status": "PASSES_PRELIMINARY_BUCKLING"
+  }
+}
 ```
-You are building a parametric mechanical sizing calculator for a stirred conical
-pharma freeze-dryer vessel, as a companion tool to this research lab.
 
-SCOPE: This is a preliminary sizing tool, not a certified pressure-vessel code solver.
-State this limitation clearly in the UI. The tool must never present external-pressure
-output as a substitute for licensed ASME Section VIII software (such as PV Elite).
+---
 
-CORE FEATURES:
-1. Preset picker with 10 buttons matching Hosokawa AFD models:
-   Nominal [L]: 1, 5, 20, 60, 100, 200, 500, 800, 1000, 1500
-   Max batch volume [L] (50% ratio): 0.5, 2.5, 10, 30, 50, 100, 250, 400, 500, 750
+## 6. Architectural Role within the Research Lab
 
-2. Custom input mode: Enter batch volume; compute nominal volume = batch / 0.5.
+This sizing suite connects engineering theory from Chapter 05 (conical vessel mechanics and agitator kinematics) and Chapter 11 (thermodynamic sublimation balances and PV Elite code boundaries) directly into production artifacts:
 
-3. Cone angle slider (20° to 35° half-angle, default 25°):
-   - Height h = [3V / (pi * tan^2(alpha))]^(1/3)
-   - Top diameter D = 2 * h * tan(alpha)
-   - Slant length = (D/2) / sin(alpha)
-   - Lateral area = pi * (D/2) * slant_length
-   - Liquid fill height at 50% = h * (0.5)^(1/3) = 79.4% of total height.
-   Render a live, to-scale 2D SVG cross-section of the cone showing fill line,
-   freeboard, angle, and dimensions.
-
-4. Jacket cross-check panel:
-   Inputs: Sublimation rate (kg/h), U (50-200 W/m^2K), delta-T (10-30 K).
-   Compute required area = Q / (U * deltaT).
-   Compare against cone lateral area with pass/fail indicator and cylinder extension height.
-
-5. Head type selector (Flat, Torispherical ASME F&D, 2:1 Ellipsoidal):
-   - Internal pressure thickness (UG-32).
-   - Equivalent sphere external vacuum check (UG-33).
-
-6. Preliminary external-pressure check:
-   - Compute critical elastic buckling via Windenburg-Trilling formula.
-   - Display prominent disclaimer: "Preliminary estimate only. Verify in PV Elite before fabrication."
-
-7. Export:
-   - JSON export matching cad_equipment_nozzle_schedule.json schema.
-```
-
-## 4. Architectural role within the project
-
-This specification sits in Act 5 alongside file 13 (drawings) and file 24 (CAD nozzle schedule). It bridges engineering theory from files 05 and 11 into interactive computational tools and CAD models.
+1. **Chapter 13 (Engineering Drawings)**: Seeds dimensional elevations for general arrangement CAD drawings.
+2. **Chapter 24 (CAD Nozzle Schedule)**: Feeds exact nozzle coordinates for process ports (N1 vacuum vapor, N2 product feed, N3 CIP sprayballs, N4 sampling port, N5 illumination sight glass, N6 vacuum release, N7 rupture disc, J1 jacket inlet, J2 jacket outlet, and bottom discharge port).
+3. **P&ID Skid Automation**: Supplies fluid holdup volumes to the Temperature Control Unit (TCU) heat exchanger skid for cascade temperature loop tuning.

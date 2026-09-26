@@ -104,7 +104,7 @@ export const project: ProjectConfig = {
     "02-physics-and-thermodynamics": ["PhaseDiagramExplorer"],
     "03-hosokawa-afd-vs-generic-lyophilizers": ["AfdComparisonFlip"],
     "04-system-architecture-and-subsystems": ["CycleProfileScrubber"],
-    "05-vessel-chamber-agitator-and-materials": ["VesselCrossSection3D", "VesselSizingSuite"],
+    "05-vessel-chamber-agitator-and-materials": ["VesselCrossSection3D"],
     "06-refrigeration-vacuum-and-condenser-systems": [
       "VacuumPumpdownSimulator",
       "ComparativePressureDetector",
@@ -114,7 +114,6 @@ export const project: ProjectConfig = {
       "SublimationRateCalculator",
       "RefrigerationLoadCalculator",
       "VacuumPumpdownSimulator",
-      "VesselSizingSuite",
     ],
     "25-vessel-sizing-suite-tool-spec-and-prompt": ["VesselSizingSuite"],
   },

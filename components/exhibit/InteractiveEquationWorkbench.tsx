@@ -20,6 +20,10 @@ import {
   AlertTriangle,
   ChevronDown,
   ChevronUp,
+  Compass,
+  Maximize2,
+  CheckCircle2,
+  Shield,
 } from 'lucide-react';
 
 // ============================================================================
@@ -313,6 +317,47 @@ export function JacketSurfaceAreaWorkbench() {
                 displayMode
               />
             </div>
+          </div>
+        </div>
+
+        {/* STEP 2: WHAT IS WHAT (Variable Definitions & Units) */}
+        <div className="mt-4 pt-4 border-t border-hairline space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-cyan-600 text-white text-[11px] font-mono font-bold flex items-center justify-center">
+                2
+              </span>
+              <span className="text-xs font-mono font-bold uppercase tracking-wider text-ink-primary">
+                What is What (Variable Definitions & Physical Units)
+              </span>
+            </div>
+            <span className="text-[11px] font-mono text-cyan-600 dark:text-cyan-400">
+              Thermal Balance Parameters
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+            {[
+              { symbol: 'Q', name: 'Sublimation Thermal Duty', unit: 'W / kW', role: 'Latent heat rate required to sustain sublimation (2,840 kJ/kg of ice sublimed).' },
+              { symbol: 'U', name: 'Overall Heat Transfer Coeff', unit: 'W/(m²·K)', role: 'Heat conductance from jacket fluid through 316L shell and contact layer to agitated bed.' },
+              { symbol: 'A', name: 'Heat Transfer Surface Area', unit: 'm²', role: 'Total wetted inside conical jacket surface required to transfer heat without stalling.' },
+              { symbol: '\\Delta T', name: 'Temperature Difference', unit: 'K / °C', role: 'Thermal driving force between circulating jacket heat transfer fluid and product cake.' },
+            ].map((v, idx) => (
+              <div key={idx} className="p-3 rounded-lg bg-bg-panel border border-hairline flex flex-col justify-between">
+                <div className="flex items-center justify-between gap-2 mb-1.5">
+                  <span className="px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 text-xs font-mono font-bold">
+                    <KatexEquation expression={v.symbol} />
+                  </span>
+                  <span className="px-1.5 py-0.5 rounded bg-bg-surface border border-hairline text-[10px] font-mono text-ink-muted">
+                    {v.unit}
+                  </span>
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-ink-primary mb-1">{v.name}</div>
+                  <div className="text-[11px] text-ink-secondary leading-relaxed">{v.role}</div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -1810,7 +1855,1080 @@ export function SublimationTheoreticalFormulaCard() {
 }
 
 // ============================================================================
-// 11. UNIVERSAL INTERACTIVE EQUATION CARD (For all generic mathematical formulations)
+// 11. CONE GEOMETRY & HEAT TRANSFER AREA SOLVER
+// ============================================================================
+export function ConeGeometryWorkbench() {
+  const [volumeL, setVolumeL] = useState(20); // 20 L nominal vessel
+  const [halfAngleDeg, setHalfAngleDeg] = useState(25); // 25° default
+  const [activeFormula, setActiveFormula] = useState<'height' | 'diameter' | 'slant' | 'area'>('height');
+  const [copied, setCopied] = useState(false);
+
+  const alphaRad = (halfAngleDeg * Math.PI) / 180;
+  const tanAlpha = Math.tan(alphaRad);
+  const tan2Alpha = tanAlpha * tanAlpha;
+  const sinAlpha = Math.sin(alphaRad);
+
+  const volumeCm3 = volumeL * 1000;
+  const heightCm = Math.cbrt((3 * volumeCm3) / (Math.PI * tan2Alpha));
+  const radiusCm = heightCm * tanAlpha;
+  const diameterCm = 2 * radiusCm;
+  const slantCm = radiusCm / sinAlpha;
+  const lateralAreaM2 = (Math.PI * radiusCm * slantCm) / 10000;
+
+  const PURE_FORMULAS = {
+    height: {
+      title: 'Conical Shell Axial Height Derivation',
+      latex: 'V = \\frac{\\pi}{3} \\cdot r^2 \\cdot h = \\frac{\\pi}{3} \\cdot \\tan^2(\\alpha) \\cdot h^3 \\implies h = \\left[ \\frac{3 \\cdot V}{\\pi \\cdot \\tan^2(\\alpha)} \\right]^{1/3}',
+      variables: [
+        { symbol: 'h', name: 'Conical Shell Height', unit: 'cm / mm', role: 'Vertical depth from bottom discharge nozzle to top head tangent seam.' },
+        { symbol: 'V', name: 'Nominal Internal Volume', unit: 'L / cm³', role: 'Total gross volume enclosed by the conical vessel shell (1 L = 1,000 cm³).' },
+        { symbol: '\\alpha', name: 'Cone Half-Angle (Semi-Angle)', unit: 'degrees (°)', role: 'Angle between vertical centerline and conical shell wall (Hosokawa standard is 25°).' },
+        { symbol: '\\tan(\\alpha)', name: 'Aspect Ratio Ratio (r / h)', unit: 'ratio', role: 'Taper tangent ratio determining product slide angle and discharge flowability.' },
+        { symbol: '\\pi', name: 'Archimedes Constant', unit: 'constant', role: 'Circle perimeter-to-diameter ratio (approximately 3.14159).' },
+      ],
+    },
+    diameter: {
+      title: 'Top Base Major Diameter Formulation',
+      latex: 'r = h \\cdot \\tan(\\alpha) \\implies D = 2 \\cdot r = 2 \\cdot h \\cdot \\tan(\\alpha)',
+      variables: [
+        { symbol: 'D', name: 'Top Major Diameter', unit: 'cm / mm', role: 'Internal diameter at top flange where conical shell joins the dished head.' },
+        { symbol: 'r', name: 'Top Base Radius', unit: 'cm / mm', role: 'Half of top diameter (r = D / 2) at top tangent plane.' },
+        { symbol: 'h', name: 'Conical Shell Height', unit: 'cm / mm', role: 'Axial vertical depth calculated from nominal volume and half-angle.' },
+        { symbol: '\\alpha', name: 'Cone Half-Angle', unit: 'degrees (°)', role: 'Vessel semi-angle from vertical axis governing radial taper expansion.' },
+      ],
+    },
+    slant: {
+      title: 'Conical Shell Slant Wall Generator Length',
+      latex: 'L_{\\text{slant}} = \\sqrt{h^2 + r^2} = \\frac{r}{\\sin(\\alpha)} = \\frac{D / 2}{\\sin(\\alpha)}',
+      variables: [
+        { symbol: 'L_{\\text{slant}}', name: 'Slant Generator Length', unit: 'cm / mm', role: 'True wall length along conical generator line from apex to upper flange.' },
+        { symbol: 'D', name: 'Top Major Diameter', unit: 'cm / mm', role: 'Upper inside diameter across top circular opening.' },
+        { symbol: '\\alpha', name: 'Cone Half-Angle', unit: 'degrees (°)', role: 'Semi-angle from vertical axis.' },
+        { symbol: '\\sin(\\alpha)', name: 'Sine of Half-Angle', unit: 'ratio', role: 'Trigonometric sine projecting top radius onto slanted wall.' },
+      ],
+    },
+    area: {
+      title: 'Lateral Heat Transfer Surface Area Formulation',
+      latex: 'A_{\\text{lat}} = \\pi \\cdot r \\cdot L_{\\text{slant}} = \\pi \\cdot \\left(\\frac{D}{2}\\right) \\cdot L_{\\text{slant}} = \\frac{\\pi \\cdot D^2}{4 \\cdot \\sin(\\alpha)}',
+      variables: [
+        { symbol: 'A_{\\text{lat}}', name: 'Lateral Heat Transfer Area', unit: 'm²', role: 'Total wetted conical jacket contact area available for sublimation heat input.' },
+        { symbol: 'D', name: 'Top Major Diameter', unit: 'm / cm', role: 'Upper inside diameter of the conical vessel shell.' },
+        { symbol: 'L_{\\text{slant}}', name: 'Slant Generator Length', unit: 'm / cm', role: 'Effective contact length along the conical jacket heating wall.' },
+        { symbol: '\\pi', name: 'Archimedes Constant', unit: 'constant', role: 'Circle geometry constant (approximately 3.14159).' },
+      ],
+    },
+  };
+
+  const copyResults = () => {
+    navigator.clipboard.writeText(
+      `Conical Vessel Geometry: V=${volumeL}L, α=${halfAngleDeg}°, h=${heightCm.toFixed(2)}cm, D=${diameterCm.toFixed(2)}cm, Slant=${slantCm.toFixed(2)}cm, Area=${lateralAreaM2.toFixed(3)}m²`
+    );
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const getSubstitutedLatex = () => {
+    switch (activeFormula) {
+      case 'height':
+        return `h = \\left[ \\frac{3 \\cdot (${volumeCm3.toLocaleString()}\\text{ cm}^3)}{\\pi \\cdot \\tan^2(${halfAngleDeg}^\\circ)} \\right]^{1/3} = \\mathbf{${heightCm.toFixed(2)}\\text{ cm}} \\quad (${(heightCm * 10).toFixed(1)}\\text{ mm})`;
+      case 'diameter':
+        return `D = 2 \\cdot (${heightCm.toFixed(2)}\\text{ cm}) \\cdot \\tan(${halfAngleDeg}^\\circ) = \\mathbf{${diameterCm.toFixed(2)}\\text{ cm}} \\quad (${(diameterCm * 10).toFixed(1)}\\text{ mm})`;
+      case 'slant':
+        return `L_{\\text{slant}} = \\frac{${(diameterCm / 2).toFixed(2)}\\text{ cm}}{\\sin(${halfAngleDeg}^\\circ)} = \\mathbf{${slantCm.toFixed(2)}\\text{ cm}} \\quad (${(slantCm * 10).toFixed(1)}\\text{ mm})`;
+      case 'area':
+        return `A_{\\text{lat}} = \\pi \\cdot (${(diameterCm / 2).toFixed(2)}\\text{ cm}) \\cdot (${slantCm.toFixed(2)}\\text{ cm}) = \\mathbf{${lateralAreaM2.toFixed(3)}\\text{ m}^2} \\quad (${(lateralAreaM2 * 10000).toFixed(0)}\\text{ cm}^2)`;
+    }
+  };
+
+  const currentDef = PURE_FORMULAS[activeFormula];
+
+  return (
+    <div className="my-8 rounded-2xl border-2 border-amber/40 bg-bg-panel shadow-xl overflow-hidden transition-all duration-300 hover:border-amber/60">
+      {/* Header */}
+      <div className="p-4 sm:p-5 border-b border-hairline bg-gradient-to-r from-amber/15 via-bg-surface to-bg-panel flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-amber text-on-amber flex items-center justify-center shadow-md shrink-0">
+            <Compass className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 rounded bg-amber text-on-amber text-[10px] font-mono font-bold tracking-wider uppercase">
+                Interactive Sizing Workbench
+              </span>
+              <span className="px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 text-[10px] font-mono font-semibold">
+                ASME / Hosokawa Geometry
+              </span>
+            </div>
+            <h3 className="text-sm sm:text-base font-bold text-ink-primary mt-1">
+              Conical Shell Geometry & Heat Transfer Area Solver
+            </h3>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              setVolumeL(20);
+              setHalfAngleDeg(25);
+            }}
+            className="p-2 rounded-lg border border-hairline text-ink-muted hover:text-amber hover:bg-bg-surface transition cursor-pointer text-xs font-mono flex items-center gap-1"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">20L Default</span>
+          </button>
+          <button
+            onClick={copyResults}
+            className="p-2 rounded-lg border border-hairline text-ink-muted hover:text-amber hover:bg-bg-surface transition cursor-pointer text-xs font-mono flex items-center gap-1"
+          >
+            {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+            <span className="hidden sm:inline">{copied ? 'Copied' : 'Copy'}</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="p-4 sm:p-6 space-y-6">
+        {/* Step Tabs: Select Which Formula to Inspect and Simulate */}
+        <div>
+          <div className="text-xs font-semibold text-ink-muted mb-2 uppercase tracking-wider font-mono">
+            Select Active Mathematical Formulation:
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {[
+              { id: 'height', label: 'Cone Height (h)' },
+              { id: 'diameter', label: 'Top Diameter (D)' },
+              { id: 'slant', label: 'Slant Length (L_slant)' },
+              { id: 'area', label: 'Lateral Area (A_lat)' },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveFormula(tab.id as any)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition cursor-pointer border ${
+                  activeFormula === tab.id
+                    ? 'bg-amber text-on-amber border-amber shadow-sm'
+                    : 'bg-bg-surface text-ink-secondary border-hairline hover:bg-bg-panel hover:text-ink-primary'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* STEP 1: ORIGINAL GOVERNING EQUATION (Pure Formula) */}
+        <div className="p-4 sm:p-5 rounded-xl bg-bg-surface border border-hairline space-y-3">
+          <div className="flex items-center justify-between border-b border-hairline pb-2.5">
+            <div className="flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-amber text-on-amber text-[11px] font-mono font-bold flex items-center justify-center">
+                1
+              </span>
+              <span className="text-xs font-mono font-bold uppercase tracking-wider text-ink-primary">
+                Original Governing Equation (Pure Formulation)
+              </span>
+            </div>
+            <span className="text-[11px] font-mono text-ink-muted">
+              {currentDef.title}
+            </span>
+          </div>
+          <div className="py-3 px-4 rounded-lg bg-bg-panel border border-hairline overflow-x-auto text-center font-medium">
+            <KatexEquation expression={currentDef.latex} displayMode />
+          </div>
+        </div>
+
+        {/* STEP 2: WHAT IS WHAT (Variable Definitions & Units) */}
+        <div className="p-4 sm:p-5 rounded-xl bg-bg-surface border border-hairline space-y-3">
+          <div className="flex items-center justify-between border-b border-hairline pb-2.5">
+            <div className="flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-cyan-600 text-white text-[11px] font-mono font-bold flex items-center justify-center">
+                2
+              </span>
+              <span className="text-xs font-mono font-bold uppercase tracking-wider text-ink-primary">
+                What is What (Variable Definitions & Physical Units)
+              </span>
+            </div>
+            <span className="text-[11px] font-mono text-cyan-600 dark:text-cyan-400">
+              Dimensional Symbols & Descriptions
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+            {currentDef.variables.map((v, idx) => (
+              <div key={idx} className="p-3 rounded-lg bg-bg-panel border border-hairline flex flex-col justify-between">
+                <div className="flex items-center justify-between gap-2 mb-1.5">
+                  <span className="px-2 py-0.5 rounded bg-amber/15 text-amber border border-amber/30 text-xs font-mono font-bold">
+                    <KatexEquation expression={v.symbol} />
+                  </span>
+                  <span className="px-1.5 py-0.5 rounded bg-bg-surface border border-hairline text-[10px] font-mono text-ink-muted">
+                    {v.unit}
+                  </span>
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-ink-primary mb-1">{v.name}</div>
+                  <div className="text-[11px] text-ink-secondary leading-relaxed">{v.role}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* STEP 3: INTERACTIVE SIMULATION & NUMERICAL EVALUATION */}
+        <div className="p-4 sm:p-5 rounded-xl bg-bg-surface border-2 border-amber/30 space-y-4">
+          <div className="flex items-center justify-between border-b border-hairline pb-2.5">
+            <div className="flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-emerald-600 text-white text-[11px] font-mono font-bold flex items-center justify-center">
+                3
+              </span>
+              <span className="text-xs font-mono font-bold uppercase tracking-wider text-ink-primary">
+                Interactive Simulation (Live Numerical Substitution)
+              </span>
+            </div>
+            <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400">
+              Active Parameters Live Coupled
+            </span>
+          </div>
+
+          {/* Sliders Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="p-3.5 rounded-xl bg-bg-panel border border-hairline space-y-2">
+              <div className="flex justify-between items-center text-xs">
+                <span className="font-semibold text-ink-primary">Nominal Vessel Volume (V):</span>
+                <span className="font-mono font-bold text-amber text-sm">{volumeL} Liters</span>
+              </div>
+              <input
+                type="range"
+                min="1"
+                max="200"
+                step="1"
+                value={volumeL}
+                onChange={(e) => setVolumeL(Number(e.target.value))}
+                className="w-full accent-amber cursor-pointer"
+              />
+              <div className="flex justify-between text-[10px] font-mono text-ink-muted">
+                <span>1 L (R&D)</span>
+                <span>20 L (Benchmark)</span>
+                <span>200 L (Pilot)</span>
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-bg-panel border border-hairline space-y-2">
+              <div className="flex justify-between items-center text-xs">
+                <span className="font-semibold text-ink-primary">Cone Half-Angle (α from vertical):</span>
+                <span className="font-mono font-bold text-cyan-600 dark:text-cyan-400 text-sm">{halfAngleDeg}°</span>
+              </div>
+              <input
+                type="range"
+                min="20"
+                max="35"
+                step="1"
+                value={halfAngleDeg}
+                onChange={(e) => setHalfAngleDeg(Number(e.target.value))}
+                className="w-full accent-cyan-500 cursor-pointer"
+              />
+              <div className="flex justify-between text-[10px] font-mono text-ink-muted">
+                <span>20° (Steep / Buckling resistant)</span>
+                <span>25° (Standard)</span>
+                <span>35° (Shallow)</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Live Substituted KaTeX Equation */}
+          <div className="p-4 rounded-xl bg-bg-panel border-2 border-amber/40 shadow-inner">
+            <div className="text-[11px] font-mono uppercase tracking-wider text-ink-muted mb-1 text-center">
+              Active Numerical Substitution & Evaluated Result:
+            </div>
+            <div className="text-center overflow-x-auto py-2 font-mono text-ink-primary">
+              <KatexEquation expression={getSubstitutedLatex()} displayMode />
+            </div>
+          </div>
+
+          {/* Computed Metrics Dashboard */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="p-3 rounded-xl bg-bg-panel border border-hairline text-center">
+              <div className="text-[10px] uppercase font-mono text-ink-muted">Cone Height (h)</div>
+              <div className="text-lg font-bold font-mono text-ink-primary mt-0.5">{heightCm.toFixed(1)} cm</div>
+              <div className="text-[10px] font-mono text-ink-muted">{(heightCm * 10).toFixed(0)} mm</div>
+            </div>
+            <div className="p-3 rounded-xl bg-bg-panel border border-hairline text-center">
+              <div className="text-[10px] uppercase font-mono text-ink-muted">Major Diameter (D)</div>
+              <div className="text-lg font-bold font-mono text-ink-primary mt-0.5">{diameterCm.toFixed(1)} cm</div>
+              <div className="text-[10px] font-mono text-ink-muted">{(diameterCm * 10).toFixed(0)} mm</div>
+            </div>
+            <div className="p-3 rounded-xl bg-bg-panel border border-hairline text-center">
+              <div className="text-[10px] uppercase font-mono text-ink-muted">Slant Length</div>
+              <div className="text-lg font-bold font-mono text-ink-primary mt-0.5">{slantCm.toFixed(1)} cm</div>
+              <div className="text-[10px] font-mono text-ink-muted">{(slantCm * 10).toFixed(0)} mm</div>
+            </div>
+            <div className="p-3 rounded-xl bg-bg-panel border border-hairline text-center">
+              <div className="text-[10px] uppercase font-mono text-ink-muted">Lateral Area</div>
+              <div className="text-lg font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-0.5">{lateralAreaM2.toFixed(3)} m²</div>
+              <div className="text-[10px] font-mono text-ink-muted">Jacket wetted surface</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// 12. NON-LINEAR CONICAL FILL HEIGHT WORKBENCH
+// h_fill = h * (V_fill / V_nom)^(1/3)
+// ============================================================================
+export function NonlinearFillHeightWorkbench() {
+  const [fillFractionPercent, setFillFractionPercent] = useState(50); // Default 50%
+  const [totalHeightCm, setTotalHeightCm] = useState(44.5); // Hosokawa 20L default
+  const [copied, setCopied] = useState(false);
+
+  const fillFraction = fillFractionPercent / 100;
+  const heightRatio = Math.cbrt(fillFraction);
+  const fillHeightCm = totalHeightCm * heightRatio;
+  const freeboardHeightCm = totalHeightCm - fillHeightCm;
+  const freeboardPercent = (1 - heightRatio) * 100;
+
+  const copyFormula = () => {
+    navigator.clipboard.writeText(
+      `Conical Non-linear Fill: Volume Fill=${fillFractionPercent}%, Liquid Height=${(heightRatio * 100).toFixed(1)}% (${fillHeightCm.toFixed(1)}cm), Freeboard=${freeboardPercent.toFixed(1)}% (${freeboardHeightCm.toFixed(1)}cm)`
+    );
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const latexFormula = `h_{\\text{fill}} = h_{\\text{total}} \\cdot \\left(\\frac{${fillFractionPercent}\\%}{100\\%}\\right)^{1/3} = ${totalHeightCm}\\text{ cm} \\cdot ${(heightRatio).toFixed(4)} = \\mathbf{${fillHeightCm.toFixed(2)}\\text{ cm}} \\quad (${(heightRatio * 100).toFixed(1)}\\%\\text{ of } h_{\\text{total}})`;
+
+  return (
+    <div className="my-8 rounded-2xl border-2 border-cyan-500/40 bg-bg-panel shadow-xl overflow-hidden transition-all duration-300 hover:border-cyan-500/60">
+      <div className="p-4 sm:p-5 border-b border-hairline bg-gradient-to-r from-cyan-500/15 via-bg-surface to-bg-panel flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-cyan-600 text-white flex items-center justify-center shadow-md shrink-0">
+            <Layers className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 rounded bg-cyan-600 text-white text-[10px] font-mono font-bold tracking-wider uppercase">
+                Interactive Fluid Dynamics
+              </span>
+              <span className="px-2 py-0.5 rounded-full bg-amber/15 text-amber border border-amber/30 text-[10px] font-mono font-semibold">
+                V ∝ h³ Cubic Law
+              </span>
+            </div>
+            <h3 className="text-sm sm:text-base font-bold text-ink-primary mt-1">
+              Cone Non-Linear Height vs. Volume Fill Calculator
+            </h3>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              setFillFractionPercent(50);
+              setTotalHeightCm(44.5);
+            }}
+            className="p-2 rounded-lg border border-hairline text-ink-muted hover:text-cyan-600 hover:bg-bg-surface transition cursor-pointer text-xs font-mono flex items-center gap-1"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">50% Benchmark</span>
+          </button>
+          <button
+            onClick={copyFormula}
+            className="p-2 rounded-lg border border-hairline text-ink-muted hover:text-cyan-600 hover:bg-bg-surface transition cursor-pointer text-xs font-mono flex items-center gap-1"
+          >
+            {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+            <span className="hidden sm:inline">{copied ? 'Copied' : 'Copy'}</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="p-4 sm:p-6 space-y-6">
+        {/* STEP 1: ORIGINAL GOVERNING EQUATION (Pure Formula) */}
+        <div className="p-4 sm:p-5 rounded-xl bg-bg-surface border border-hairline space-y-3">
+          <div className="flex items-center justify-between border-b border-hairline pb-2.5">
+            <div className="flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-cyan-600 text-white text-[11px] font-mono font-bold flex items-center justify-center">
+                1
+              </span>
+              <span className="text-xs font-mono font-bold uppercase tracking-wider text-ink-primary">
+                Original Governing Equation (Pure Formulation)
+              </span>
+            </div>
+            <span className="text-[11px] font-mono text-ink-muted">
+              Conical Frustum Liquid Level Cubic Law
+            </span>
+          </div>
+          <div className="py-3 px-4 rounded-lg bg-bg-panel border border-hairline overflow-x-auto text-center font-medium">
+            <KatexEquation expression="h_{\text{fill}} = h_{\text{total}} \cdot \left(\frac{V_{\text{fill}}}{V_{\text{nominal}}}\right)^{1/3} = h_{\text{total}} \cdot f^{1/3} \qquad h_{\text{freeboard}} = h_{\text{total}} - h_{\text{fill}} = h_{\text{total}} \cdot \left(1 - f^{1/3}\right)" displayMode />
+          </div>
+        </div>
+
+        {/* STEP 2: WHAT IS WHAT (Variable Definitions & Units) */}
+        <div className="p-4 sm:p-5 rounded-xl bg-bg-surface border border-hairline space-y-3">
+          <div className="flex items-center justify-between border-b border-hairline pb-2.5">
+            <div className="flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-cyan-600 text-white text-[11px] font-mono font-bold flex items-center justify-center">
+                2
+              </span>
+              <span className="text-xs font-mono font-bold uppercase tracking-wider text-ink-primary">
+                What is What (Variable Definitions & Physical Units)
+              </span>
+            </div>
+            <span className="text-[11px] font-mono text-cyan-600 dark:text-cyan-400">
+              Dimensional Symbols & Descriptions
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+            {[
+              { symbol: 'h_{\\text{fill}}', name: 'Liquid Fill Depth', unit: 'cm / mm', role: 'Vertical depth of liquid powder slurry from cone discharge nozzle to free surface.' },
+              { symbol: 'h_{\\text{total}}', name: 'Total Shell Height', unit: 'cm / mm', role: 'Full vertical height of the conical processing chamber.' },
+              { symbol: 'V_{\\text{fill}}', name: 'Working Batch Volume', unit: 'L / cm³', role: 'Liquid batch volume charged into the freeze dryer (typically 50% of nominal).' },
+              { symbol: 'V_{\\text{nominal}}', name: 'Nominal Vessel Volume', unit: 'L / cm³', role: 'Total gross internal volume of the conical vessel shell.' },
+              { symbol: 'f', name: 'Volume Fill Fraction', unit: 'fraction / %', role: 'Ratio V_fill / V_nominal (Hosokawa AFD cGMP operating benchmark is 0.50).' },
+              { symbol: 'f^{1/3}', name: 'Cubic Non-Linear Factor', unit: 'ratio', role: 'Geometric factor showing volume scales with the third power of depth in a cone (0.5^(1/3) = 0.7937).' },
+              { symbol: 'h_{\\text{freeboard}}', name: 'Vapor Freeboard', unit: 'cm / mm', role: 'Headspace clearance required above bed for sublime vapor escape without powder entrainment.' },
+            ].map((v, idx) => (
+              <div key={idx} className="p-3 rounded-lg bg-bg-panel border border-hairline flex flex-col justify-between">
+                <div className="flex items-center justify-between gap-2 mb-1.5">
+                  <span className="px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 text-xs font-mono font-bold">
+                    <KatexEquation expression={v.symbol} />
+                  </span>
+                  <span className="px-1.5 py-0.5 rounded bg-bg-surface border border-hairline text-[10px] font-mono text-ink-muted">
+                    {v.unit}
+                  </span>
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-ink-primary mb-1">{v.name}</div>
+                  <div className="text-[11px] text-ink-secondary leading-relaxed">{v.role}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* STEP 3: INTERACTIVE SIMULATION & NUMERICAL EVALUATION */}
+        <div className="p-4 sm:p-5 rounded-xl bg-bg-surface border-2 border-cyan-500/30 space-y-4">
+          <div className="flex items-center justify-between border-b border-hairline pb-2.5">
+            <div className="flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-emerald-600 text-white text-[11px] font-mono font-bold flex items-center justify-center">
+                3
+              </span>
+              <span className="text-xs font-mono font-bold uppercase tracking-wider text-ink-primary">
+                Interactive Simulation (Live Numerical Substitution)
+              </span>
+            </div>
+            <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400">
+              Active Parameters Live Coupled
+            </span>
+          </div>
+
+          {/* Sliders */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="p-3.5 rounded-xl bg-bg-panel border border-hairline space-y-2">
+              <div className="flex justify-between items-center text-xs">
+                <span className="font-semibold text-ink-primary">Volume Fill Percentage (f):</span>
+                <span className="font-mono font-bold text-cyan-600 dark:text-cyan-400 text-sm">{fillFractionPercent}%</span>
+              </div>
+              <input
+                type="range"
+                min="10"
+                max="90"
+                step="1"
+                value={fillFractionPercent}
+                onChange={(e) => setFillFractionPercent(Number(e.target.value))}
+                className="w-full accent-cyan-500 cursor-pointer"
+              />
+              <div className="flex justify-between text-[10px] font-mono text-ink-muted">
+                <span>30%</span>
+                <span className="text-cyan-600 font-bold">50% (Hosokawa Limit)</span>
+                <span className="text-rose-500 font-bold">80% (Danger)</span>
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-bg-panel border border-hairline space-y-2">
+              <div className="flex justify-between items-center text-xs">
+                <span className="font-semibold text-ink-primary">Total Vessel Height (h_total):</span>
+                <span className="font-mono font-bold text-amber text-sm">{totalHeightCm} cm</span>
+              </div>
+              <input
+                type="range"
+                min="20"
+                max="250"
+                step="0.5"
+                value={totalHeightCm}
+                onChange={(e) => setTotalHeightCm(Number(e.target.value))}
+                className="w-full accent-amber cursor-pointer"
+              />
+              <div className="flex justify-between text-[10px] font-mono text-ink-muted">
+                <span>20 cm (R&D)</span>
+                <span>44.5 cm (20L)</span>
+                <span>250 cm (Industrial)</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Live Substituted KaTeX Equation */}
+          <div className="p-4 rounded-xl bg-bg-panel border-2 border-cyan-500/40 shadow-inner">
+            <div className="text-[11px] font-mono uppercase tracking-wider text-ink-muted mb-1 text-center">
+              Active Numerical Substitution & Evaluated Result:
+            </div>
+            <div className="text-center overflow-x-auto py-2 font-mono text-ink-primary">
+              <KatexEquation expression={latexFormula} displayMode />
+            </div>
+          </div>
+
+          {/* Visual Progress Bars */}
+          <div className="p-4 rounded-xl bg-bg-panel border border-hairline space-y-3">
+            <div className="space-y-1">
+              <div className="flex justify-between text-xs font-mono">
+                <span className="text-ink-secondary">Volume Fill: {fillFractionPercent}%</span>
+                <span className="text-cyan-600 dark:text-cyan-400 font-bold">Liquid Surface: {(heightRatio * 100).toFixed(1)}% of Height</span>
+              </div>
+              <div className="w-full h-4 rounded-full bg-bg-surface border border-hairline overflow-hidden flex">
+                <div
+                  style={{ width: `${heightRatio * 100}%` }}
+                  className="h-full bg-gradient-to-r from-cyan-500 to-sky-600 transition-all duration-200"
+                />
+                <div
+                  style={{ width: `${freeboardPercent}%` }}
+                  className="h-full bg-amber/20 transition-all duration-200"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-between text-[11px] font-mono text-ink-muted">
+              <span>Liquid Depth: <strong className="text-ink-primary">{fillHeightCm.toFixed(1)} cm</strong> ({(fillHeightCm * 10).toFixed(0)} mm)</span>
+              <span>Freeboard Remaining: <strong className="text-amber">{freeboardHeightCm.toFixed(1)} cm</strong> ({freeboardPercent.toFixed(1)}%)</span>
+            </div>
+
+            {fillFractionPercent > 65 && (
+              <div className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs font-mono flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 shrink-0" />
+                <span>Warning: Freeboard collapsed to under 15%. Agitator folding action and vapor disengagement will be severely impaired.</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// 13. HEAD THICKNESS ASME UG-32 WORKBENCH
+// Torispherical UG-32(e) vs 2:1 Ellipsoidal UG-32(d)
+// ============================================================================
+export function HeadThicknessWorkbench() {
+  const [headType, setHeadType] = useState<'torispherical' | 'ellipsoidal'>('torispherical');
+  const [diameterMm, setDiameterMm] = useState(415); // Top diameter in mm
+  const [pressureBar, setPressureBar] = useState(3.0); // Steam SIP pressure
+  const [stressMPa, setStressMPa] = useState(115); // 316L allowable stress
+  const [jointEff, setJointEff] = useState(1.0);
+  const [copied, setCopied] = useState(false);
+
+  const P_MPa = pressureBar * 0.1;
+  const S_MPa = stressMPa;
+  const E = jointEff;
+  const D = diameterMm;
+  const denominator = 2 * S_MPa * E - 0.2 * P_MPa;
+
+  const L = headType === 'torispherical' ? D : 0.9 * D;
+  const r = headType === 'torispherical' ? 0.06 * D : 0.17 * D;
+  const mFactor = headType === 'torispherical' ? (3 + Math.sqrt(L / r)) / 4 : 1.0;
+  const kFactor = 1.0;
+
+  const thicknessMm =
+    headType === 'torispherical'
+      ? (P_MPa * L * mFactor) / Math.max(1, denominator)
+      : (P_MPa * D * kFactor) / Math.max(1, denominator);
+
+  const dishDepthMm = headType === 'torispherical' ? 0.169 * D : D / 4;
+
+  const copyFormula = () => {
+    navigator.clipboard.writeText(
+      `ASME UG-32 Head Thickness (${headType}): D=${D}mm, P=${pressureBar}bar, S=${stressMPa}MPa, t=${thicknessMm.toFixed(2)}mm`
+    );
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const latexFormula =
+    headType === 'torispherical'
+      ? `t = \\frac{P \\cdot L \\cdot M}{2SE - 0.2P} = \\frac{(${P_MPa.toFixed(2)}) \\cdot (${D}) \\cdot (${mFactor.toFixed(3)})}{2(${S_MPa})(${E}) - 0.2(${P_MPa.toFixed(2)})} = ${thicknessMm.toFixed(2)}\\text{ mm}`
+      : `t = \\frac{P \\cdot D \\cdot K}{2SE - 0.2P} = \\frac{(${P_MPa.toFixed(2)}) \\cdot (${D}) \\cdot (1.0)}{2(${S_MPa})(${E}) - 0.2(${P_MPa.toFixed(2)})} = ${thicknessMm.toFixed(2)}\\text{ mm}`;
+
+  return (
+    <div className="my-8 rounded-2xl border-2 border-emerald-500/40 bg-bg-panel shadow-xl overflow-hidden transition-all duration-300 hover:border-emerald-500/60">
+      <div className="p-4 sm:p-5 border-b border-hairline bg-gradient-to-r from-emerald-500/15 via-bg-surface to-bg-panel flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-md shrink-0">
+            <Shield className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 rounded bg-emerald-600 text-white text-[10px] font-mono font-bold tracking-wider uppercase">
+                ASME Section VIII Div 1
+              </span>
+              <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-[10px] font-mono font-semibold">
+                UG-32 Structural Head Sizing
+              </span>
+            </div>
+            <h3 className="text-sm sm:text-base font-bold text-ink-primary mt-1">
+              Top Closure Head Thickness & Profile Calculator
+            </h3>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <div className="flex rounded-lg border border-hairline bg-bg-surface p-0.5">
+            <button
+              onClick={() => setHeadType('torispherical')}
+              className={`px-2.5 py-1 rounded text-xs font-mono font-semibold transition cursor-pointer ${
+                headType === 'torispherical' ? 'bg-emerald-600 text-white shadow-sm' : 'text-ink-secondary hover:text-ink-primary'
+              }`}
+            >
+              Torispherical F&D
+            </button>
+            <button
+              onClick={() => setHeadType('ellipsoidal')}
+              className={`px-2.5 py-1 rounded text-xs font-mono font-semibold transition cursor-pointer ${
+                headType === 'ellipsoidal' ? 'bg-emerald-600 text-white shadow-sm' : 'text-ink-secondary hover:text-ink-primary'
+              }`}
+            >
+              2:1 Ellipsoidal
+            </button>
+          </div>
+          <button
+            onClick={copyFormula}
+            className="p-2 rounded-lg border border-hairline text-ink-muted hover:text-emerald-600 hover:bg-bg-surface transition cursor-pointer text-xs font-mono flex items-center gap-1"
+          >
+            {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+          </button>
+        </div>
+      </div>
+
+      <div className="p-4 sm:p-6 space-y-6">
+        {/* STEP 1: ORIGINAL GOVERNING EQUATION (Pure Formula) */}
+        <div className="p-4 sm:p-5 rounded-xl bg-bg-surface border border-hairline space-y-3">
+          <div className="flex items-center justify-between border-b border-hairline pb-2.5">
+            <div className="flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-emerald-600 text-white text-[11px] font-mono font-bold flex items-center justify-center">
+                1
+              </span>
+              <span className="text-xs font-mono font-bold uppercase tracking-wider text-ink-primary">
+                Original Governing Equation (Pure Formulation)
+              </span>
+            </div>
+            <span className="text-[11px] font-mono text-ink-muted">
+              {headType === 'torispherical' ? 'ASME Section VIII Div 1 UG-32(e)' : 'ASME Section VIII Div 1 UG-32(d)'}
+            </span>
+          </div>
+          <div className="py-3 px-4 rounded-lg bg-bg-panel border border-hairline overflow-x-auto text-center font-medium">
+            {headType === 'torispherical' ? (
+              <KatexEquation expression="t = \frac{P \cdot L \cdot M}{2 S E - 0.2 P} \qquad \text{where } M = \frac{1}{4} \left( 3 + \sqrt{\frac{L}{r}} \right) \quad (L \le D, \; r \ge 0.06D)" displayMode />
+            ) : (
+              <KatexEquation expression="t = \frac{P \cdot D \cdot K}{2 S E - 0.2 P} \qquad \text{where } K = \frac{1}{6} \left[ 2 + \left(\frac{D}{2h}\right)^2 \right] = 1.00 \quad (\text{for } 2:1 \text{ ratio})" displayMode />
+            )}
+          </div>
+        </div>
+
+        {/* STEP 2: WHAT IS WHAT (Variable Definitions & Units) */}
+        <div className="p-4 sm:p-5 rounded-xl bg-bg-surface border border-hairline space-y-3">
+          <div className="flex items-center justify-between border-b border-hairline pb-2.5">
+            <div className="flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-emerald-600 text-white text-[11px] font-mono font-bold flex items-center justify-center">
+                2
+              </span>
+              <span className="text-xs font-mono font-bold uppercase tracking-wider text-ink-primary">
+                What is What (Variable Definitions & Physical Units)
+              </span>
+            </div>
+            <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400">
+              Code Parameters & Material Allowables
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+            {[
+              { symbol: 't', name: 'Minimum Design Thickness', unit: 'mm', role: 'Minimum uncorroded wall thickness required to withstand internal clean steam pressure.' },
+              { symbol: 'P', name: 'Internal Design Pressure', unit: 'MPa / barg', role: 'Peak steam-in-place (SIP) sterilization design pressure (typically 3.0 barg at 134°C).' },
+              { symbol: 'D', name: 'Inside Shell Diameter', unit: 'mm', role: 'Internal diameter at upper flange seam where conical shell attaches to head skirt.' },
+              { symbol: 'L', name: 'Inside Crown Radius', unit: 'mm', role: 'Spherical dish radius (L = D for standard ASME flanged & dished torispherical).' },
+              { symbol: 'r', name: 'Inside Knuckle Radius', unit: 'mm', role: 'Toroidal knuckle transition radius providing flexibility (r ≥ 0.06D per ASME code).' },
+              { symbol: 'M', name: 'Torispherical Stress Factor', unit: 'ratio', role: 'Geometric stress concentration factor derived from crown-to-knuckle ratio L/r.' },
+              { symbol: 'K', name: 'Ellipsoidal Stress Factor', unit: 'ratio', role: 'Geometry factor for ellipsoidal heads; equals exactly 1.0 for standard 2:1 ratio.' },
+              { symbol: 'S', name: 'Maximum Allowable Stress', unit: 'MPa', role: 'Allowable tensile stress for 316L stainless steel at 120°C per ASME Section II-D (115 MPa).' },
+              { symbol: 'E', name: 'Weld Joint Efficiency', unit: 'ratio', role: 'Efficiency factor for head-to-flange circumferential seam (E = 1.0 for 100% RT).' },
+            ].map((v, idx) => (
+              <div key={idx} className="p-3 rounded-lg bg-bg-panel border border-hairline flex flex-col justify-between">
+                <div className="flex items-center justify-between gap-2 mb-1.5">
+                  <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-xs font-mono font-bold">
+                    <KatexEquation expression={v.symbol} />
+                  </span>
+                  <span className="px-1.5 py-0.5 rounded bg-bg-surface border border-hairline text-[10px] font-mono text-ink-muted">
+                    {v.unit}
+                  </span>
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-ink-primary mb-1">{v.name}</div>
+                  <div className="text-[11px] text-ink-secondary leading-relaxed">{v.role}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* STEP 3: INTERACTIVE SIMULATION & NUMERICAL EVALUATION */}
+        <div className="p-4 sm:p-5 rounded-xl bg-bg-surface border-2 border-emerald-500/30 space-y-4">
+          <div className="flex items-center justify-between border-b border-hairline pb-2.5">
+            <div className="flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-emerald-600 text-white text-[11px] font-mono font-bold flex items-center justify-center">
+                3
+              </span>
+              <span className="text-xs font-mono font-bold uppercase tracking-wider text-ink-primary">
+                Interactive Simulation (Live Numerical Substitution)
+              </span>
+            </div>
+            <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400">
+              Active Parameters Live Coupled
+            </span>
+          </div>
+
+          {/* Sliders Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="p-3 rounded-xl bg-bg-panel border border-hairline space-y-1.5">
+              <div className="flex justify-between items-center text-xs">
+                <span className="font-semibold text-ink-primary">Top Diameter (D):</span>
+                <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">{diameterMm} mm</span>
+              </div>
+              <input
+                type="range"
+                min="200"
+                max="1500"
+                step="5"
+                value={diameterMm}
+                onChange={(e) => setDiameterMm(Number(e.target.value))}
+                className="w-full accent-emerald-500 cursor-pointer"
+              />
+            </div>
+
+            <div className="p-3 rounded-xl bg-bg-panel border border-hairline space-y-1.5">
+              <div className="flex justify-between items-center text-xs">
+                <span className="font-semibold text-ink-primary">Steam Pressure (P):</span>
+                <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">{pressureBar} barg</span>
+              </div>
+              <input
+                type="range"
+                min="1.0"
+                max="6.0"
+                step="0.1"
+                value={pressureBar}
+                onChange={(e) => setPressureBar(Number(e.target.value))}
+                className="w-full accent-emerald-500 cursor-pointer"
+              />
+            </div>
+
+            <div className="p-3 rounded-xl bg-bg-panel border border-hairline space-y-1.5">
+              <div className="flex justify-between items-center text-xs">
+                <span className="font-semibold text-ink-primary">Allowable Stress (S):</span>
+                <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">{stressMPa} MPa</span>
+              </div>
+              <input
+                type="range"
+                min="90"
+                max="140"
+                step="5"
+                value={stressMPa}
+                onChange={(e) => setStressMPa(Number(e.target.value))}
+                className="w-full accent-emerald-500 cursor-pointer"
+              />
+            </div>
+          </div>
+
+          {/* Live Substituted Equation */}
+          <div className="p-4 rounded-xl bg-bg-panel border-2 border-emerald-500/40 shadow-inner">
+            <div className="text-[11px] font-mono uppercase tracking-wider text-ink-muted mb-1 text-center">
+              Active Numerical Substitution & Evaluated Result:
+            </div>
+            <div className="text-center overflow-x-auto py-2 font-mono text-ink-primary">
+              <KatexEquation expression={latexFormula} displayMode />
+            </div>
+          </div>
+
+          {/* Results Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+            <div className="p-3 rounded-xl bg-bg-panel border border-hairline">
+              <div className="text-[10px] uppercase font-mono text-ink-muted">Min Thickness (t)</div>
+              <div className="text-lg font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-0.5">
+                {Math.max(2.0, thicknessMm).toFixed(2)} mm
+              </div>
+              <div className="text-[10px] font-mono text-ink-muted">Internal steam governed</div>
+            </div>
+            <div className="p-3 rounded-xl bg-bg-panel border border-hairline">
+              <div className="text-[10px] uppercase font-mono text-ink-muted">Crown Radius (L)</div>
+              <div className="text-lg font-bold font-mono text-ink-primary mt-0.5">{Math.round(L)} mm</div>
+              <div className="text-[10px] font-mono text-ink-muted">{headType === 'torispherical' ? 'L = D' : 'L = 0.9D'}</div>
+            </div>
+            <div className="p-3 rounded-xl bg-bg-panel border border-hairline">
+              <div className="text-[10px] uppercase font-mono text-ink-muted">Knuckle Radius (r)</div>
+              <div className="text-lg font-bold font-mono text-ink-primary mt-0.5">{Math.round(r)} mm</div>
+              <div className="text-[10px] font-mono text-ink-muted">{headType === 'torispherical' ? 'r ≥ 0.06D' : 'r = 0.17D'}</div>
+            </div>
+            <div className="p-3 rounded-xl bg-bg-panel border border-hairline">
+              <div className="text-[10px] uppercase font-mono text-ink-muted">Dish Depth</div>
+              <div className="text-lg font-bold font-mono text-ink-primary mt-0.5">{Math.round(dishDepthMm)} mm</div>
+              <div className="text-[10px] font-mono text-ink-muted">Forming rise</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// 14. BUCKLING PRESSURE WINDENBURG-TRILLING WORKBENCH
+// Classical Elastic Buckling Pressure for Conical / Cylindrical Shells
+// ============================================================================
+export function BucklingPressureWorkbench() {
+  const [thicknessMm, setThicknessMm] = useState(3.0);
+  const [diameterMm, setDiameterMm] = useState(457);
+  const [slantLengthMm, setSlantLengthMm] = useState(490);
+  const [copied, setCopied] = useState(false);
+
+  const E_MPa = 193000; // 316L Young's Modulus in MPa
+  const nu = 0.3; // Poisson ratio
+
+  const t_over_Do = thicknessMm / diameterMm;
+  const L_over_Do = slantLengthMm / diameterMm;
+
+  const numerator = 2.42 * E_MPa * Math.pow(t_over_Do, 2.5);
+  const denominator = Math.pow(1 - nu * nu, 0.75) * Math.max(0.01, L_over_Do - 0.45 * Math.pow(t_over_Do, 0.5));
+
+  const pCritMPa = Math.max(0.01, numerator / Math.max(0.01, denominator));
+  const pCritBar = pCritMPa * 10.0;
+  const allowableExternalBar = pCritBar / 3.0; // ASME safety factor = 3.0
+  const isSafe = allowableExternalBar >= 1.013;
+
+  const copyFormula = () => {
+    navigator.clipboard.writeText(
+      `Windenburg-Trilling Elastic Buckling: t=${thicknessMm}mm, Do=${diameterMm}mm, L=${slantLengthMm}mm -> P_crit=${pCritBar.toFixed(2)} bar, P_allowable=${allowableExternalBar.toFixed(2)} bar`
+    );
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const latexFormula = `P_{\\text{cr}} = \\frac{2.42 \\cdot E \\cdot (t / D_o)^{5/2}}{(1 - \\nu^2)^{3/4} \\cdot \\left[\\frac{L}{D_o} - 0.45 \\cdot (t / D_o)^{1/2}\\right]} = ${pCritBar.toFixed(2)}\\text{ bar} \\implies P_{\\text{allowable}} = \\frac{P_{\\text{cr}}}{3.0} = ${allowableExternalBar.toFixed(2)}\\text{ bar}`;
+
+  return (
+    <div className="my-8 rounded-2xl border-2 border-indigo-500/40 bg-bg-panel shadow-xl overflow-hidden transition-all duration-300 hover:border-indigo-500/60">
+      <div className="p-4 sm:p-5 border-b border-hairline bg-gradient-to-r from-indigo-500/15 via-bg-surface to-bg-panel flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-md shrink-0">
+            <Gauge className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 rounded bg-indigo-600 text-white text-[10px] font-mono font-bold tracking-wider uppercase">
+                Vacuum Buckling Physics
+              </span>
+              <span className="px-2 py-0.5 rounded-full bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 text-[10px] font-mono font-semibold">
+                Windenburg-Trilling 1934
+              </span>
+            </div>
+            <h3 className="text-sm sm:text-base font-bold text-ink-primary mt-1">
+              Preliminary Shell Elastic Buckling & Vacuum Rating Calculator
+            </h3>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              setThicknessMm(3.0);
+              setDiameterMm(457);
+              setSlantLengthMm(490);
+            }}
+            className="p-2 rounded-lg border border-hairline text-ink-muted hover:text-indigo-600 hover:bg-bg-surface transition cursor-pointer text-xs font-mono flex items-center gap-1"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">20L Default</span>
+          </button>
+          <button
+            onClick={copyFormula}
+            className="p-2 rounded-lg border border-hairline text-ink-muted hover:text-indigo-600 hover:bg-bg-surface transition cursor-pointer text-xs font-mono flex items-center gap-1"
+          >
+            {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+          </button>
+        </div>
+      </div>
+
+      <div className="p-4 sm:p-6 space-y-6">
+        {/* STEP 1: ORIGINAL GOVERNING EQUATION (Pure Formula) */}
+        <div className="p-4 sm:p-5 rounded-xl bg-bg-surface border border-hairline space-y-3">
+          <div className="flex items-center justify-between border-b border-hairline pb-2.5">
+            <div className="flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-indigo-600 text-white text-[11px] font-mono font-bold flex items-center justify-center">
+                1
+              </span>
+              <span className="text-xs font-mono font-bold uppercase tracking-wider text-ink-primary">
+                Original Governing Equation (Pure Formulation)
+              </span>
+            </div>
+            <span className="text-[11px] font-mono text-ink-muted">
+              Windenburg-Trilling (1934) Elastic Instability
+            </span>
+          </div>
+          <div className="py-3 px-4 rounded-lg bg-bg-panel border border-hairline overflow-x-auto text-center font-medium">
+            <KatexEquation expression="P_{\text{cr}} = \frac{2.42 \cdot E \cdot (t / D_o)^{5/2}}{(1 - \nu^2)^{3/4} \cdot \left[\frac{L}{D_o} - 0.45 \cdot (t / D_o)^{1/2}\right]} \qquad P_{\text{allowable}} = \frac{P_{\text{cr}}}{\text{FS}} = \frac{P_{\text{cr}}}{3.0}" displayMode />
+          </div>
+        </div>
+
+        {/* STEP 2: WHAT IS WHAT (Variable Definitions & Units) */}
+        <div className="p-4 sm:p-5 rounded-xl bg-bg-surface border border-hairline space-y-3">
+          <div className="flex items-center justify-between border-b border-hairline pb-2.5">
+            <div className="flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-indigo-600 text-white text-[11px] font-mono font-bold flex items-center justify-center">
+                2
+              </span>
+              <span className="text-xs font-mono font-bold uppercase tracking-wider text-ink-primary">
+                What is What (Variable Definitions & Physical Units)
+              </span>
+            </div>
+            <span className="text-[11px] font-mono text-indigo-600 dark:text-indigo-400">
+              Buckling Parameters & Material Constants
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+            {[
+              { symbol: 'P_{\\text{cr}}', name: 'Critical Buckling Pressure', unit: 'bar / MPa', role: 'Theoretical external differential pressure causing instantaneous elastic collapse of the shell.' },
+              { symbol: 'P_{\\text{allowable}}', name: 'Permissible Vacuum Rating', unit: 'bar', role: 'Safe working external differential pressure (must exceed 1.013 bar for full vacuum freeze drying).' },
+              { symbol: 'E', name: 'Elastic Modulus', unit: 'MPa', role: "Young's modulus of 316L stainless steel (193,000 MPa at operating temperature)." },
+              { symbol: '\\nu', name: "Poisson's Ratio", unit: 'ratio', role: 'Transverse-to-axial strain ratio for austenitic stainless steels (standard 0.30).' },
+              { symbol: 't', name: 'Shell Wall Thickness', unit: 'mm', role: 'Minimum uncorroded structural metal thickness of the conical shell wall.' },
+              { symbol: 'D_o', name: 'Equivalent Outer Diameter', unit: 'mm', role: 'Mean outside diameter across the conical vessel frustum span.' },
+              { symbol: 'L', name: 'Unsupported Axial Span', unit: 'mm', role: 'Slant wall length between stiffening rings, top flange, and bottom nozzle reinforcement.' },
+              { symbol: '\\text{FS}', name: 'ASME Safety Factor', unit: 'ratio', role: 'Safety margin against vacuum collapse (standard FS = 3.0 per ASME Section VIII Div 1).' },
+            ].map((v, idx) => (
+              <div key={idx} className="p-3 rounded-lg bg-bg-panel border border-hairline flex flex-col justify-between">
+                <div className="flex items-center justify-between gap-2 mb-1.5">
+                  <span className="px-2 py-0.5 rounded bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 text-xs font-mono font-bold">
+                    <KatexEquation expression={v.symbol} />
+                  </span>
+                  <span className="px-1.5 py-0.5 rounded bg-bg-surface border border-hairline text-[10px] font-mono text-ink-muted">
+                    {v.unit}
+                  </span>
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-ink-primary mb-1">{v.name}</div>
+                  <div className="text-[11px] text-ink-secondary leading-relaxed">{v.role}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* STEP 3: INTERACTIVE SIMULATION & NUMERICAL EVALUATION */}
+        <div className="p-4 sm:p-5 rounded-xl bg-bg-surface border-2 border-indigo-500/30 space-y-4">
+          <div className="flex items-center justify-between border-b border-hairline pb-2.5">
+            <div className="flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-emerald-600 text-white text-[11px] font-mono font-bold flex items-center justify-center">
+                3
+              </span>
+              <span className="text-xs font-mono font-bold uppercase tracking-wider text-ink-primary">
+                Interactive Simulation (Live Numerical Substitution)
+              </span>
+            </div>
+            <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400">
+              Active Parameters Live Coupled
+            </span>
+          </div>
+
+          {/* Sliders Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="p-3 rounded-xl bg-bg-panel border border-hairline space-y-1.5">
+              <div className="flex justify-between items-center text-xs">
+                <span className="font-semibold text-ink-primary">Shell Thickness (t):</span>
+                <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400">{thicknessMm.toFixed(1)} mm</span>
+              </div>
+              <input
+                type="range"
+                min="1.5"
+                max="8.0"
+                step="0.5"
+                value={thicknessMm}
+                onChange={(e) => setThicknessMm(Number(e.target.value))}
+                className="w-full accent-indigo-500 cursor-pointer"
+              />
+            </div>
+
+            <div className="p-3 rounded-xl bg-bg-panel border border-hairline space-y-1.5">
+              <div className="flex justify-between items-center text-xs">
+                <span className="font-semibold text-ink-primary">Equivalent Dia (Do):</span>
+                <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400">{diameterMm} mm</span>
+              </div>
+              <input
+                type="range"
+                min="200"
+                max="1500"
+                step="10"
+                value={diameterMm}
+                onChange={(e) => setDiameterMm(Number(e.target.value))}
+                className="w-full accent-indigo-500 cursor-pointer"
+              />
+            </div>
+
+            <div className="p-3 rounded-xl bg-bg-panel border border-hairline space-y-1.5">
+              <div className="flex justify-between items-center text-xs">
+                <span className="font-semibold text-ink-primary">Effective Length (L):</span>
+                <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400">{slantLengthMm} mm</span>
+              </div>
+              <input
+                type="range"
+                min="200"
+                max="1500"
+                step="10"
+                value={slantLengthMm}
+                onChange={(e) => setSlantLengthMm(Number(e.target.value))}
+                className="w-full accent-indigo-500 cursor-pointer"
+              />
+            </div>
+          </div>
+
+          {/* Live Equation */}
+          <div className="p-4 rounded-xl bg-bg-panel border-2 border-indigo-500/40 shadow-inner">
+            <div className="text-[11px] font-mono uppercase tracking-wider text-ink-muted mb-1 text-center">
+              Active Numerical Substitution & Evaluated Result:
+            </div>
+            <div className="text-center overflow-x-auto py-2 font-mono text-ink-primary">
+              <KatexEquation expression={latexFormula} displayMode />
+            </div>
+          </div>
+
+          {/* Status Banner */}
+          <div className={`p-3.5 rounded-xl border flex items-center justify-between gap-3 text-xs font-mono ${
+            isSafe
+              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-300'
+              : 'bg-rose-500/10 border-rose-500/30 text-rose-700 dark:text-rose-300'
+          }`}>
+            <div className="flex items-center gap-2">
+              {isSafe ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : <AlertTriangle className="w-4 h-4 text-rose-500" />}
+              <span>
+                {isSafe
+                  ? `Safe for Full Vacuum: Allowable ${allowableExternalBar.toFixed(2)} bar exceeds 1.013 bar requirement (Safety Factor 3.0).`
+                  : `Insufficient Thickness: Allowable ${allowableExternalBar.toFixed(2)} bar falls below 1.013 bar full vacuum. Increase thickness.`}
+              </span>
+            </div>
+            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-bg-panel border border-hairline">
+              {isSafe ? 'PASS' : 'FAIL'}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// 15. UNIVERSAL INTERACTIVE EQUATION CARD (High Contrast, Adaptive, Interactive)
 // ============================================================================
 interface UniversalEquationCardProps {
   latexFormula: string;
@@ -1823,6 +2941,7 @@ export function UniversalInteractiveEquationCard({
 }: UniversalEquationCardProps) {
   const [copied, setCopied] = useState(false);
   const [showInspector, setShowInspector] = useState(false);
+  const [paramScale, setParamScale] = useState(1.0);
 
   const copyLatex = () => {
     navigator.clipboard.writeText(latexFormula);
@@ -1831,20 +2950,29 @@ export function UniversalInteractiveEquationCard({
   };
 
   return (
-    <div className="my-6 rounded-2xl p-4 sm:p-5 border-2 border-amber/30 bg-bg-panel shadow-lg overflow-hidden transition-all duration-300 hover:border-amber/50 hover:shadow-xl">
+    <div className="my-6 rounded-2xl p-4 sm:p-5 border-2 border-border-strong bg-bg-panel shadow-md overflow-hidden transition-all duration-300 hover:border-amber-500/60 hover:shadow-lg">
       <div className="flex items-center justify-between pb-3 mb-3 border-b border-hairline">
         <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-amber shadow-sm animate-pulse" />
-          <span className="text-[11px] font-mono uppercase tracking-widest text-amber font-bold flex items-center gap-1.5">
+          <span className="w-2.5 h-2.5 rounded-full bg-amber-600 dark:bg-amber-400 shadow-sm animate-pulse" />
+          <span className="text-[11px] font-mono uppercase tracking-widest text-amber-700 dark:text-amber-400 font-bold flex items-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Governing Physics Law</span>
+            <span>Interactive Governing Physics Law</span>
           </span>
         </div>
 
         <div className="flex items-center gap-1.5">
           <button
+            onClick={() => setParamScale(1.0)}
+            className="px-2 py-1 rounded-lg border border-hairline text-ink-muted hover:text-ink-primary hover:bg-bg-surface transition cursor-pointer text-xs font-mono flex items-center gap-1"
+            title="Reset Scale"
+          >
+            <RotateCcw className="w-3 h-3" />
+            <span className="hidden sm:inline">1.0x</span>
+          </button>
+
+          <button
             onClick={() => setShowInspector(!showInspector)}
-            className="px-2.5 py-1 rounded-lg border border-hairline text-ink-muted hover:text-amber hover:bg-bg-surface transition cursor-pointer text-xs font-mono flex items-center gap-1"
+            className="px-2.5 py-1 rounded-lg border border-hairline text-ink-muted hover:text-amber-600 dark:hover:text-amber-400 hover:bg-bg-surface transition cursor-pointer text-xs font-mono flex items-center gap-1"
           >
             <Info className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Inspect</span>
@@ -1853,7 +2981,7 @@ export function UniversalInteractiveEquationCard({
 
           <button
             onClick={copyLatex}
-            className="p-1.5 rounded-lg border border-hairline text-ink-muted hover:text-amber hover:bg-bg-surface transition cursor-pointer text-xs font-mono"
+            className="p-1.5 rounded-lg border border-hairline text-ink-muted hover:text-amber-600 dark:hover:text-amber-400 hover:bg-bg-surface transition cursor-pointer text-xs font-mono"
             title="Copy LaTeX"
           >
             {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
@@ -1862,18 +2990,50 @@ export function UniversalInteractiveEquationCard({
       </div>
 
       {/* Main KaTeX Rendered Formula */}
-      <div className="py-4 text-center overflow-x-auto">
+      <div className="py-4 text-center overflow-x-auto text-ink-primary font-medium">
         <KatexEquation expression={latexFormula} displayMode />
       </div>
 
+      {/* Dynamic Scale Modulation Slider */}
+      <div className="pt-2 pb-1.5 px-3 rounded-xl bg-bg-surface border border-hairline flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div className="flex items-center gap-2">
+          <Sliders className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+          <span className="text-ink-secondary font-medium">Parametric Load Multiplier:</span>
+          <span className="font-mono font-bold text-amber-700 dark:text-amber-400">{paramScale.toFixed(2)}x</span>
+        </div>
+        <div className="flex items-center gap-2 flex-1 max-w-xs">
+          <span className="text-[10px] font-mono text-ink-muted">0.25x</span>
+          <input
+            type="range"
+            min="0.25"
+            max="4.0"
+            step="0.05"
+            value={paramScale}
+            onChange={(e) => setParamScale(Number(e.target.value))}
+            className="w-full accent-amber-500 cursor-pointer"
+          />
+          <span className="text-[10px] font-mono text-ink-muted">4.0x</span>
+        </div>
+        <div className="text-[11px] font-mono text-ink-muted">
+          Scaled Output: <strong className="text-ink-primary">{(100 * paramScale).toFixed(0)}% Nominal</strong>
+        </div>
+      </div>
+
       {/* Expandable Parameter & Source Inspector */}
-      {showInspector && originalBlock && (
-        <div className="mt-3 pt-3 border-t border-hairline text-xs font-mono text-ink-secondary bg-bg-surface/60 p-3 rounded-xl space-y-1.5 animate-fade-in">
-          <div className="text-[10px] uppercase font-bold text-amber">Symbolic Representation:</div>
-          <code className="text-ink-primary block overflow-x-auto">{originalBlock}</code>
+      {showInspector && (
+        <div className="mt-3 pt-3 border-t border-hairline text-xs font-mono text-ink-secondary bg-bg-surface p-3 rounded-xl space-y-1.5 animate-fade-in border border-hairline">
+          <div className="text-[10px] uppercase font-bold text-amber-700 dark:text-amber-400">LaTeX Expression:</div>
+          <code className="text-ink-primary block overflow-x-auto p-1.5 bg-bg-panel rounded border border-hairline">{latexFormula}</code>
+          {originalBlock && (
+            <>
+              <div className="text-[10px] uppercase font-bold text-amber-700 dark:text-amber-400 mt-2">Source Code Representation:</div>
+              <code className="text-ink-primary block overflow-x-auto p-1.5 bg-bg-panel rounded border border-hairline">{originalBlock}</code>
+            </>
+          )}
         </div>
       )}
     </div>
   );
 }
+
 
