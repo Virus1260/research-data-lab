@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { KatexEquation } from '@/components/exhibit/KatexEquation';
+import { GoverningEquationStepStack } from '@/components/exhibit/GoverningEquationStepStack';
 import {
   Sliders,
   Calculator,
@@ -294,72 +295,24 @@ export function JacketSurfaceAreaWorkbench() {
         </button>
       </div>
 
-      {/* KaTeX Equations */}
+      {/* KaTeX Equations & Dynamic What is What Variable Deck */}
       <div className="p-4 sm:p-6 bg-bg-surface/50 border-b border-hairline">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
-          <div className="p-4 rounded-xl bg-bg-panel border border-hairline flex flex-col justify-center items-center text-center">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-ink-dim font-bold mb-1">
-              Heat-Transfer Law
-            </span>
-            <div className="py-1 overflow-x-auto w-full">
-              <KatexEquation expression="Q = U \cdot A \cdot \Delta T \implies A = \frac{Q}{U \cdot \Delta T}" displayMode />
-            </div>
-          </div>
-
-          <div className="p-4 rounded-xl bg-cryo-subtle/20 dark:bg-cryo-subtle/30 border-2 border-cryo/40 flex flex-col justify-center items-center text-center">
-            <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-cryo font-bold mb-1">
-              <span className="w-2 h-2 rounded-full bg-cryo animate-pulse" />
-              <span>Live Evaluated Required Area</span>
-            </div>
-            <div className="py-1 overflow-x-auto w-full text-ink-primary font-bold">
-              <KatexEquation
-                expression={`A = \\frac{${heatDutyW}\\text{ W}}{\\mathbf{${uCoeff}}\\text{ W/m}^2\\text{K} \\times \\mathbf{${deltaT}}\\text{ K}} = \\mathbf{${reqArea.toFixed(3)}\\text{ m}^2}`}
-                displayMode
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* STEP 2: WHAT IS WHAT (Variable Definitions & Units) */}
-        <div className="mt-4 pt-4 border-t border-hairline space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-cyan-600 text-white text-[11px] font-mono font-bold flex items-center justify-center">
-                2
-              </span>
-              <span className="text-xs font-mono font-bold uppercase tracking-wider text-ink-primary">
-                What is What (Variable Definitions & Physical Units)
-              </span>
-            </div>
-            <span className="text-[11px] font-mono text-cyan-600 dark:text-cyan-400">
-              Thermal Balance Parameters
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
-            {[
-              { symbol: 'Q', name: 'Sublimation Thermal Duty', unit: 'W / kW', role: 'Latent heat rate required to sustain sublimation (2,840 kJ/kg of ice sublimed).' },
-              { symbol: 'U', name: 'Overall Heat Transfer Coeff', unit: 'W/(m²·K)', role: 'Heat conductance from jacket fluid through 316L shell and contact layer to agitated bed.' },
-              { symbol: 'A', name: 'Heat Transfer Surface Area', unit: 'm²', role: 'Total wetted inside conical jacket surface required to transfer heat without stalling.' },
-              { symbol: '\\Delta T', name: 'Temperature Difference', unit: 'K / °C', role: 'Thermal driving force between circulating jacket heat transfer fluid and product cake.' },
-            ].map((v, idx) => (
-              <div key={idx} className="p-3 rounded-lg bg-bg-panel border border-hairline flex flex-col justify-between">
-                <div className="flex items-center justify-between gap-2 mb-1.5">
-                  <span className="px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 text-xs font-mono font-bold">
-                    <KatexEquation expression={v.symbol} />
-                  </span>
-                  <span className="px-1.5 py-0.5 rounded bg-bg-surface border border-hairline text-[10px] font-mono text-ink-muted">
-                    {v.unit}
-                  </span>
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-ink-primary mb-1">{v.name}</div>
-                  <div className="text-[11px] text-ink-secondary leading-relaxed">{v.role}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <GoverningEquationStepStack
+          step1Number={1}
+          step2Number={2}
+          equationTitle="Fourier-Newton Conductive/Convective Balance"
+          latex="Q = U \cdot A \cdot \Delta T \implies A = \frac{Q}{U \cdot \Delta T}"
+          liveEvaluatedLatex={`A = \\frac{${heatDutyW}\\text{ W}}{\\mathbf{${uCoeff}}\\text{ W/m}^2\\text{K} \\times \\mathbf{${deltaT}}\\text{ K}} = \\mathbf{${reqArea.toFixed(3)}\\text{ m}^2}`}
+          liveEvaluatedTitle="Live Evaluated Required Area"
+          variables={[
+            { symbol: 'Q', name: 'Sublimation Thermal Duty', unit: 'W / kW', role: 'Latent heat rate required to sustain sublimation (2,840 kJ/kg of ice sublimed).' },
+            { symbol: 'U', name: 'Overall Heat Transfer Coeff', unit: 'W/(m²·K)', role: 'Heat conductance from jacket fluid through 316L shell and contact layer to agitated bed.' },
+            { symbol: 'A', name: 'Heat Transfer Surface Area', unit: 'm²', role: 'Total wetted inside conical jacket surface required to transfer heat without stalling.' },
+            { symbol: '\\Delta T', name: 'Temperature Difference', unit: 'K / °C', role: 'Thermal driving force between circulating jacket heat transfer fluid and product cake.' },
+          ]}
+          variableCategoryLabel="Thermal Balance Parameters"
+          accentColor="cyan"
+        />
       </div>
 
       {/* Controls & Sensitivity Table */}
@@ -2014,61 +1967,16 @@ export function ConeGeometryWorkbench() {
           </div>
         </div>
 
-        {/* STEP 1: ORIGINAL GOVERNING EQUATION (Pure Formula) */}
-        <div className="p-4 sm:p-5 rounded-xl bg-bg-surface border border-hairline space-y-3">
-          <div className="flex items-center justify-between border-b border-hairline pb-2.5">
-            <div className="flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-amber text-on-amber text-[11px] font-mono font-bold flex items-center justify-center">
-                1
-              </span>
-              <span className="text-xs font-mono font-bold uppercase tracking-wider text-ink-primary">
-                Original Governing Equation (Pure Formulation)
-              </span>
-            </div>
-            <span className="text-[11px] font-mono text-ink-muted">
-              {currentDef.title}
-            </span>
-          </div>
-          <div className="py-3 px-4 rounded-lg bg-bg-panel border border-hairline overflow-x-auto text-center font-medium">
-            <KatexEquation expression={currentDef.latex} displayMode />
-          </div>
-        </div>
-
-        {/* STEP 2: WHAT IS WHAT (Variable Definitions & Units) */}
-        <div className="p-4 sm:p-5 rounded-xl bg-bg-surface border border-hairline space-y-3">
-          <div className="flex items-center justify-between border-b border-hairline pb-2.5">
-            <div className="flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-cyan-600 text-white text-[11px] font-mono font-bold flex items-center justify-center">
-                2
-              </span>
-              <span className="text-xs font-mono font-bold uppercase tracking-wider text-ink-primary">
-                What is What (Variable Definitions & Physical Units)
-              </span>
-            </div>
-            <span className="text-[11px] font-mono text-cyan-600 dark:text-cyan-400">
-              Dimensional Symbols & Descriptions
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-            {currentDef.variables.map((v, idx) => (
-              <div key={idx} className="p-3 rounded-lg bg-bg-panel border border-hairline flex flex-col justify-between">
-                <div className="flex items-center justify-between gap-2 mb-1.5">
-                  <span className="px-2 py-0.5 rounded bg-amber/15 text-amber border border-amber/30 text-xs font-mono font-bold">
-                    <KatexEquation expression={v.symbol} />
-                  </span>
-                  <span className="px-1.5 py-0.5 rounded bg-bg-surface border border-hairline text-[10px] font-mono text-ink-muted">
-                    {v.unit}
-                  </span>
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-ink-primary mb-1">{v.name}</div>
-                  <div className="text-[11px] text-ink-secondary leading-relaxed">{v.role}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        {/* STEP 1 & 2: GOVERNING EQUATION & DYNAMIC UNSTACKABLE WHAT IS WHAT */}
+        <GoverningEquationStepStack
+          step1Number={1}
+          step2Number={2}
+          equationTitle={currentDef.title}
+          latex={currentDef.latex}
+          variables={currentDef.variables}
+          variableCategoryLabel="Dimensional Symbols & Descriptions"
+          accentColor="amber"
+        />
 
         {/* STEP 3: INTERACTIVE SIMULATION & NUMERICAL EVALUATION */}
         <div className="p-4 sm:p-5 rounded-xl bg-bg-surface border-2 border-amber/30 space-y-4">
@@ -2239,69 +2147,24 @@ export function NonlinearFillHeightWorkbench() {
       </div>
 
       <div className="p-4 sm:p-6 space-y-6">
-        {/* STEP 1: ORIGINAL GOVERNING EQUATION (Pure Formula) */}
-        <div className="p-4 sm:p-5 rounded-xl bg-bg-surface border border-hairline space-y-3">
-          <div className="flex items-center justify-between border-b border-hairline pb-2.5">
-            <div className="flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-cyan-600 text-white text-[11px] font-mono font-bold flex items-center justify-center">
-                1
-              </span>
-              <span className="text-xs font-mono font-bold uppercase tracking-wider text-ink-primary">
-                Original Governing Equation (Pure Formulation)
-              </span>
-            </div>
-            <span className="text-[11px] font-mono text-ink-muted">
-              Conical Frustum Liquid Level Cubic Law
-            </span>
-          </div>
-          <div className="py-3 px-4 rounded-lg bg-bg-panel border border-hairline overflow-x-auto text-center font-medium">
-            <KatexEquation expression="h_{\text{fill}} = h_{\text{total}} \cdot \left(\frac{V_{\text{fill}}}{V_{\text{nominal}}}\right)^{1/3} = h_{\text{total}} \cdot f^{1/3} \qquad h_{\text{freeboard}} = h_{\text{total}} - h_{\text{fill}} = h_{\text{total}} \cdot \left(1 - f^{1/3}\right)" displayMode />
-          </div>
-        </div>
-
-        {/* STEP 2: WHAT IS WHAT (Variable Definitions & Units) */}
-        <div className="p-4 sm:p-5 rounded-xl bg-bg-surface border border-hairline space-y-3">
-          <div className="flex items-center justify-between border-b border-hairline pb-2.5">
-            <div className="flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-cyan-600 text-white text-[11px] font-mono font-bold flex items-center justify-center">
-                2
-              </span>
-              <span className="text-xs font-mono font-bold uppercase tracking-wider text-ink-primary">
-                What is What (Variable Definitions & Physical Units)
-              </span>
-            </div>
-            <span className="text-[11px] font-mono text-cyan-600 dark:text-cyan-400">
-              Dimensional Symbols & Descriptions
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-            {[
-              { symbol: 'h_{\\text{fill}}', name: 'Liquid Fill Depth', unit: 'cm / mm', role: 'Vertical depth of liquid powder slurry from cone discharge nozzle to free surface.' },
-              { symbol: 'h_{\\text{total}}', name: 'Total Shell Height', unit: 'cm / mm', role: 'Full vertical height of the conical processing chamber.' },
-              { symbol: 'V_{\\text{fill}}', name: 'Working Batch Volume', unit: 'L / cm³', role: 'Liquid batch volume charged into the freeze dryer (typically 50% of nominal).' },
-              { symbol: 'V_{\\text{nominal}}', name: 'Nominal Vessel Volume', unit: 'L / cm³', role: 'Total gross internal volume of the conical vessel shell.' },
-              { symbol: 'f', name: 'Volume Fill Fraction', unit: 'fraction / %', role: 'Ratio V_fill / V_nominal (Hosokawa AFD cGMP operating benchmark is 0.50).' },
-              { symbol: 'f^{1/3}', name: 'Cubic Non-Linear Factor', unit: 'ratio', role: 'Geometric factor showing volume scales with the third power of depth in a cone (0.5^(1/3) = 0.7937).' },
-              { symbol: 'h_{\\text{freeboard}}', name: 'Vapor Freeboard', unit: 'cm / mm', role: 'Headspace clearance required above bed for sublime vapor escape without powder entrainment.' },
-            ].map((v, idx) => (
-              <div key={idx} className="p-3 rounded-lg bg-bg-panel border border-hairline flex flex-col justify-between">
-                <div className="flex items-center justify-between gap-2 mb-1.5">
-                  <span className="px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 text-xs font-mono font-bold">
-                    <KatexEquation expression={v.symbol} />
-                  </span>
-                  <span className="px-1.5 py-0.5 rounded bg-bg-surface border border-hairline text-[10px] font-mono text-ink-muted">
-                    {v.unit}
-                  </span>
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-ink-primary mb-1">{v.name}</div>
-                  <div className="text-[11px] text-ink-secondary leading-relaxed">{v.role}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        {/* STEP 1 & 2: GOVERNING EQUATION & DYNAMIC UNSTACKABLE WHAT IS WHAT */}
+        <GoverningEquationStepStack
+          step1Number={1}
+          step2Number={2}
+          equationTitle="Conical Frustum Liquid Level Cubic Law"
+          latex="h_{\text{fill}} = h_{\text{total}} \cdot \left(\frac{V_{\text{fill}}}{V_{\text{nominal}}}\right)^{1/3} = h_{\text{total}} \cdot f^{1/3} \qquad h_{\text{freeboard}} = h_{\text{total}} - h_{\text{fill}} = h_{\text{total}} \cdot \left(1 - f^{1/3}\right)"
+          variables={[
+            { symbol: 'h_{\\text{fill}}', name: 'Liquid Fill Depth', unit: 'cm / mm', role: 'Vertical depth of liquid powder slurry from cone discharge nozzle to free surface.' },
+            { symbol: 'h_{\\text{total}}', name: 'Total Shell Height', unit: 'cm / mm', role: 'Full vertical height of the conical processing chamber.' },
+            { symbol: 'V_{\\text{fill}}', name: 'Working Batch Volume', unit: 'L / cm³', role: 'Liquid batch volume charged into the freeze dryer (typically 50% of nominal).' },
+            { symbol: 'V_{\\text{nominal}}', name: 'Nominal Vessel Volume', unit: 'L / cm³', role: 'Total gross internal volume of the conical vessel shell.' },
+            { symbol: 'f', name: 'Volume Fill Fraction', unit: 'fraction / %', role: 'Ratio V_fill / V_nominal (Hosokawa AFD cGMP operating benchmark is 0.50).' },
+            { symbol: 'f^{1/3}', name: 'Cubic Non-Linear Factor', unit: 'ratio', role: 'Geometric factor showing volume scales with the third power of depth in a cone (0.5^(1/3) = 0.7937).' },
+            { symbol: 'h_{\\text{freeboard}}', name: 'Vapor Freeboard', unit: 'cm / mm', role: 'Headspace clearance required above bed for sublime vapor escape without powder entrainment.' },
+          ]}
+          variableCategoryLabel="Dimensional Symbols & Descriptions"
+          accentColor="cyan"
+        />
 
         {/* STEP 3: INTERACTIVE SIMULATION & NUMERICAL EVALUATION */}
         <div className="p-4 sm:p-5 rounded-xl bg-bg-surface border-2 border-cyan-500/30 space-y-4">
@@ -2505,75 +2368,30 @@ export function HeadThicknessWorkbench() {
       </div>
 
       <div className="p-4 sm:p-6 space-y-6">
-        {/* STEP 1: ORIGINAL GOVERNING EQUATION (Pure Formula) */}
-        <div className="p-4 sm:p-5 rounded-xl bg-bg-surface border border-hairline space-y-3">
-          <div className="flex items-center justify-between border-b border-hairline pb-2.5">
-            <div className="flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-emerald-600 text-white text-[11px] font-mono font-bold flex items-center justify-center">
-                1
-              </span>
-              <span className="text-xs font-mono font-bold uppercase tracking-wider text-ink-primary">
-                Original Governing Equation (Pure Formulation)
-              </span>
-            </div>
-            <span className="text-[11px] font-mono text-ink-muted">
-              {headType === 'torispherical' ? 'ASME Section VIII Div 1 UG-32(e)' : 'ASME Section VIII Div 1 UG-32(d)'}
-            </span>
-          </div>
-          <div className="py-3 px-4 rounded-lg bg-bg-panel border border-hairline overflow-x-auto text-center font-medium">
-            {headType === 'torispherical' ? (
-              <KatexEquation expression="t = \frac{P \cdot L \cdot M}{2 S E - 0.2 P} \qquad \text{where } M = \frac{1}{4} \left( 3 + \sqrt{\frac{L}{r}} \right) \quad (L \le D, \; r \ge 0.06D)" displayMode />
-            ) : (
-              <KatexEquation expression="t = \frac{P \cdot D \cdot K}{2 S E - 0.2 P} \qquad \text{where } K = \frac{1}{6} \left[ 2 + \left(\frac{D}{2h}\right)^2 \right] = 1.00 \quad (\text{for } 2:1 \text{ ratio})" displayMode />
-            )}
-          </div>
-        </div>
-
-        {/* STEP 2: WHAT IS WHAT (Variable Definitions & Units) */}
-        <div className="p-4 sm:p-5 rounded-xl bg-bg-surface border border-hairline space-y-3">
-          <div className="flex items-center justify-between border-b border-hairline pb-2.5">
-            <div className="flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-emerald-600 text-white text-[11px] font-mono font-bold flex items-center justify-center">
-                2
-              </span>
-              <span className="text-xs font-mono font-bold uppercase tracking-wider text-ink-primary">
-                What is What (Variable Definitions & Physical Units)
-              </span>
-            </div>
-            <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400">
-              Code Parameters & Material Allowables
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-            {[
-              { symbol: 't', name: 'Minimum Design Thickness', unit: 'mm', role: 'Minimum uncorroded wall thickness required to withstand internal clean steam pressure.' },
-              { symbol: 'P', name: 'Internal Design Pressure', unit: 'MPa / barg', role: 'Peak steam-in-place (SIP) sterilization design pressure (typically 3.0 barg at 134°C).' },
-              { symbol: 'D', name: 'Inside Shell Diameter', unit: 'mm', role: 'Internal diameter at upper flange seam where conical shell attaches to head skirt.' },
-              { symbol: 'L', name: 'Inside Crown Radius', unit: 'mm', role: 'Spherical dish radius (L = D for standard ASME flanged & dished torispherical).' },
-              { symbol: 'r', name: 'Inside Knuckle Radius', unit: 'mm', role: 'Toroidal knuckle transition radius providing flexibility (r ≥ 0.06D per ASME code).' },
-              { symbol: 'M', name: 'Torispherical Stress Factor', unit: 'ratio', role: 'Geometric stress concentration factor derived from crown-to-knuckle ratio L/r.' },
-              { symbol: 'K', name: 'Ellipsoidal Stress Factor', unit: 'ratio', role: 'Geometry factor for ellipsoidal heads; equals exactly 1.0 for standard 2:1 ratio.' },
-              { symbol: 'S', name: 'Maximum Allowable Stress', unit: 'MPa', role: 'Allowable tensile stress for 316L stainless steel at 120°C per ASME Section II-D (115 MPa).' },
-              { symbol: 'E', name: 'Weld Joint Efficiency', unit: 'ratio', role: 'Efficiency factor for head-to-flange circumferential seam (E = 1.0 for 100% RT).' },
-            ].map((v, idx) => (
-              <div key={idx} className="p-3 rounded-lg bg-bg-panel border border-hairline flex flex-col justify-between">
-                <div className="flex items-center justify-between gap-2 mb-1.5">
-                  <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-xs font-mono font-bold">
-                    <KatexEquation expression={v.symbol} />
-                  </span>
-                  <span className="px-1.5 py-0.5 rounded bg-bg-surface border border-hairline text-[10px] font-mono text-ink-muted">
-                    {v.unit}
-                  </span>
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-ink-primary mb-1">{v.name}</div>
-                  <div className="text-[11px] text-ink-secondary leading-relaxed">{v.role}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        {/* STEP 1 & 2: GOVERNING EQUATION & DYNAMIC UNSTACKABLE WHAT IS WHAT */}
+        <GoverningEquationStepStack
+          step1Number={1}
+          step2Number={2}
+          equationTitle={headType === 'torispherical' ? 'ASME Section VIII Div 1 UG-32(e)' : 'ASME Section VIII Div 1 UG-32(d)'}
+          latex={
+            headType === 'torispherical'
+              ? "t = \\frac{P \\cdot L \\cdot M}{2 S E - 0.2 P} \\qquad \\text{where } M = \\frac{1}{4} \\left( 3 + \\sqrt{\\frac{L}{r}} \\right) \\quad (L \\le D, \\; r \\ge 0.06D)"
+              : "t = \\frac{P \\cdot D \\cdot K}{2 S E - 0.2 P} \\qquad \\text{where } K = \\frac{1}{6} \\left[ 2 + \\left(\\frac{D}{2h}\\right)^2 \\right] = 1.00 \\quad (\\text{for } 2:1 \\text{ ratio})"
+          }
+          variables={[
+            { symbol: 't', name: 'Minimum Design Thickness', unit: 'mm', role: 'Minimum uncorroded wall thickness required to withstand internal clean steam pressure.' },
+            { symbol: 'P', name: 'Internal Design Pressure', unit: 'MPa / barg', role: 'Peak steam-in-place (SIP) sterilization design pressure (typically 3.0 barg at 134°C).' },
+            { symbol: 'D', name: 'Inside Shell Diameter', unit: 'mm', role: 'Internal diameter at upper flange seam where conical shell attaches to head skirt.' },
+            { symbol: 'L', name: 'Inside Crown Radius', unit: 'mm', role: 'Spherical dish radius (L = D for standard ASME flanged & dished torispherical).' },
+            { symbol: 'r', name: 'Inside Knuckle Radius', unit: 'mm', role: 'Toroidal knuckle transition radius providing flexibility (r ≥ 0.06D per ASME code).' },
+            { symbol: 'M', name: 'Torispherical Stress Factor', unit: 'ratio', role: 'Geometric stress concentration factor derived from crown-to-knuckle ratio L/r.' },
+            { symbol: 'K', name: 'Ellipsoidal Stress Factor', unit: 'ratio', role: 'Geometry factor for ellipsoidal heads; equals exactly 1.0 for standard 2:1 ratio.' },
+            { symbol: 'S', name: 'Maximum Allowable Stress', unit: 'MPa', role: 'Allowable tensile stress for 316L stainless steel at 120°C per ASME Section II-D (115 MPa).' },
+            { symbol: 'E', name: 'Weld Joint Efficiency', unit: 'ratio', role: 'Efficiency factor for head-to-flange circumferential seam (E = 1.0 for 100% RT).' },
+          ]}
+          variableCategoryLabel="Code Parameters & Material Allowables"
+          accentColor="emerald"
+        />
 
         {/* STEP 3: INTERACTIVE SIMULATION & NUMERICAL EVALUATION */}
         <div className="p-4 sm:p-5 rounded-xl bg-bg-surface border-2 border-emerald-500/30 space-y-4">
@@ -2761,70 +2579,25 @@ export function BucklingPressureWorkbench() {
       </div>
 
       <div className="p-4 sm:p-6 space-y-6">
-        {/* STEP 1: ORIGINAL GOVERNING EQUATION (Pure Formula) */}
-        <div className="p-4 sm:p-5 rounded-xl bg-bg-surface border border-hairline space-y-3">
-          <div className="flex items-center justify-between border-b border-hairline pb-2.5">
-            <div className="flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-indigo-600 text-white text-[11px] font-mono font-bold flex items-center justify-center">
-                1
-              </span>
-              <span className="text-xs font-mono font-bold uppercase tracking-wider text-ink-primary">
-                Original Governing Equation (Pure Formulation)
-              </span>
-            </div>
-            <span className="text-[11px] font-mono text-ink-muted">
-              Windenburg-Trilling (1934) Elastic Instability
-            </span>
-          </div>
-          <div className="py-3 px-4 rounded-lg bg-bg-panel border border-hairline overflow-x-auto text-center font-medium">
-            <KatexEquation expression="P_{\text{cr}} = \frac{2.42 \cdot E \cdot (t / D_o)^{5/2}}{(1 - \nu^2)^{3/4} \cdot \left[\frac{L}{D_o} - 0.45 \cdot (t / D_o)^{1/2}\right]} \qquad P_{\text{allowable}} = \frac{P_{\text{cr}}}{\text{FS}} = \frac{P_{\text{cr}}}{3.0}" displayMode />
-          </div>
-        </div>
-
-        {/* STEP 2: WHAT IS WHAT (Variable Definitions & Units) */}
-        <div className="p-4 sm:p-5 rounded-xl bg-bg-surface border border-hairline space-y-3">
-          <div className="flex items-center justify-between border-b border-hairline pb-2.5">
-            <div className="flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-indigo-600 text-white text-[11px] font-mono font-bold flex items-center justify-center">
-                2
-              </span>
-              <span className="text-xs font-mono font-bold uppercase tracking-wider text-ink-primary">
-                What is What (Variable Definitions & Physical Units)
-              </span>
-            </div>
-            <span className="text-[11px] font-mono text-indigo-600 dark:text-indigo-400">
-              Buckling Parameters & Material Constants
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-            {[
-              { symbol: 'P_{\\text{cr}}', name: 'Critical Buckling Pressure', unit: 'bar / MPa', role: 'Theoretical external differential pressure causing instantaneous elastic collapse of the shell.' },
-              { symbol: 'P_{\\text{allowable}}', name: 'Permissible Vacuum Rating', unit: 'bar', role: 'Safe working external differential pressure (must exceed 1.013 bar for full vacuum freeze drying).' },
-              { symbol: 'E', name: 'Elastic Modulus', unit: 'MPa', role: "Young's modulus of 316L stainless steel (193,000 MPa at operating temperature)." },
-              { symbol: '\\nu', name: "Poisson's Ratio", unit: 'ratio', role: 'Transverse-to-axial strain ratio for austenitic stainless steels (standard 0.30).' },
-              { symbol: 't', name: 'Shell Wall Thickness', unit: 'mm', role: 'Minimum uncorroded structural metal thickness of the conical shell wall.' },
-              { symbol: 'D_o', name: 'Equivalent Outer Diameter', unit: 'mm', role: 'Mean outside diameter across the conical vessel frustum span.' },
-              { symbol: 'L', name: 'Unsupported Axial Span', unit: 'mm', role: 'Slant wall length between stiffening rings, top flange, and bottom nozzle reinforcement.' },
-              { symbol: '\\text{FS}', name: 'ASME Safety Factor', unit: 'ratio', role: 'Safety margin against vacuum collapse (standard FS = 3.0 per ASME Section VIII Div 1).' },
-            ].map((v, idx) => (
-              <div key={idx} className="p-3 rounded-lg bg-bg-panel border border-hairline flex flex-col justify-between">
-                <div className="flex items-center justify-between gap-2 mb-1.5">
-                  <span className="px-2 py-0.5 rounded bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 text-xs font-mono font-bold">
-                    <KatexEquation expression={v.symbol} />
-                  </span>
-                  <span className="px-1.5 py-0.5 rounded bg-bg-surface border border-hairline text-[10px] font-mono text-ink-muted">
-                    {v.unit}
-                  </span>
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-ink-primary mb-1">{v.name}</div>
-                  <div className="text-[11px] text-ink-secondary leading-relaxed">{v.role}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        {/* STEP 1 & 2: GOVERNING EQUATION & DYNAMIC UNSTACKABLE WHAT IS WHAT */}
+        <GoverningEquationStepStack
+          step1Number={1}
+          step2Number={2}
+          equationTitle="Windenburg-Trilling (1934) Elastic Instability"
+          latex="P_{\text{cr}} = \frac{2.42 \cdot E \cdot (t / D_o)^{5/2}}{(1 - \nu^2)^{3/4} \cdot \left[\frac{L}{D_o} - 0.45 \cdot (t / D_o)^{1/2}\right]} \qquad P_{\text{allowable}} = \frac{P_{\text{cr}}}{\text{FS}} = \frac{P_{\text{cr}}}{3.0}"
+          variables={[
+            { symbol: 'P_{\\text{cr}}', name: 'Critical Buckling Pressure', unit: 'bar / MPa', role: 'Theoretical external differential pressure causing instantaneous elastic collapse of the shell.' },
+            { symbol: 'P_{\\text{allowable}}', name: 'Permissible Vacuum Rating', unit: 'bar', role: 'Safe working external differential pressure (must exceed 1.013 bar for full vacuum freeze drying).' },
+            { symbol: 'E', name: 'Elastic Modulus', unit: 'MPa', role: "Young's modulus of 316L stainless steel (193,000 MPa at operating temperature)." },
+            { symbol: '\\nu', name: "Poisson's Ratio", unit: 'ratio', role: 'Transverse-to-axial strain ratio for austenitic stainless steels (standard 0.30).' },
+            { symbol: 't', name: 'Shell Wall Thickness', unit: 'mm', role: 'Minimum uncorroded structural metal thickness of the conical shell wall.' },
+            { symbol: 'D_o', name: 'Equivalent Outer Diameter', unit: 'mm', role: 'Mean outside diameter across the conical vessel frustum span.' },
+            { symbol: 'L', name: 'Unsupported Axial Span', unit: 'mm', role: 'Slant wall length between stiffening rings, top flange, and bottom nozzle reinforcement.' },
+            { symbol: '\\text{FS}', name: 'ASME Safety Factor', unit: 'ratio', role: 'Safety margin against vacuum collapse (standard FS = 3.0 per ASME Section VIII Div 1).' },
+          ]}
+          variableCategoryLabel="Buckling Parameters & Material Constants"
+          accentColor="purple"
+        />
 
         {/* STEP 3: INTERACTIVE SIMULATION & NUMERICAL EVALUATION */}
         <div className="p-4 sm:p-5 rounded-xl bg-bg-surface border-2 border-indigo-500/30 space-y-4">
