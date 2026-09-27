@@ -28,6 +28,9 @@ import {
   ChevronUp,
   X,
   Sliders,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
 } from "lucide-react";
 
 export type ProcessType = "FREE" | "EVAP_HEAT" | "EVAP_VAC" | "SUBLIMATION";
@@ -277,13 +280,18 @@ export function PhaseDiagramExplorer() {
     e.preventDefault();
     const factor = e.deltaY < 0 ? 1.12 : 1 / 1.12;
     const newK = Math.max(1, Math.min(8, zoomK * factor));
+    if (newK <= 1.005) {
+      setZoomK(1);
+      setZoomTx(0);
+      setZoomTy(0);
+      return;
+    }
     if (!svgRef.current) return;
     const rect = svgRef.current.getBoundingClientRect();
     const scaleX = svgWidth / rect.width;
     const scaleY = svgHeight / rect.height;
     const mx = (e.clientX - rect.left) * scaleX; // pivot in SVG space
     const my = (e.clientY - rect.top) * scaleY;
-    // new translate so pivot stays fixed: tx_new = mx - newK*(mx - tx_old)/zoomK_old  =>  mx - newK*(mx-tx)/k
     const newTx = mx - (newK / zoomK) * (mx - zoomTx);
     const newTy = my - (newK / zoomK) * (my - zoomTy);
     setZoomK(newK);
@@ -291,32 +299,96 @@ export function PhaseDiagramExplorer() {
     setZoomTy(newTy);
   }, [zoomK, zoomTx, zoomTy, svgWidth, svgHeight]);
 
+  const handleZoomIn = useCallback(() => {
+    const newK = Math.min(8, zoomK * 1.3);
+    const cx = margin.left + plotWidth / 2;
+    const cy = margin.top + plotHeight / 2;
+    const newTx = cx - (newK / zoomK) * (cx - zoomTx);
+    const newTy = cy - (newK / zoomK) * (cy - zoomTy);
+    setZoomK(newK);
+    setZoomTx(newTx);
+    setZoomTy(newTy);
+  }, [zoomK, zoomTx, zoomTy, margin.left, margin.top, plotWidth, plotHeight]);
+
+  const handleZoomOut = useCallback(() => {
+    const newK = Math.max(1, zoomK / 1.3);
+    if (newK <= 1.01) {
+      setZoomK(1);
+      setZoomTx(0);
+      setZoomTy(0);
+    } else {
+      const cx = margin.left + plotWidth / 2;
+      const cy = margin.top + plotHeight / 2;
+      const newTx = cx - (newK / zoomK) * (cx - zoomTx);
+      const newTy = cy - (newK / zoomK) * (cy - zoomTy);
+      setZoomK(newK);
+      setZoomTx(newTx);
+      setZoomTy(newTy);
+    }
+  }, [zoomK, zoomTx, zoomTy, margin.left, margin.top, plotWidth, plotHeight]);
+
+  const handleZoomReset = useCallback(() => {
+    setZoomK(1);
+    setZoomTx(0);
+    setZoomTy(0);
+  }, []);
+
   // Reset zoom on scale change
   useEffect(() => { setZoomK(1); setZoomTx(0); setZoomTy(0); }, [viewScale]);
 
+  // Drag and pan tracking state
+  const dragRef = useRef<{ startX: number; startY: number; initTx: number; initTy: number; hasMoved: boolean } | null>(null);
+  const [isPanning, setIsPanning] = useState<boolean>(false);
+
   // Background Pointer interaction
   const handleCanvasPointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
-    setSelectedLandmark(null);
-    const { x, y } = clientToSvg(e.clientX, e.clientY);
-    const cx = Math.max(margin.left, Math.min(margin.left + plotWidth, x));
-    const cy = Math.max(margin.top, Math.min(margin.top + plotHeight, y));
-    const newT = Math.round(xToT(cx));
-    const newP = Number(yToP(cy).toFixed(5));
-    setTempC(newT);
-    setPressMbar(newP);
-    if (selectedProcess !== "FREE") {
-      setSelectedProcess("FREE");
-    }
+    if (!svgRef.current) return;
+    const rect = svgRef.current.getBoundingClientRect();
+    const scaleX = svgWidth / rect.width;
+    const scaleY = svgHeight / rect.height;
+    const rawX = (e.clientX - rect.left) * scaleX;
+    const rawY = (e.clientY - rect.top) * scaleY;
+
+    dragRef.current = {
+      startX: rawX,
+      startY: rawY,
+      initTx: zoomTx,
+      initTy: zoomTy,
+      hasMoved: false,
+    };
+    (e.target as Element)?.setPointerCapture?.(e.pointerId);
   };
 
   const handlePointerMove = (e: React.PointerEvent<SVGSVGElement>) => {
+    if (!svgRef.current) return;
+    const rect = svgRef.current.getBoundingClientRect();
+    const scaleX = svgWidth / rect.width;
+    const scaleY = svgHeight / rect.height;
+    const rawX = (e.clientX - rect.left) * scaleX;
+    const rawY = (e.clientY - rect.top) * scaleY;
+
+    // Drag-to-pan handling when zoomed in
+    if (dragRef.current && (e.buttons === 1 || e.buttons === 4)) {
+      const dx = rawX - dragRef.current.startX;
+      const dy = rawY - dragRef.current.startY;
+      if (Math.hypot(dx, dy) > 3) {
+        dragRef.current.hasMoved = true;
+        if (zoomK > 1.01) {
+          setIsPanning(true);
+          setZoomTx(dragRef.current.initTx + dx);
+          setZoomTy(dragRef.current.initTy + dy);
+          return;
+        }
+      }
+    }
+
     const { x, y } = clientToSvg(e.clientX, e.clientY);
     if (x >= margin.left && x <= margin.left + plotWidth && y >= margin.top && y <= margin.top + plotHeight) {
       const curT = Math.round(xToT(x));
       const curP = Number(yToP(y).toFixed(5));
       const curPhase = getWaterPhaseState(curT, curP);
       setHoverCoord({ t: curT, p: curP, x, y, phaseName: curPhase.state });
-      if (e.buttons === 1) {
+      if (e.buttons === 1 && zoomK <= 1.01) {
         setTempC(curT);
         setPressMbar(curP);
         if (selectedProcess !== "FREE") setSelectedProcess("FREE");
@@ -326,10 +398,133 @@ export function PhaseDiagramExplorer() {
     }
   };
 
+  const handlePointerUp = (e: React.PointerEvent<SVGSVGElement>) => {
+    if (dragRef.current && !dragRef.current.hasMoved) {
+      setSelectedLandmark(null);
+      const { x, y } = clientToSvg(e.clientX, e.clientY);
+      if (x >= margin.left && x <= margin.left + plotWidth && y >= margin.top && y <= margin.top + plotHeight) {
+        const newT = Math.round(xToT(x));
+        const newP = Number(yToP(y).toFixed(5));
+        setTempC(newT);
+        setPressMbar(newP);
+        if (selectedProcess !== "FREE") {
+          setSelectedProcess("FREE");
+        }
+      }
+    }
+    dragRef.current = null;
+    setIsPanning(false);
+  };
+
   const handlePointerLeave = () => {
     setHoverCoord(null);
     setHoveredLandmark(null);
+    dragRef.current = null;
+    setIsPanning(false);
   };
+
+  // Visible coordinate space bounds in internal SVG coordinates
+  const visXLeft = (margin.left - zoomTx) / zoomK;
+  const visXRight = (margin.left + plotWidth - zoomTx) / zoomK;
+  const visYTop = (margin.top - zoomTy) / zoomK;
+  const visYBottom = (margin.top + plotHeight - zoomTy) / zoomK;
+
+  const visTMin = xToT(visXLeft);
+  const visTMax = xToT(visXRight);
+
+  const visPMax = yToP(visYTop);
+  const visPMin = yToP(visYBottom);
+  const visLogPMax = Math.log10(Math.max(1e-12, visPMax));
+  const visLogPMin = Math.log10(Math.max(1e-12, visPMin));
+
+  // Dynamic visible temperature ticks — automatically adjust step size and positions to current zoom
+  const dynamicTempTicks = useMemo(() => {
+    const tMin = Math.min(visTMin, visTMax);
+    const tMax = Math.max(visTMin, visTMax);
+    const span = Math.max(0.1, tMax - tMin);
+
+    let step = 20;
+    if (span > 400) step = 100;
+    else if (span > 200) step = 50;
+    else if (span > 100) step = 25;
+    else if (span > 50) step = 10;
+    else if (span > 25) step = 5;
+    else if (span > 12) step = 2;
+    else if (span > 5) step = 1;
+    else step = 0.5;
+
+    const start = Math.ceil(tMin / step) * step;
+    const ticks: { t: number; screenX: number; labelC: string; labelK: string }[] = [];
+
+    // On full scale, if absolute zero is in the visible range, ensure it is added
+    if (!isProcess && tMin <= -273.15 + 1e-3) {
+      const sx = zoomTx + zoomK * tToX(-273.15);
+      if (sx >= margin.left - 1 && sx <= margin.left + plotWidth + 1) {
+        ticks.push({
+          t: -273.15,
+          screenX: sx,
+          labelC: "-273.15°C",
+          labelK: "0 K (Abs Zero)",
+        });
+      }
+    }
+
+    for (let t = start; t <= tMax + 1e-4; t += step) {
+      const cleanT = Number(t.toFixed(step < 1 ? 1 : 0));
+      if (!isProcess && cleanT === -273) continue; // avoid colliding with -273.15
+      const screenX = zoomTx + zoomK * tToX(cleanT);
+      if (screenX >= margin.left + 1 && screenX <= margin.left + plotWidth - 1) {
+        const k = cleanT + 273.15;
+        ticks.push({
+          t: cleanT,
+          screenX,
+          labelC: `${cleanT}°C`,
+          labelK: `${k.toFixed(step < 1 ? 1 : 0)} K`,
+        });
+      }
+    }
+    return { step, ticks };
+  }, [visTMin, visTMax, zoomTx, zoomK, tToX, margin.left, plotWidth, isProcess]);
+
+  // Dynamic visible pressure ticks — scale dynamically with decade and intermediate subdivisions
+  const dynamicPressureTicks = useMemo(() => {
+    const minLog = Math.min(visLogPMin, visLogPMax);
+    const maxLog = Math.max(visLogPMin, visLogPMax);
+    const span = Math.max(0.1, maxLog - minLog);
+
+    const multipliers =
+      span > 6.0
+        ? [1.0]
+        : span > 3.0
+        ? [1.0, 2.0, 5.0]
+        : span > 1.5
+        ? [1.0, 1.5, 2.0, 3.0, 5.0, 7.0]
+        : [1.0, 1.2, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0];
+
+    const startDec = Math.floor(minLog);
+    const endDec = Math.ceil(maxLog);
+    const ticks: { pMbar: number; screenY: number; labelPa: string; labelBar: string }[] = [];
+
+    for (let dec = startDec; dec <= endDec; dec++) {
+      for (const m of multipliers) {
+        const pMbar = m * Math.pow(10, dec);
+        const logVal = Math.log10(pMbar);
+        if (logVal >= minLog - 1e-5 && logVal <= maxLog + 1e-5) {
+          const screenY = zoomTy + zoomK * pToY(pMbar);
+          if (screenY >= margin.top + 1 && screenY <= margin.top + plotHeight - 1) {
+            const formatted = formatPressureDynamic(pMbar);
+            ticks.push({
+              pMbar,
+              screenY,
+              labelPa: formatted.secondary,
+              labelBar: formatted.primary,
+            });
+          }
+        }
+      }
+    }
+    return ticks;
+  }, [visLogPMin, visLogPMax, zoomTy, zoomK, pToY, margin.top, plotHeight]);
 
   // --- Master Landmark Definitions with High Contrast Palette ---
   const landmarks: LandmarkPoint[] = [
@@ -690,7 +885,7 @@ export function PhaseDiagramExplorer() {
   const frameBorder = isDark ? "#475569" : "#0f172a";
   const gridColor = isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(15, 23, 42, 0.10)";
   const axisTextPrimary = isDark ? "#f8fafc" : "#0f172a"; // 16:1 AAA contrast
-  const axisTextMuted = isDark ? "#94a3b8" : "#334155";   // 8.5:1 AAA contrast
+  const axisTextMuted = isDark ? "#cbd5e1" : "#1e293b";   // 10.5:1 AAA contrast
   const badgeBg = isDark ? "#14171f" : "#ffffff";
 
   // High-contrast Watermark Text Colors on top of shaded zones
@@ -849,12 +1044,55 @@ export function PhaseDiagramExplorer() {
         }`}
         style={{ backgroundColor: canvasBg }}
       >
+        {/* Floating On-Screen Zoom Controls (Top-Right of Canvas) */}
+        <div className="absolute top-3 right-3 flex items-center gap-1.5 z-20 bg-white/95 dark:bg-[#14171f]/95 backdrop-blur-md px-2 py-1 rounded-xl border border-slate-300 dark:border-slate-700 shadow-lg text-xs font-mono">
+          <span className="text-[10.5px] font-black text-slate-700 dark:text-slate-300 px-1 select-none">
+            {Math.round(zoomK * 100)}%
+          </span>
+          <button
+            onClick={handleZoomIn}
+            className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 transition"
+            title="Zoom In (+30%)"
+            aria-label="Zoom in"
+          >
+            <ZoomIn className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={handleZoomOut}
+            className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 transition"
+            title="Zoom Out (-30%)"
+            aria-label="Zoom out"
+          >
+            <ZoomOut className="w-3.5 h-3.5" />
+          </button>
+          {zoomK > 1.01 && (
+            <button
+              onClick={handleZoomReset}
+              className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-amber-700 dark:text-amber-400 transition"
+              title="Reset Zoom (1x)"
+              aria-label="Reset zoom"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+
+        {/* Helpful zoom/pan banner when zoomed */}
+        {zoomK > 1.01 && (
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-lg bg-slate-900/85 dark:bg-slate-100/90 text-slate-100 dark:text-slate-900 text-[10px] font-mono font-bold tracking-wide pointer-events-none z-20 backdrop-blur-sm shadow-md">
+            {isPanning ? "Panning view..." : "Drag to pan • Scroll to zoom"}
+          </div>
+        )}
+
         <svg
           ref={svgRef}
           viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-          className={`w-full ${isFullscreen ? "h-full max-h-[90vh] object-contain" : "h-auto max-h-[680px]"} cursor-crosshair`}
+          className={`w-full ${isFullscreen ? "h-full max-h-[90vh] object-contain" : "h-auto max-h-[680px]"} ${
+            zoomK > 1.01 ? (isPanning ? "cursor-grabbing" : "cursor-grab") : "cursor-crosshair"
+          }`}
           onPointerDown={handleCanvasPointerDown}
           onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
           onPointerLeave={handlePointerLeave}
           onWheel={handleWheel}
           style={{ touchAction: "none" }}
@@ -904,76 +1142,79 @@ export function PhaseDiagramExplorer() {
             </marker>
           </defs>
 
-          {/* All zoomed plot content wrapped in a transform group */}
-          <g
-            transform={`translate(${zoomTx.toFixed(2)}, ${zoomTy.toFixed(2)}) scale(${zoomK.toFixed(4)})`}
-            style={{ transformOrigin: `${margin.left}px ${margin.top}px` }}
-          >
-          {/* Background Graph Paper */}
-          <rect x={margin.left} y={margin.top} width={plotWidth} height={plotHeight} fill="url(#fineGrid)" />
-
-          {/* Region Shaded Fills */}
-          {showRegions && (
-            <g className="transition-opacity duration-300">
-              <polygon points={solidPolygon} fill="url(#solidRegionGrad)" />
-              <polygon points={liquidPolygon} fill="url(#liquidRegionGrad)" />
-              {supercriticalPolygon && (
-                <polygon
-                  points={supercriticalPolygon}
-                  fill="url(#supercriticalRegionGrad)"
-                  className="cursor-pointer transition-opacity hover:opacity-90"
-                  onMouseEnter={() => {
-                    const sc = landmarks.find((l) => l.id === "supercritical_water");
-                    if (sc) setHoveredLandmark(sc);
-                  }}
-                  onMouseLeave={() => setHoveredLandmark(null)}
-                  onPointerDown={(e) => {
-                    e.stopPropagation();
-                    const sc = landmarks.find((l) => l.id === "supercritical_water");
-                    if (sc) {
-                      setSelectedLandmark(sc);
-                      setTempC(sc.tempC);
-                      setPressMbar(sc.pressMbar);
-                    }
-                  }}
-                />
-              )}
-              <polygon points={vaporPolygon} fill="url(#vaporRegionGrad)" />
-            </g>
-          )}
-
-          {/* Grid Lines: X Axis */}
-          {(isProcess
-            ? [-80, -60, -40, -20, 0, 20, 40, 60, 80, 100, 120]
-            : [-273.15, -200, -150, -100, -50, 0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500]
-          ).map((t) => (
-            <line
-              key={`grid-x-${t}`}
-              x1={tToX(t)}
-              y1={margin.top}
-              x2={tToX(t)}
-              y2={margin.top + plotHeight}
-              stroke={t === 0 || t === 100 ? (isDark ? "rgba(255,255,255,0.30)" : "rgba(15,23,42,0.30)") : gridColor}
-              strokeWidth={t === 0 || t === 100 ? "1.8" : "1"}
-              strokeDasharray={t === 0 || t === 100 ? "none" : "2 3"}
-            />
-          ))}
-
-          {/* Grid Lines: Y Axis (Logarithmic) */}
-          {(isProcess ? [-3, -2, -1, 0, 1, 2, 3] : [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6]).map((logP) => {
-            const p = Math.pow(10, logP);
-            return (
-              <line
-                key={`grid-y-${logP}`}
-                x1={margin.left}
-                y1={pToY(p)}
-                x2={margin.left + plotWidth}
-                y2={pToY(p)}
-                stroke={gridColor}
-                strokeDasharray="2 3"
+          {/* Zoom & pan content wrapped with strict rectangular clipping to plot area */}
+          <g clipPath="url(#plotClip)">
+            <g
+              transform={`translate(${zoomTx.toFixed(2)}, ${zoomTy.toFixed(2)}) scale(${zoomK.toFixed(4)})`}
+            >
+              {/* Background Graph Paper */}
+              <rect
+                x={margin.left - 2000}
+                y={margin.top - 2000}
+                width={plotWidth + 4000}
+                height={plotHeight + 4000}
+                fill="url(#fineGrid)"
               />
-            );
-          })}
+
+              {/* Region Shaded Fills */}
+              {showRegions && (
+                <g className="transition-opacity duration-300">
+                  <polygon points={solidPolygon} fill="url(#solidRegionGrad)" />
+                  <polygon points={liquidPolygon} fill="url(#liquidRegionGrad)" />
+                  {supercriticalPolygon && (
+                    <polygon
+                      points={supercriticalPolygon}
+                      fill="url(#supercriticalRegionGrad)"
+                      className="cursor-pointer transition-opacity hover:opacity-90"
+                      onMouseEnter={() => {
+                        const sc = landmarks.find((l) => l.id === "supercritical_water");
+                        if (sc) setHoveredLandmark(sc);
+                      }}
+                      onMouseLeave={() => setHoveredLandmark(null)}
+                      onPointerDown={(e) => {
+                        e.stopPropagation();
+                        const sc = landmarks.find((l) => l.id === "supercritical_water");
+                        if (sc) {
+                          setSelectedLandmark(sc);
+                          setTempC(sc.tempC);
+                          setPressMbar(sc.pressMbar);
+                        }
+                      }}
+                    />
+                  )}
+                  <polygon points={vaporPolygon} fill="url(#vaporRegionGrad)" />
+                </g>
+              )}
+
+              {/* Grid Lines: X Axis (Dynamic adaptive ticks matching current zoom) */}
+              {dynamicTempTicks.ticks.map((tick) => (
+                <line
+                  key={`grid-x-${tick.t}`}
+                  x1={tToX(tick.t)}
+                  y1={margin.top - 2000}
+                  x2={tToX(tick.t)}
+                  y2={margin.top + plotHeight + 2000}
+                  stroke={tick.t === 0 || tick.t === 100 ? (isDark ? "rgba(255,255,255,0.35)" : "rgba(15,23,42,0.35)") : gridColor}
+                  strokeWidth={tick.t === 0 || tick.t === 100 ? "1.8" : "1"}
+                  strokeDasharray={tick.t === 0 || tick.t === 100 ? "none" : "2 3"}
+                  vectorEffect="non-scaling-stroke"
+                />
+              ))}
+
+              {/* Grid Lines: Y Axis (Dynamic logarithmic ticks matching current zoom) */}
+              {dynamicPressureTicks.map((tick) => (
+                <line
+                  key={`grid-y-${tick.pMbar}`}
+                  x1={margin.left - 2000}
+                  y1={pToY(tick.pMbar)}
+                  x2={margin.left + plotWidth + 2000}
+                  y2={pToY(tick.pMbar)}
+                  stroke={gridColor}
+                  strokeWidth="1"
+                  strokeDasharray="2 3"
+                  vectorEffect="non-scaling-stroke"
+                />
+              ))}
 
           {/* Freeze Drying Operating Window (AFD Specification) */}
           {showFdZone && (
@@ -1490,29 +1731,34 @@ export function PhaseDiagramExplorer() {
             <g pointerEvents="none">
               <line
                 x1={hoverCoord.x}
-                y1={margin.top}
+                y1={margin.top - 2000}
                 x2={hoverCoord.x}
-                y2={margin.top + plotHeight}
+                y2={margin.top + plotHeight + 2000}
                 stroke={axisTextPrimary}
                 strokeWidth="1.2"
                 strokeDasharray="3 3"
                 opacity="0.5"
+                vectorEffect="non-scaling-stroke"
               />
               <line
-                x1={margin.left}
+                x1={margin.left - 2000}
                 y1={hoverCoord.y}
-                x2={margin.left + plotWidth}
+                x2={margin.left + plotWidth + 2000}
                 y2={hoverCoord.y}
                 stroke={axisTextPrimary}
                 strokeWidth="1.2"
                 strokeDasharray="3 3"
                 opacity="0.5"
+                vectorEffect="non-scaling-stroke"
               />
-              <circle cx={hoverCoord.x} cy={hoverCoord.y} r="4.5" fill={axisTextPrimary} />
+              <circle cx={hoverCoord.x} cy={hoverCoord.y} r={4.5 / zoomK} fill={axisTextPrimary} />
             </g>
           )}
+            </g>
+          </g>
+          {/* ─── END zoom transform & clip groups ─── */}
 
-          {/* Outer Frame */}
+          {/* Outer Frame (Fixed, unzoomed, razor-sharp boundary) */}
           <rect
             x={margin.left}
             y={margin.top}
@@ -1523,139 +1769,106 @@ export function PhaseDiagramExplorer() {
             strokeWidth="2"
             pointerEvents="none"
           />
-          {/* ─── END zoom transform group ─── */}
-          </g>
 
-          {/* Top X-Axis Ticks & Labels: Kelvin (Reaches 0 Kelvin = Absolute Zero!) */}
-          {(isProcess
-            ? [-80, -60, -40, -20, 0, 20, 40, 60, 80, 100, 120]
-            : [-273.15, -200, -150, -100, -50, 0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500]
-          ).map((t) => {
-            const k = t + 273.15;
-            const kStr = k <= 0.05 ? "0 K (Abs Zero)" : `${k.toFixed(0)} K`;
-            return (
-              <g key={`top-tick-x-${t}`} pointerEvents="none">
-                <line
-                  x1={tToX(t)}
-                  y1={margin.top}
-                  x2={tToX(t)}
-                  y2={margin.top - 5}
-                  stroke={frameBorder}
-                  strokeWidth="1.5"
-                />
-                <text
-                  x={tToX(t)}
-                  y={margin.top - 10}
-                  fill={axisTextMuted}
-                  fontSize="8.5"
-                  fontFamily="monospace"
-                  fontWeight="bold"
-                  textAnchor="middle"
-                >
-                  {kStr}
-                </text>
-              </g>
-            );
-          })}
+          {/* Top X-Axis Ticks & Labels: Kelvin (Dynamic adaptive ticks matching visible zoom) */}
+          {dynamicTempTicks.ticks.map((tick) => (
+            <g key={`top-tick-x-${tick.t}`} pointerEvents="none">
+              <line
+                x1={tick.screenX}
+                y1={margin.top}
+                x2={tick.screenX}
+                y2={margin.top - 5}
+                stroke={frameBorder}
+                strokeWidth="1.5"
+              />
+              <text
+                x={tick.screenX}
+                y={margin.top - 10}
+                fill={axisTextMuted}
+                fontSize="8.5"
+                fontFamily="monospace"
+                fontWeight="bold"
+                textAnchor="middle"
+              >
+                {tick.labelK}
+              </text>
+            </g>
+          ))}
 
-          {/* Bottom X-Axis Ticks & Labels: Celsius */}
-          {(isProcess
-            ? [-80, -60, -40, -20, 0, 20, 40, 60, 80, 100, 120]
-            : [-273.15, -200, -150, -100, -50, 0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500]
-          ).map((t) => {
-            const cStr = t === -273.15 ? "-273.15°C" : `${t}°C`;
-            return (
-              <g key={`bot-tick-x-${t}`} pointerEvents="none">
-                <line
-                  x1={tToX(t)}
-                  y1={margin.top + plotHeight}
-                  x2={tToX(t)}
-                  y2={margin.top + plotHeight + 6}
-                  stroke={frameBorder}
-                  strokeWidth="1.5"
-                />
-                <text
-                  x={tToX(t)}
-                  y={margin.top + plotHeight + 20}
-                  fill={axisTextPrimary}
-                  fontSize="10"
-                  fontFamily="monospace"
-                  fontWeight="900"
-                  textAnchor="middle"
-                >
-                  {cStr}
-                </text>
-              </g>
-            );
-          })}
+          {/* Bottom X-Axis Ticks & Labels: Celsius (Dynamic adaptive ticks matching visible zoom) */}
+          {dynamicTempTicks.ticks.map((tick) => (
+            <g key={`bot-tick-x-${tick.t}`} pointerEvents="none">
+              <line
+                x1={tick.screenX}
+                y1={margin.top + plotHeight}
+                x2={tick.screenX}
+                y2={margin.top + plotHeight + 6}
+                stroke={frameBorder}
+                strokeWidth="1.5"
+              />
+              <text
+                x={tick.screenX}
+                y={margin.top + plotHeight + 20}
+                fill={axisTextPrimary}
+                fontSize="10"
+                fontFamily="monospace"
+                fontWeight="900"
+                textAnchor="middle"
+              >
+                {tick.labelC}
+              </text>
+            </g>
+          ))}
 
-          {/* Left Y-Axis Ticks & Labels: Pascals (Dynamic Multi-Scale) */}
-          {(isProcess ? [-3, -2, -1, 0, 1, 2, 3] : [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6]).map((logP) => {
-            const pMbar = Math.pow(10, logP);
-            const pa = pMbar * 100;
-            let paLabel = `${pa} Pa`;
-            if (pa >= 1e9) paLabel = `${pa / 1e9} GPa`;
-            else if (pa >= 1e6) paLabel = `${pa / 1e6} MPa`;
-            else if (pa >= 1e3) paLabel = `${pa / 1e3} kPa`;
-            else if (pa < 0.1) paLabel = `${(pa * 1000).toFixed(0)} mPa`;
+          {/* Left Y-Axis Ticks & Labels: Pascals (Dynamic Multi-Scale matching visible zoom) */}
+          {dynamicPressureTicks.map((tick) => (
+            <g key={`left-tick-y-${tick.pMbar}`} pointerEvents="none">
+              <line
+                x1={margin.left - 6}
+                y1={tick.screenY}
+                x2={margin.left}
+                y2={tick.screenY}
+                stroke={frameBorder}
+                strokeWidth="1.5"
+              />
+              <text
+                x={margin.left - 10}
+                y={tick.screenY + 4}
+                fill={axisTextPrimary}
+                fontSize="9.5"
+                fontFamily="monospace"
+                fontWeight="900"
+                textAnchor="end"
+              >
+                {tick.labelPa}
+              </text>
+            </g>
+          ))}
 
-            return (
-              <g key={`left-tick-y-${logP}`} pointerEvents="none">
-                <line
-                  x1={margin.left - 6}
-                  y1={pToY(pMbar)}
-                  x2={margin.left}
-                  y2={pToY(pMbar)}
-                  stroke={frameBorder}
-                  strokeWidth="1.5"
-                />
-                <text
-                  x={margin.left - 10}
-                  y={pToY(pMbar) + 4}
-                  fill={axisTextPrimary}
-                  fontSize="9.5"
-                  fontFamily="monospace"
-                  fontWeight="900"
-                  textAnchor="end"
-                >
-                  {paLabel}
-                </text>
-              </g>
-            );
-          })}
-
-          {/* Right Y-Axis Ticks & Labels: Bar / mbar / μbar */}
-          {(isProcess ? [-3, -2, -1, 0, 1, 2, 3] : [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6]).map((logP) => {
-            const pMbar = Math.pow(10, logP);
-            let barLabel = `${pMbar} mbar`;
-            if (pMbar >= 1000000) barLabel = `${pMbar / 1000000} kbar`;
-            else if (pMbar >= 1000) barLabel = `${pMbar / 1000} bar`;
-            else if (pMbar < 0.1) barLabel = `${(pMbar * 1000).toFixed(0)} μbar`;
-
-            return (
-              <g key={`right-tick-y-${logP}`} pointerEvents="none">
-                <line
-                  x1={margin.left + plotWidth}
-                  y1={pToY(pMbar)}
-                  x2={margin.left + plotWidth + 6}
-                  y2={pToY(pMbar)}
-                  stroke={frameBorder}
-                  strokeWidth="1.5"
-                />
-                <text
-                  x={margin.left + plotWidth + 10}
-                  y={pToY(pMbar) + 4}
-                  fill={axisTextMuted}
-                  fontSize="9"
-                  fontFamily="monospace"
-                  fontWeight="bold"
-                  textAnchor="start"
-                >
-                  {barLabel}
-                </text>
-              </g>
-            );
-          })}
+          {/* Right Y-Axis Ticks & Labels: Bar / mbar / μbar (Dynamic Multi-Scale matching visible zoom) */}
+          {dynamicPressureTicks.map((tick) => (
+            <g key={`right-tick-y-${tick.pMbar}`} pointerEvents="none">
+              <line
+                x1={margin.left + plotWidth}
+                y1={tick.screenY}
+                x2={margin.left + plotWidth + 6}
+                y2={tick.screenY}
+                stroke={frameBorder}
+                strokeWidth="1.5"
+              />
+              <text
+                x={margin.left + plotWidth + 10}
+                y={tick.screenY + 4}
+                fill={axisTextMuted}
+                fontSize="9"
+                fontFamily="monospace"
+                fontWeight="bold"
+                textAnchor="start"
+              >
+                {tick.labelBar}
+              </text>
+            </g>
+          ))}
 
           {/* Axis Header Titles */}
           <text
@@ -1732,7 +1945,13 @@ export function PhaseDiagramExplorer() {
             <div className="h-3.5 w-px bg-slate-300 dark:bg-slate-700" />
             <div>
               <span className="text-slate-500 dark:text-slate-400 font-bold">Phase:</span>{" "}
-              <span className="font-black px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100">
+              <span
+                className={`font-black px-2 py-0.5 rounded ${
+                  hoverCoord.phaseName === "SUPERCRITICAL"
+                    ? "bg-purple-100 text-purple-900 dark:bg-purple-950 dark:text-purple-300 border border-purple-400"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100"
+                }`}
+              >
                 {hoverCoord.phaseName}
               </span>
             </div>
@@ -1741,41 +1960,54 @@ export function PhaseDiagramExplorer() {
 
         {/* Sleek Interactive Process Trajectory HUD (Rendered when a process mode is selected) */}
         {selectedProcess !== "FREE" && (
-          <div className="absolute top-3 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-xl border border-hairline bg-white/95 dark:bg-[#14171f]/95 backdrop-blur-md shadow-xl text-xs font-mono flex items-center gap-2 z-20 transition-all max-w-[95%] overflow-x-auto">
-            {/* Play/Pause Button */}
-            <button
-              onClick={() => setIsPlaying(!isPlaying)}
-              className="p-1 rounded-lg bg-sky-100 hover:bg-sky-200 dark:bg-sky-950 dark:hover:bg-sky-900 text-sky-800 dark:text-sky-200 transition shrink-0"
-              title={isPlaying ? "Pause auto-playback" : "Play process trajectory"}
-            >
-              {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-            </button>
-
-            {/* Step Segments */}
-            <div className="flex items-center gap-1.5 shrink-0">
-              {processStepsData[selectedProcess]?.map((st, idx) => (
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white/95 dark:bg-[#14171f]/95 backdrop-blur-md shadow-2xl text-xs font-mono flex flex-col gap-1.5 z-20 transition-all max-w-[95%] sm:max-w-xl w-auto">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 shrink-0 overflow-x-auto">
+                {/* Play/Pause Button */}
                 <button
-                  key={st.step}
-                  onClick={() => {
-                    setIsPlaying(false);
-                    setProcessStep(idx);
-                    applyProcessStep(selectedProcess, idx);
-                  }}
-                  className={`px-2.5 py-1 rounded-lg text-[10.5px] font-black transition ${
-                    processStep === idx
-                      ? "bg-amber-500 text-slate-950 shadow-sm"
-                      : "bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
-                  }`}
+                  onClick={() => setIsPlaying(!isPlaying)}
+                  className="p-1 rounded-lg bg-sky-100 hover:bg-sky-200 dark:bg-sky-950 dark:hover:bg-sky-900 text-sky-800 dark:text-sky-200 transition shrink-0"
+                  title={isPlaying ? "Pause auto-playback" : "Play process trajectory"}
                 >
-                  {st.step}. {st.title.replace(/^Stage \d+:\s*/, "")}
+                  {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
                 </button>
-              ))}
+
+                {/* Step Segments */}
+                {processStepsData[selectedProcess]?.map((st, idx) => (
+                  <button
+                    key={st.step}
+                    onClick={() => {
+                      setIsPlaying(false);
+                      setProcessStep(idx);
+                      applyProcessStep(selectedProcess, idx);
+                    }}
+                    className={`px-2.5 py-1 rounded-lg text-[10.5px] font-black transition whitespace-nowrap ${
+                      processStep === idx
+                        ? "bg-amber-500 text-slate-950 shadow-sm"
+                        : "bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
+                    }`}
+                  >
+                    {st.shortTitle || `Stage ${st.step}`}
+                  </button>
+                ))}
+              </div>
+
+              <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider shrink-0 hidden sm:inline-block">
+                Stage {processStep + 1} of {processStepsData[selectedProcess]?.length}
+              </span>
             </div>
 
-            {/* Current Step Description Pill */}
-            <div className="hidden md:block max-w-sm truncate text-[10.5px] text-slate-600 dark:text-slate-400 pl-2 border-l border-slate-300 dark:border-slate-700">
-              {processStepsData[selectedProcess]?.[processStep]?.desc}
-            </div>
+            {/* Current Step Full Title & Description without Cropping */}
+            {processStepsData[selectedProcess]?.[processStep] && (
+              <div className="pt-1.5 border-t border-slate-200 dark:border-slate-800 text-[11px] leading-snug">
+                <span className="font-black text-amber-700 dark:text-amber-300">
+                  {processStepsData[selectedProcess][processStep].title}:
+                </span>{" "}
+                <span className="text-slate-700 dark:text-slate-300 font-medium">
+                  {processStepsData[selectedProcess][processStep].desc}
+                </span>
+              </div>
+            )}
           </div>
         )}
 
@@ -1901,7 +2133,7 @@ export function PhaseDiagramExplorer() {
             <div className="flex items-center gap-2">
               <HelpCircle className="w-4 h-4 text-sky-700 dark:text-sky-400" />
               <span className="text-xs font-black text-slate-950 dark:text-slate-100">
-                What are Ice Polymorphs? Deciphering the Roman Numerals (Ice Ih, Ic, II, III...)
+                Thermodynamic Deep-Dive: Ice Polymorphs (I–XIX) &amp; Supercritical Water vs. Active Freeze Drying
               </span>
             </div>
             {showPolymorphExplainer ? (
@@ -1912,46 +2144,88 @@ export function PhaseDiagramExplorer() {
           </button>
 
           {showPolymorphExplainer && (
-            <div className="px-4 pb-4 pt-1 text-xs text-slate-800 dark:text-slate-200 space-y-2.5 border-t border-slate-200 dark:border-slate-800">
+            <div className="px-4 pb-4 pt-1 text-xs text-slate-800 dark:text-slate-200 space-y-3 border-t border-slate-200 dark:border-slate-800">
               <p className="leading-relaxed">
-                <strong className="text-slate-950 dark:text-slate-50">Polymorphism in Water:</strong> Water does not freeze into just one kind of solid. Depending on temperature and pressure, water molecules (H₂O) assemble into at least <strong className="text-sky-900 dark:text-sky-300">19 different crystalline structures (polymorphs)</strong>, designated by Roman numerals (Ice I through Ice XIX):
+                <strong className="text-slate-950 dark:text-slate-50">Polymorphism and Extreme Thermodynamic Phases:</strong> Water does not freeze into just one kind of solid, nor does liquid boil into vapor at all pressures. Depending on temperature and pressure, water molecules assemble into at least <strong className="text-sky-900 dark:text-sky-300">19 crystalline ice polymorphs</strong> or merge into a dense homogeneous supercritical fluid:
               </p>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 font-mono text-[11px]">
-                <div className="p-3 rounded-lg bg-sky-50 dark:bg-sky-950/30 border border-sky-300 dark:border-sky-800">
-                  <div className="text-sky-950 dark:text-sky-300 font-black text-xs flex items-center gap-1.5">
-                    <Snowflake className="w-3.5 h-3.5" /> Ice Ih (Hexagonal)
-                  </div>
-                  <div className="text-slate-800 dark:text-slate-200 mt-1 text-[11px] leading-snug">
-                    Everyday normal ice on Earth at atmospheric pressure. The water molecules form an open hexagonal honeycomb held by hydrogen bonds. Because of these open pockets, <strong className="text-slate-950 dark:text-slate-50">Ice Ih is less dense than water (0.917 g/cm³)</strong>, which is why ice cubes float!
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1 font-mono text-[11px]">
+                <div className="p-3 rounded-lg bg-sky-50 dark:bg-sky-950/30 border border-sky-300 dark:border-sky-800 flex flex-col justify-between">
+                  <div>
+                    <div className="text-sky-950 dark:text-sky-300 font-black text-xs flex items-center gap-1.5">
+                      <Snowflake className="w-3.5 h-3.5" /> Ice Ih (Hexagonal)
+                    </div>
+                    <div className="text-slate-800 dark:text-slate-200 mt-1.5 text-[11px] leading-snug font-sans">
+                      Everyday normal ice on Earth at atmospheric pressure. Forms an open hexagonal honeycomb held by hydrogen bonds. Because of these open pockets, <strong className="text-slate-950 dark:text-slate-50">Ice Ih is less dense than liquid water (0.917 g/cm³)</strong>, which is why ice floats!
+                    </div>
                   </div>
                   <div className="mt-2 text-[10px] text-amber-900 dark:text-amber-300 font-black">
                     ★ The ONLY ice phase in freeze-drying.
                   </div>
                 </div>
 
-                <div className="p-3 rounded-lg bg-cyan-50 dark:bg-cyan-950/30 border border-cyan-300 dark:border-cyan-800">
-                  <div className="text-cyan-950 dark:text-cyan-300 font-black text-xs flex items-center gap-1.5">
-                    <Activity className="w-3.5 h-3.5" /> Ice Ic (Cubic Ice)
+                <div className="p-3 rounded-lg bg-cyan-50 dark:bg-cyan-950/30 border border-cyan-300 dark:border-cyan-800 flex flex-col justify-between">
+                  <div>
+                    <div className="text-cyan-950 dark:text-cyan-300 font-black text-xs flex items-center gap-1.5">
+                      <Activity className="w-3.5 h-3.5" /> Ice Ic (Cubic Ice)
+                    </div>
+                    <div className="text-slate-800 dark:text-slate-200 mt-1.5 text-[11px] leading-snug font-sans">
+                      A metastable cubic crystal form created when water vapor condenses at deep cryogenic temperatures below -130 °C. Crystal lattice has diamond-cubic symmetry. Found in high-altitude clouds and interplanetary space.
+                    </div>
                   </div>
-                  <div className="text-slate-800 dark:text-slate-200 mt-1 text-[11px] leading-snug">
-                    A metastable cubic crystal form created when water vapor condenses at deep cryogenic temperatures (below -130 °C). Found in high-altitude clouds and space ice.
+                  <div className="mt-2 text-[10px] text-cyan-800 dark:text-cyan-300 font-bold">
+                    Cryogenic condensation phase
                   </div>
                 </div>
 
-                <div className="p-3 rounded-lg bg-purple-50 dark:bg-purple-950/30 border border-purple-300 dark:border-purple-800">
-                  <div className="text-purple-950 dark:text-purple-300 font-black text-xs flex items-center gap-1.5">
-                    <Layers className="w-3.5 h-3.5" /> Ice II, III, V, VI, VII
+                <div className="p-3 rounded-lg bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-300 dark:border-indigo-800 flex flex-col justify-between">
+                  <div>
+                    <div className="text-indigo-950 dark:text-indigo-300 font-black text-xs flex items-center gap-1.5">
+                      <Layers className="w-3.5 h-3.5" /> Ice II to XIX (High-P)
+                    </div>
+                    <div className="text-slate-800 dark:text-slate-200 mt-1.5 text-[11px] leading-snug font-sans">
+                      Exotic ice phases that only exist under extreme planetary pressures (&gt; 2,000 to 600,000 atm). The open honeycomb collapses into dense packing lattices that <strong className="text-slate-950 dark:text-slate-50">sink in water</strong>! Found in the deep mantles of icy moons like Ganymede.
+                    </div>
                   </div>
-                  <div className="text-slate-800 dark:text-slate-200 mt-1 text-[11px] leading-snug">
-                    High-pressure exotic ice phases that only exist under extreme planetary pressures (&gt; 2,000 to 600,000 atmospheres). Under this pressure, the open honeycomb collapses into dense crystals that <strong className="text-slate-950 dark:text-slate-50">sink in water</strong>! Found deep inside icy moons like Ganymede and Neptune.
+                  <div className="mt-2 text-[10px] text-indigo-800 dark:text-indigo-300 font-bold">
+                    Planetary mantle physics
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-lg bg-purple-50 dark:bg-purple-950/30 border border-purple-300 dark:border-purple-800 flex flex-col justify-between">
+                  <div>
+                    <div className="text-purple-950 dark:text-purple-300 font-black text-xs flex items-center gap-1.5">
+                      <Flame className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" /> Supercritical Water (scH₂O)
+                    </div>
+                    <div className="text-slate-800 dark:text-slate-200 mt-1.5 text-[11px] leading-snug font-sans">
+                      Above 373.95 °C and 220.64 bar, the liquid-gas meniscus vanishes, making surface tension identically zero. Water behaves as a non-polar solvent that dissolves oils but precipitates salts, triggering aggressive oxidation (SCWO).
+                    </div>
+                  </div>
+                  <div className="mt-2 text-[10px] text-purple-900 dark:text-purple-300 font-black">
+                    ★ Opposite extreme to freeze-drying!
                   </div>
                 </div>
               </div>
 
-              <p className="text-[11px] text-slate-600 dark:text-slate-400 pt-1 italic">
-                <strong>Why Hosokawa included them:</strong> Hosokawa displayed the full-scale diagram in their webinar to demonstrate that the <span className="text-amber-800 dark:text-amber-300 font-black">AFD Freeze-Drying Operating Envelope (0.05 to 1.5 mbar, -55°C to -10°C)</span> occupies a tiny, highly-controlled thermodynamic niche strictly inside the <span className="text-sky-800 dark:text-sky-300 font-black">Ice Ih</span> sublimation region beneath the triple point!
-              </p>
+              <div className="p-3 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-[11px] leading-relaxed text-slate-700 dark:text-slate-300 space-y-1.5">
+                <div className="font-black text-slate-950 dark:text-slate-100 flex items-center gap-2">
+                  <span className="text-amber-500">⚡</span> The Surface Tension Paradox: Supercritical Drying vs. Active Freeze Drying
+                </div>
+                <p>
+                  In drying science, removing water menisci is essential because capillary tension (<span className="font-mono font-bold">ΔP = 2γ cosθ / r</span>) exerts hundreds of atmospheres of compressive pressure in microscopic pores, crushing fragile aerogels, nanoparticles, and proteins into an agglomerated hard cake.
+                </p>
+                <p>
+                  Thermodynamically, there are only two ways to eliminate surface tension (<span className="font-mono font-bold">γ = 0</span>):
+                </p>
+                <ul className="list-disc pl-5 space-y-1">
+                  <li>
+                    <strong className="text-purple-900 dark:text-purple-300">The Supercritical Route:</strong> Heat and pressurize above the critical point (374 °C, 221 bar for water; or 31 °C, 73.8 bar for CO₂). For water, this extreme temperature chars biological APIs and triggers violent oxidation.
+                  </li>
+                  <li>
+                    <strong className="text-amber-900 dark:text-amber-300">The Hosokawa AFD Cryogenic Sublimation Route:</strong> Operate at the exact polar opposite extreme—deep below the 6.11 mbar triple point at -50 °C to +25 °C. Because liquid water is physically forbidden, ice sublimes directly into low-density vapor with zero liquid meniscus (<span className="font-mono font-bold">γ ≡ 0</span>), preserving 100% biological activity and yielding instantly rehydratable free-flowing powder!
+                  </li>
+                </ul>
+              </div>
             </div>
           )}
         </div>

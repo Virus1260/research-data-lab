@@ -29,7 +29,7 @@ export const HOSOKAWA_PRESETS: HosokawaPreset[] = [
 export interface ConeGeometryParams {
   nominalVolumeL?: number;
   workingVolumeL?: number;
-  halfAngleDeg: number; // 20° to 35°
+  halfAngleDeg?: number; // 10° to 35° (Hosokawa AFD steep cone standard is 17°)
   minorDiaMm?: number; // Apex discharge bore (e.g. 100 mm for DN100)
   shellThicknessMm?: number; // e.g. 4.0 mm
   drivingMode?: 'volume' | 'height' | 'diameter' | 'vol_and_height';
@@ -77,12 +77,12 @@ export function calculateConeGeometry(params: ConeGeometryParams): ConeGeometryR
   const {
     nominalVolumeL = 20,
     workingVolumeL = 10,
-    halfAngleDeg,
+    halfAngleDeg = 17,
     minorDiaMm = 100,
     shellThicknessMm = 4.0,
     drivingMode = 'volume',
-    targetHeightCm = 44.5,
-    targetDiameterCm = 41.5,
+    targetHeightCm = 43.0,
+    targetDiameterCm = 36.3,
   } = params;
 
   let actualHalfAngleDeg = halfAngleDeg;
@@ -526,5 +526,152 @@ export function generateCadScheduleExport(
       { tag: "J1", function: "Jacket thermal fluid inlet (bottom)", size: "DN32", connection: "Flanged ANSI 150# / Tri-Clamp" },
       { tag: "J2", function: "Jacket thermal fluid outlet (top)", size: "DN32", connection: "Flanged ANSI 150# / Tri-Clamp" },
     ],
+  };
+}
+
+/**
+ * Standard pharmaceutical / ASME pressure vessel head diameters (in mm)
+ * Widely fabricated dished and torispherical head punch toolings.
+ */
+export const STANDARD_HEAD_DIAMETERS_MM = [
+  150, 200, 250, 300, 350, 400, 450, 500, 600, 700, 750, 800, 900, 1000, 1100, 1200, 1300, 1400, 1500, 1600, 1800, 2000
+];
+
+/**
+ * Clean standard plate fabrication cone heights (in mm)
+ * Convenient sheet metal roll cutting lengths.
+ */
+export const STANDARD_CONE_HEIGHTS_MM = [
+  100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000, 1100, 1200, 1300, 1400, 1500, 1600, 1800, 2000
+];
+
+export interface OptimalFabricationDimension {
+  title: string;
+  majorDiaMm: number;
+  coneHeightMm: number;
+  nominalVolumeL: number;
+  workingVolumeL: number;
+  halfAngleDeg: number;
+  minorDiaMm: number;
+  isStandardHeadDia: boolean;
+  isStandardHeight: boolean;
+  description: string;
+}
+
+/**
+ * Dynamically computes optimal fabrication dimensions with rounded numbers
+ * for major diameter and cone height that best match target volume and 17° half-apex angle.
+ */
+export function getOptimalFabricationSuggestions(
+  currentNominalVolumeL: number,
+  halfAngleDeg: number = 17,
+  minorDiaMm: number = 100
+): {
+  nearestStandardHead: OptimalFabricationDimension;
+  nearestStandardHeight: OptimalFabricationDimension;
+  bestBalancedStandard: OptimalFabricationDimension;
+  standardSuggestions: OptimalFabricationDimension[];
+} {
+  const tanAlpha = Math.tan((halfAngleDeg * Math.PI) / 180);
+  const rMinorCm = (minorDiaMm / 10) / 2;
+  const volCm3 = Math.max(0.5, currentNominalVolumeL) * 1000;
+
+  // Ideal unconstrained radius and height
+  const rMajor3 = Math.pow(rMinorCm, 3) + (3 * volCm3 * tanAlpha) / Math.PI;
+  const idealRCm = Math.cbrt(rMajor3);
+  const idealDMm = idealRCm * 20;
+  const idealHMm = ((idealRCm - rMinorCm) / tanAlpha) * 10;
+
+  // Helper to calculate conical frustum volume in Liters
+  const calcVol = (dMm: number, hMm: number) => {
+    const R = dMm / 20;
+    const r0 = rMinorCm;
+    const H = hMm / 10;
+    const vCm3 = (Math.PI * H / 3) * (R * R + R * r0 + r0 * r0);
+    return Number((vCm3 / 1000).toFixed(1));
+  };
+
+  // 1. Candidate A: Snap to nearest standard dished head diameter
+  const nearestHeadDMm = STANDARD_HEAD_DIAMETERS_MM.reduce((prev, curr) =>
+    Math.abs(curr - idealDMm) < Math.abs(prev - idealDMm) ? curr : prev
+  );
+  const hForHeadMm = ((nearestHeadDMm / 20 - rMinorCm) / tanAlpha) * 10;
+  // Round H to nearest 25 mm for practical workshop rolling
+  const roundedHForHeadMm = Math.max(100, Math.round(hForHeadMm / 25) * 25);
+  const volHeadL = calcVol(nearestHeadDMm, roundedHForHeadMm);
+
+  const nearestStandardHead: OptimalFabricationDimension = {
+    title: "Standard Head Tooling Match",
+    majorDiaMm: nearestHeadDMm,
+    coneHeightMm: roundedHForHeadMm,
+    nominalVolumeL: volHeadL,
+    workingVolumeL: Number((volHeadL * 0.5).toFixed(1)),
+    halfAngleDeg,
+    minorDiaMm,
+    isStandardHeadDia: true,
+    isStandardHeight: roundedHForHeadMm % 50 === 0,
+    description: `Uses ASME/DIN standard ${nearestHeadDMm} mm dished head with ${roundedHForHeadMm} mm cone shell.`,
+  };
+
+  // 2. Candidate B: Snap to nearest standard rolled cone height
+  const nearestHeightMm = STANDARD_CONE_HEIGHTS_MM.reduce((prev, curr) =>
+    Math.abs(curr - idealHMm) < Math.abs(prev - idealHMm) ? curr : prev
+  );
+  const rForHMm = (rMinorCm + (nearestHeightMm / 10) * tanAlpha) * 10;
+  // Round D to nearest 25 mm
+  const roundedDForHMm = Math.max(minorDiaMm + 50, Math.round((2 * rForHMm) / 25) * 25);
+  const volHeightL = calcVol(roundedDForHMm, nearestHeightMm);
+
+  const nearestStandardHeight: OptimalFabricationDimension = {
+    title: "Standard Rolled Height Match",
+    majorDiaMm: roundedDForHMm,
+    coneHeightMm: nearestHeightMm,
+    nominalVolumeL: volHeightL,
+    workingVolumeL: Number((volHeightL * 0.5).toFixed(1)),
+    halfAngleDeg,
+    minorDiaMm,
+    isStandardHeadDia: STANDARD_HEAD_DIAMETERS_MM.includes(roundedDForHMm),
+    isStandardHeight: true,
+    description: `Uses ${nearestHeightMm} mm standard plate height with ${roundedDForHMm} mm top flange.`,
+  };
+
+  // 3. Candidate C: Best Balanced Standard (both D & H belong to standard increments with minimal angle distortion)
+  let bestPair = { d: nearestHeadDMm, h: roundedHForHeadMm, vol: volHeadL, angle: halfAngleDeg };
+  let minScore = Infinity;
+
+  for (const d of STANDARD_HEAD_DIAMETERS_MM) {
+    if (Math.abs(d - idealDMm) > idealDMm * 0.45) continue;
+    for (const h of STANDARD_CONE_HEIGHTS_MM) {
+      if (Math.abs(h - idealHMm) > idealHMm * 0.45) continue;
+      const angleCalc = (Math.atan((d - minorDiaMm) / (2 * h)) * 180) / Math.PI;
+      if (Math.abs(angleCalc - halfAngleDeg) <= 2.5) {
+        const v = calcVol(d, h);
+        const score = Math.abs(v - currentNominalVolumeL) / currentNominalVolumeL + Math.abs(angleCalc - halfAngleDeg) * 0.15;
+        if (score < minScore) {
+          minScore = score;
+          bestPair = { d, h, vol: v, angle: Number(angleCalc.toFixed(1)) };
+        }
+      }
+    }
+  }
+
+  const bestBalancedStandard: OptimalFabricationDimension = {
+    title: "Optimal Workshop Standard Sizing",
+    majorDiaMm: bestPair.d,
+    coneHeightMm: bestPair.h,
+    nominalVolumeL: bestPair.vol,
+    workingVolumeL: Number((bestPair.vol * 0.5).toFixed(1)),
+    halfAngleDeg: bestPair.angle,
+    minorDiaMm,
+    isStandardHeadDia: true,
+    isStandardHeight: true,
+    description: `Optimal dual-rounded sizing: D = ${bestPair.d} mm standard head, H = ${bestPair.h} mm cone (α = ${bestPair.angle}°).`,
+  };
+
+  return {
+    nearestStandardHead,
+    nearestStandardHeight,
+    bestBalancedStandard,
+    standardSuggestions: [bestBalancedStandard, nearestStandardHead, nearestStandardHeight],
   };
 }

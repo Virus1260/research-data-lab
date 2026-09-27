@@ -7,6 +7,9 @@ import {
   calculateJacketCrossCheck,
   calculateHeadDimensions,
   generateCadScheduleExport,
+  getOptimalFabricationSuggestions,
+  STANDARD_HEAD_DIAMETERS_MM,
+  STANDARD_CONE_HEIGHTS_MM,
   HeadType,
   HosokawaPreset,
 } from "@/lib/vesselSizing";
@@ -20,6 +23,7 @@ import {
   Sparkles,
   Sun,
   Moon,
+  Wand2,
 } from "lucide-react";
 
 export function VesselSizingSuite() {
@@ -30,16 +34,16 @@ export function VesselSizingSuite() {
 
   // Sizing driver mode: 'volume' (default) | 'height' | 'vol_and_height' | 'diameter'
   const [drivingMode, setDrivingMode] = useState<"volume" | "height" | "vol_and_height" | "diameter">("volume");
-  const [targetHeightCm, setTargetHeightCm] = useState<number>(44.5);
-  const [targetDiameterCm, setTargetDiameterCm] = useState<number>(41.5);
+  const [targetHeightCm, setTargetHeightCm] = useState<number>(43.0);
+  const [targetDiameterCm, setTargetDiameterCm] = useState<number>(36.3);
 
   // Active volumes
   const currentPreset: HosokawaPreset = HOSOKAWA_PRESETS[selectedPresetIndex];
   const workingVolumeL = isCustomMode ? customWorkingVolumeL : currentPreset.maxBatchVolumeL;
   const nominalVolumeL = isCustomMode ? customWorkingVolumeL / 0.5 : currentPreset.nominalVolumeL;
 
-  // Geometry parameters
-  const [halfAngleDeg, setHalfAngleDeg] = useState<number>(25); // 20° to 35°
+  // Geometry parameters — default 17° half-apex angle as per Hosokawa AFD specification
+  const [halfAngleDeg, setHalfAngleDeg] = useState<number>(17); // 10° to 35° (Hosokawa AFD steep cone standard is 17°)
   const [minorDiaMm, setMinorDiaMm] = useState<number>(currentPreset.defaultMinorDiaMm);
   const [shellThicknessMm, setShellThicknessMm] = useState<number>(4.0); // mm
 
@@ -80,11 +84,12 @@ export function VesselSizingSuite() {
     const p = HOSOKAWA_PRESETS[index];
     setSublimationRateKg_h(p.sublimationCapacityKg_h);
     setMinorDiaMm(p.defaultMinorDiaMm);
+    setHalfAngleDeg(17);
     // sync target height and diameter from preset for smooth mode switching
     const initialGeom = calculateConeGeometry({
       nominalVolumeL: p.nominalVolumeL,
       workingVolumeL: p.maxBatchVolumeL,
-      halfAngleDeg: 25,
+      halfAngleDeg: 17,
       minorDiaMm: p.defaultMinorDiaMm,
     });
     setTargetHeightCm(initialGeom.heightCm);
@@ -113,6 +118,24 @@ export function VesselSizingSuite() {
     targetHeightCm,
     targetDiameterCm,
   ]);
+
+  // Dynamic optimal rounded dimension suggestion engine
+  const optimalSuggestions = useMemo(() => {
+    return getOptimalFabricationSuggestions(nominalVolumeL, halfAngleDeg, minorDiaMm);
+  }, [nominalVolumeL, halfAngleDeg, minorDiaMm]);
+
+  const applyOptimalSuggestion = (sug: {
+    majorDiaMm: number;
+    coneHeightMm: number;
+    halfAngleDeg: number;
+    nominalVolumeL: number;
+  }) => {
+    setIsCustomMode(true);
+    setHalfAngleDeg(sug.halfAngleDeg);
+    setTargetDiameterCm(sug.majorDiaMm / 10);
+    setTargetHeightCm(sug.coneHeightMm / 10);
+    setCustomWorkingVolumeL(sug.nominalVolumeL * 0.5);
+  };
 
   const jacketResult = useMemo(() => {
     return calculateJacketCrossCheck({
@@ -1219,6 +1242,151 @@ export function VesselSizingSuite() {
             </div>
           </div>
 
+          {/* Dynamic Optimal Rounded Fabrication Dimensions Recommendation Panel */}
+          <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-amber-500/10 via-bg-panel to-cyan-500/10 border border-amber/30 shadow-sm space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-hairline">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-amber/20 flex items-center justify-center text-amber border border-amber/30">
+                  <Wand2 className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-ink-primary flex items-center gap-2">
+                    Optimal Rounded Fabrication Sizing
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber/20 text-amber font-semibold border border-amber/40">
+                      ASME / Hosokawa Std
+                    </span>
+                  </h4>
+                  <p className="text-xs text-ink-muted">
+                    Dynamically suggests standard dished head tooling diameters and rolled cone heights with rounded integers for zero dead-leg mass flow.
+                  </p>
+                </div>
+              </div>
+              <div className="text-xs font-mono font-semibold text-ink-dim shrink-0">
+                Cone Pitch: <strong className="text-amber">α = {coneGeom.halfAngleDeg}°</strong>
+              </div>
+            </div>
+
+            {/* Recommendation Cards Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+              {/* 1. Best Balanced Standard */}
+              <div className="p-3.5 rounded-xl bg-bg-surface border border-amber/40 hover:border-amber transition space-y-2.5 relative group">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-amber flex items-center gap-1">
+                    <Sparkles className="w-3.5 h-3.5" /> Best Balanced Standard
+                  </span>
+                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-amber/15 text-amber border border-amber/30 font-semibold">
+                    Optimal
+                  </span>
+                </div>
+                <div className="space-y-1 font-mono text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-ink-muted">Major Dia (D):</span>
+                    <strong className="text-emerald-600 dark:text-emerald-400 font-black">
+                      {optimalSuggestions.bestBalancedStandard.majorDiaMm} mm
+                    </strong>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-ink-muted">Cone Height (H):</span>
+                    <strong className="text-amber font-black">
+                      {optimalSuggestions.bestBalancedStandard.coneHeightMm} mm
+                    </strong>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-ink-muted">Gross Volume (V):</span>
+                    <strong className="text-cyan-600 dark:text-cyan-400 font-bold">
+                      {optimalSuggestions.bestBalancedStandard.nominalVolumeL} L
+                    </strong>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => applyOptimalSuggestion(optimalSuggestions.bestBalancedStandard)}
+                  className="w-full mt-1 py-1.5 px-2.5 rounded-lg bg-amber text-slate-950 font-bold text-xs hover:bg-amber/90 transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <Check className="w-3.5 h-3.5" /> Apply Balanced Standard
+                </button>
+              </div>
+
+              {/* 2. Standard Dished Head Tooling */}
+              <div className="p-3.5 rounded-xl bg-bg-surface border border-emerald-500/30 hover:border-emerald-500 transition space-y-2.5 group">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                    Standard Head Tooling
+                  </span>
+                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-semibold">
+                    DIN/ASME Head
+                  </span>
+                </div>
+                <div className="space-y-1 font-mono text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-ink-muted">Major Dia (D):</span>
+                    <strong className="text-emerald-600 dark:text-emerald-400 font-black">
+                      {optimalSuggestions.nearestStandardHead.majorDiaMm} mm
+                    </strong>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-ink-muted">Cone Height (H):</span>
+                    <strong className="text-amber font-black">
+                      {optimalSuggestions.nearestStandardHead.coneHeightMm} mm
+                    </strong>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-ink-muted">Gross Volume (V):</span>
+                    <strong className="text-cyan-600 dark:text-cyan-400 font-bold">
+                      {optimalSuggestions.nearestStandardHead.nominalVolumeL} L
+                    </strong>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => applyOptimalSuggestion(optimalSuggestions.nearestStandardHead)}
+                  className="w-full mt-1 py-1.5 px-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <Check className="w-3.5 h-3.5" /> Snap to Head Tooling
+                </button>
+              </div>
+
+              {/* 3. Standard Rolled Plate Height */}
+              <div className="p-3.5 rounded-xl bg-bg-surface border border-cyan-500/30 hover:border-cyan-500 transition space-y-2.5 group">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-cyan-600 dark:text-cyan-400 flex items-center gap-1">
+                    Standard Plate Height
+                  </span>
+                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 font-semibold">
+                    Rolled Sheet
+                  </span>
+                </div>
+                <div className="space-y-1 font-mono text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-ink-muted">Cone Height (H):</span>
+                    <strong className="text-amber font-black">
+                      {optimalSuggestions.nearestStandardHeight.coneHeightMm} mm
+                    </strong>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-ink-muted">Major Dia (D):</span>
+                    <strong className="text-emerald-600 dark:text-emerald-400 font-black">
+                      {optimalSuggestions.nearestStandardHeight.majorDiaMm} mm
+                    </strong>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-ink-muted">Gross Volume (V):</span>
+                    <strong className="text-cyan-600 dark:text-cyan-400 font-bold">
+                      {optimalSuggestions.nearestStandardHeight.nominalVolumeL} L
+                    </strong>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => applyOptimalSuggestion(optimalSuggestions.nearestStandardHeight)}
+                  className="w-full mt-1 py-1.5 px-2.5 rounded-lg bg-cyan-600 hover:bg-cyan-700 text-white font-bold text-xs transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <Check className="w-3.5 h-3.5" /> Snap to Plate Height
+                </button>
+              </div>
+            </div>
+          </div>
+
           {/* 3. Cone Angle & Bottom Nozzle Bore Dual Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Cone Half-Angle Slider */}
@@ -1234,6 +1402,10 @@ export function VesselSizingSuite() {
                       <span className="text-[9px] px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-600 dark:text-purple-400 font-mono font-bold border border-purple-500/30">
                         Auto-Solved
                       </span>
+                    ) : coneGeom.halfAngleDeg === 17 ? (
+                      <span className="text-[9px] px-2 py-0.5 rounded-full bg-amber/20 text-amber font-mono font-bold border border-amber/40">
+                        Hosokawa AFD Std (17°)
+                      </span>
                     ) : (
                       <span className="text-[9px] px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 font-mono font-bold border border-cyan-500/30">
                         Manual
@@ -1248,13 +1420,13 @@ export function VesselSizingSuite() {
                   <div className="font-mono text-cyan-600 dark:text-cyan-400 font-black text-xl leading-none">
                     {coneGeom.halfAngleDeg}°
                   </div>
-                  <div className="text-[10px] font-mono text-ink-muted mt-1">From Vertical</div>
+                  <div className="text-[10px] font-mono text-ink-muted mt-1">From Vertical (73° to Horiz)</div>
                 </div>
               </div>
               <div className="pt-2">
                 <input
                   type="range"
-                  min="20"
+                  min="10"
                   max="35"
                   step="0.5"
                   value={coneGeom.halfAngleDeg}
@@ -1265,8 +1437,9 @@ export function VesselSizingSuite() {
                   }`}
                 />
                 <div className="flex justify-between text-[11px] text-ink-muted font-mono mt-2">
-                  <span>20° (Steep / Fast slide)</span>
-                  <span className="text-cyan-600 dark:text-cyan-400 font-bold">25° (Hosokawa Std)</span>
+                  <span>10° (Extra Steep)</span>
+                  <span className="text-amber font-black">17° (Hosokawa AFD Std)</span>
+                  <span>25° (Moderate)</span>
                   <span>35° (Shallow)</span>
                 </div>
               </div>
