@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React from "react";
+import katex from "katex";
 
 interface KatexEquationProps {
   expression: string;
@@ -9,48 +10,38 @@ interface KatexEquationProps {
 }
 
 export function KatexEquation({ expression, displayMode = false, className = "" }: KatexEquationProps) {
-  const containerRef = useRef<HTMLSpanElement>(null);
-
-  useEffect(() => {
-    if (!containerRef.current) return;
-    import("katex").then((katex) => {
-      if (!containerRef.current) return;
-      try {
-        katex.default.render(expression, containerRef.current, {
-          displayMode,
-          throwOnError: false,
-          errorColor: "var(--amber)",
-          strict: false,
-          trust: false,
-          macros: {
-            "\\degC": "^{\\circ}\\text{C}",
-            "\\mbar": "\\text{ mbar}",
-            "\\kgph": "\\text{ kg/h}",
-          },
-        });
-      } catch (err) {
-        if (containerRef.current) {
-          containerRef.current.textContent = expression;
-          containerRef.current.style.color = "var(--amber)";
-        }
-      }
+  try {
+    const html = katex.renderToString(expression, {
+      displayMode,
+      throwOnError: false,
+      errorColor: "var(--amber)",
+      strict: false,
+      trust: false,
+      macros: {
+        "\\degC": "^{\\circ}\\text{C}",
+        "\\mbar": "\\text{ mbar}",
+        "\\kgph": "\\text{ kg/h}",
+      },
     });
-  }, [expression, displayMode]);
 
-  if (displayMode) {
+    if (displayMode) {
+      return (
+        <div
+          className={`equation-block ${className}`}
+          dangerouslySetInnerHTML={{ __html: html }}
+        />
+      );
+    }
+
     return (
-      <div className={`equation-block ${className}`}>
-        <span ref={containerRef as React.RefObject<HTMLSpanElement>} />
-      </div>
+      <span
+        className={`equation-inline ${className}`}
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
     );
+  } catch {
+    return <span className={`equation-inline text-amber ${className}`}>{expression}</span>;
   }
-
-  return (
-    <span
-      ref={containerRef}
-      className={`equation-inline ${className}`}
-    />
-  );
 }
 
 // Block equation with label

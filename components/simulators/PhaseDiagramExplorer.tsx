@@ -181,11 +181,11 @@ export function PhaseDiagramExplorer() {
   }, [isFullscreen, selectedLandmark]);
 
   // Scale definitions with extended ranges:
-  // Full Scale now extends from Absolute Zero (-273.15 °C = 0 K) to +400 °C (673.15 K)
+  // Full Scale now extends from Absolute Zero (-273.15 °C = 0 K) to +500 °C (773.15 K)
   // and from 0.003 μbar (0.3 mPa) up to 3,162 bar (316 MPa)!
   const isProcess = viewScale === "PROCESS";
   const minT = isProcess ? -85 : -273.15; // Extends to true Absolute Zero (0 Kelvin!)
-  const maxT = isProcess ? 140 : 400;     // Extends to 400 °C (673.15 K)
+  const maxT = isProcess ? 140 : 500;     // Extends to +500 °C (773.15 K) — covers Supercritical Fluid!
   const minLogP = isProcess ? -3.2 : -5.5; // 0.0006 mbar vs 0.000003 mbar (0.3 mPa)
   const maxLogP = isProcess ? 3.5 : 6.5;   // 3,162 mbar (3.16 bar) vs 3,162,277 mbar (3,162 bar / 316 MPa)
 
@@ -348,16 +348,29 @@ export function PhaseDiagramExplorer() {
     },
     {
       id: "critical_point",
-      name: "Thermodynamic Critical Point",
+      name: "Thermodynamic Critical Point of Water",
       shortLabel: "Critical Point (374°C, 221 bar)",
       tempC: 373.95,
       pressMbar: 220640,
       category: "landmark",
       colorLight: "#be185d",
       colorDark: "#f472b6",
-      desc: "The absolute termination of the liquid-gas boundary curve.",
-      physics: "Temperature: 647.10 K (373.95 °C) • Pressure: 22.064 MPa (220.64 bar = 217.75 atm).",
-      relevanceToAFD: "Beyond this point, liquid and gas merge into a single supercritical fluid with zero surface tension. Relevant to supercritical CO₂ extraction, but far above freeze-drying.",
+      desc: "The absolute termination of the liquid-gas coexistence curve. Above 373.95 °C and 220.64 bar, the phase boundary between liquid and vapor disappears completely.",
+      physics: "Temperature: 647.10 K (373.95 °C) • Pressure: 22.064 MPa (220.64 bar = 217.75 atm) • Critical Density: 322 kg/m³.",
+      relevanceToAFD: "At this exact coordinate, surface tension drops to ZERO. In drying science, eliminating surface tension prevents capillary pore collapse. While supercritical drying achieves this via extreme high temperature/pressure (or with CO₂ at 31°C), AFD achieves the exact same zero-surface-tension benefit through vacuum sublimation at -50°C safely!",
+    },
+    {
+      id: "supercritical_water",
+      name: "Supercritical Water Region (scH₂O)",
+      shortLabel: "Supercritical Water (>374°C, >221 bar)",
+      tempC: 440.0,
+      pressMbar: 400000,
+      category: "landmark",
+      colorLight: "#7e22ce",
+      colorDark: "#c084fc",
+      desc: "Beyond the critical point (374°C, 221 bar), distinct liquid and vapor phases cease to exist. Water becomes a single homogeneous supercritical fluid with liquid-like density and gas-like diffusivity.",
+      physics: "Zero surface tension (capillary force vanishes). Dielectric constant plummets from 80 (ambient polar water) to <5 (non-polar like hexane). It dissolves non-polar organic oils and hydrocarbons, but precipitates inorganic salts!",
+      relevanceToAFD: "Polar opposite of Active Freeze Drying! While supercritical drying with CO₂ (31°C, 73.8 bar) is used for aerogels to avoid pore collapse, supercritical water (>374°C) causes violent Supercritical Water Oxidation (SCWO) and instantly chars biopharma. AFD operates at the complete cryogenic extreme (-50°C, 0.1 mbar) to achieve zero-capillary collapse safely at low temperatures!",
     },
     {
       id: "ice_ih",
@@ -440,6 +453,9 @@ export function PhaseDiagramExplorer() {
 
   const subCurvePath = `M ${subCurveFloorPoints.map((pt) => `${pt.x},${pt.y}`).join(" L ")}`;
 
+  const critX = tToX(373.95);
+  const critY = pToY(220640);
+
   const vapCurvePoints: { x: number; y: number; t: number; p: number }[] = [
     { x: tpX, y: tpY, t: 0.01, p: WATER_CONSTANTS.TRIPLE_POINT_PRESS_MBAR },
   ];
@@ -450,7 +466,7 @@ export function PhaseDiagramExplorer() {
     vapCurvePoints.push({ x: tToX(t), y: pToY(p), t, p });
   }
   if (!isProcess && maxT >= 373.95) {
-    vapCurvePoints.push({ x: tToX(373.95), y: pToY(220640), t: 373.95, p: 220640 });
+    vapCurvePoints.push({ x: critX, y: critY, t: 373.95, p: 220640 });
   }
   const vapCurvePath = `M ${vapCurvePoints.map((pt) => `${pt.x},${pt.y}`).join(" L ")}`;
 
@@ -472,15 +488,28 @@ export function PhaseDiagramExplorer() {
     `${meltTopX},${meltTopY}`,
     `${tpX},${tpY}`,
     ...vapCurvePoints.map((pt) => `${pt.x},${pt.y}`),
-    `${tToX(maxVapT)},${margin.top}`,
+    ...(!isProcess && maxT >= 373.95 ? [`${critX},${margin.top}`] : [`${tToX(maxVapT)},${margin.top}`]),
     `${meltTopX},${margin.top}`,
   ].join(" ");
+
+  // Supercritical fluid polygon (T >= 373.95 °C, P >= 220.64 bar)
+  const supercriticalPolygon =
+    !isProcess && maxT >= 373.95
+      ? [
+          `${critX},${critY}`,
+          `${critX},${margin.top}`,
+          `${margin.left + plotWidth},${margin.top}`,
+          `${margin.left + plotWidth},${critY}`,
+          `${critX},${critY}`,
+        ].join(" ")
+      : null;
 
   const vaporPolygon = [
     `${tToX(minT)},${margin.top + plotHeight}`,
     ...subCurveFloorPoints.map((pt) => `${pt.x},${pt.y}`),
     ...vapCurvePoints.map((pt) => `${pt.x},${pt.y}`),
-    `${tToX(maxVapT)},${margin.top + plotHeight}`,
+    ...(!isProcess && maxT >= 373.95 ? [`${margin.left + plotWidth},${critY}`] : []),
+    `${margin.left + plotWidth},${margin.top + plotHeight}`,
     `${tToX(minT)},${margin.top + plotHeight}`,
   ].join(" ");
 
@@ -503,21 +532,24 @@ export function PhaseDiagramExplorer() {
     EVAP_HEAT: [
       {
         step: 1,
-        title: "Starting Liquid API / Solution (Standard Conditions)",
+        title: "Stage 1: Charge Liquid API / Solution (Standard Conditions)",
+        shortTitle: "1. Charge (25°C)",
         t: 25,
         p: 1013.25,
         desc: "Product is charged into the vessel under atmospheric pressure (1 atm = 101.3 kPa) at 25 °C.",
       },
       {
         step: 2,
-        title: "Sensible Heating at Constant Atmospheric Pressure",
+        title: "Stage 2: Sensible Heating at Constant Atmospheric Pressure",
+        shortTitle: "2. Sensible Heat (70°C)",
         t: 70,
         p: 1013.25,
         desc: "Thermal energy is transferred across the jacket. Sensible heat (Q = m·cp·ΔT) raises temperature towards boiling.",
       },
       {
         step: 3,
-        title: "Atmospheric Boiling (Liquid to Vapor Evaporation)",
+        title: "Stage 3: Atmospheric Boiling (Liquid to Vapor Evaporation)",
+        shortTitle: "3. Boiling (100°C)",
         t: 100,
         p: 1013.25,
         desc: "Boiling occurs at 100 °C, requiring Latent Heat of Vaporization (2,257 kJ/kg). High heat denatures proteins and active molecules!",
@@ -526,21 +558,24 @@ export function PhaseDiagramExplorer() {
     EVAP_VAC: [
       {
         step: 1,
-        title: "Liquid at Mild Operating Temperature (40 °C)",
+        title: "Stage 1: Mild Operating Temperature Solution (40 °C)",
+        shortTitle: "1. Charge (40°C)",
         t: 40,
         p: 1013.25,
         desc: "Solution is held at a safe, gentle temperature (40 °C) under atmospheric pressure.",
       },
       {
         step: 2,
-        title: "Chamber Depressurization (Vacuum Draw)",
+        title: "Stage 2: Chamber Depressurization (Vacuum Draw)",
+        shortTitle: "2. Vacuum Pull",
         t: 40,
         p: 200,
         desc: "Vacuum pumps pull pressure down vertically along the 40 °C isotherm.",
       },
       {
         step: 3,
-        title: "Low-Temperature Vacuum Boiling (Evaporation)",
+        title: "Stage 3: Low-Temperature Vacuum Boiling (Evaporation)",
+        shortTitle: "3. Vac Boil (74 mbar)",
         t: 40,
         p: 73.8,
         desc: "Chamber drops below 74 mbar, crossing the boiling curve. Water evaporates vigorously at 40 °C without thermal degradation!",
@@ -550,6 +585,7 @@ export function PhaseDiagramExplorer() {
       {
         step: 1,
         title: "Stage 1: Cooling & Agitated Granulation",
+        shortTitle: "1. Freezing (-40°C)",
         t: -40,
         p: 1013.25,
         desc: "TCU chills the jacket. Cantilevered auger rotates to freeze the slurry into loose snow-like granules (ΔH_fus = 334 kJ/kg).",
@@ -557,6 +593,7 @@ export function PhaseDiagramExplorer() {
       {
         step: 2,
         title: "Stage 2: Deep Vacuum Depressurization",
+        shortTitle: "2. Vacuum (0.1 mbar)",
         t: -40,
         p: 0.1,
         desc: "Chamber pressure is pulled down to 0.1 mbar (10 Pa), deep below the 6.11 mbar triple point. Liquid water is physically impossible!",
@@ -564,6 +601,7 @@ export function PhaseDiagramExplorer() {
       {
         step: 3,
         title: "Stage 3: Sublimation Heating & Secondary Desorption",
+        shortTitle: "3. Sublimation (+25°C)",
         t: 25,
         p: 0.1,
         desc: "Jacket supplies Sublimation Enthalpy (2,840 kJ/kg). Ice converts directly to vapor without melt-back, yielding ready-to-fill loose bulk powder!",
@@ -722,7 +760,7 @@ export function PhaseDiagramExplorer() {
                   : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
               }`}
             >
-              Full Scale (0 K - 400°C)
+              Full Scale (0 K - 500°C)
             </button>
           </div>
 
@@ -797,6 +835,11 @@ export function PhaseDiagramExplorer() {
               <stop offset="100%" stopColor="#fde047" stopOpacity={isDark ? 0.15 : 0.06} />
             </linearGradient>
 
+            <linearGradient id="supercriticalRegionGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#7c3aed" stopOpacity={isDark ? 0.38 : 0.22} />
+              <stop offset="100%" stopColor="#c084fc" stopOpacity={isDark ? 0.20 : 0.10} />
+            </linearGradient>
+
             {/* Fine graph grid pattern */}
             <pattern id="fineGrid" width="20" height="20" patternUnits="userSpaceOnUse">
               <path d="M 20 0 L 0 0 0 20" fill="none" stroke={gridColor} strokeWidth="0.8" />
@@ -821,6 +864,27 @@ export function PhaseDiagramExplorer() {
             <g className="transition-opacity duration-300">
               <polygon points={solidPolygon} fill="url(#solidRegionGrad)" />
               <polygon points={liquidPolygon} fill="url(#liquidRegionGrad)" />
+              {supercriticalPolygon && (
+                <polygon
+                  points={supercriticalPolygon}
+                  fill="url(#supercriticalRegionGrad)"
+                  className="cursor-pointer transition-opacity hover:opacity-90"
+                  onMouseEnter={() => {
+                    const sc = landmarks.find((l) => l.id === "supercritical_water");
+                    if (sc) setHoveredLandmark(sc);
+                  }}
+                  onMouseLeave={() => setHoveredLandmark(null)}
+                  onPointerDown={(e) => {
+                    e.stopPropagation();
+                    const sc = landmarks.find((l) => l.id === "supercritical_water");
+                    if (sc) {
+                      setSelectedLandmark(sc);
+                      setTempC(sc.tempC);
+                      setPressMbar(sc.pressMbar);
+                    }
+                  }}
+                />
+              )}
               <polygon points={vaporPolygon} fill="url(#vaporRegionGrad)" />
             </g>
           )}
@@ -828,7 +892,7 @@ export function PhaseDiagramExplorer() {
           {/* Grid Lines: X Axis */}
           {(isProcess
             ? [-80, -60, -40, -20, 0, 20, 40, 60, 80, 100, 120]
-            : [-273.15, -200, -150, -100, -50, 0, 50, 100, 150, 200, 250, 300, 350, 400]
+            : [-273.15, -200, -150, -100, -50, 0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500]
           ).map((t) => (
             <line
               key={`grid-x-${t}`}
@@ -877,7 +941,7 @@ export function PhaseDiagramExplorer() {
                 <rect
                   x="-2"
                   y="-10"
-                  width={isProcess ? "142" : "78"}
+                  width={isProcess ? "142" : "56"}
                   height="13"
                   rx="3"
                   fill={badgeBg}
@@ -888,7 +952,7 @@ export function PhaseDiagramExplorer() {
                   x="3"
                   y="0"
                   fill={isDark ? "#fbbf24" : "#92400e"}
-                  fontSize="8.5"
+                  fontSize={isProcess ? "8.5" : "7.5"}
                   fontFamily="monospace"
                   fontWeight="900"
                 >
@@ -902,6 +966,133 @@ export function PhaseDiagramExplorer() {
           <path d={subCurvePath} fill="none" stroke={isDark ? "#38bdf8" : "#0369a1"} strokeWidth="3" />
           <path d={vapCurvePath} fill="none" stroke={isDark ? "#4ade80" : "#15803d"} strokeWidth="3" />
           <path d={meltPath} fill="none" stroke={isDark ? "#c084fc" : "#6b21a8"} strokeWidth="2.5" strokeDasharray="4 3" />
+
+          {/* Supercritical Transition Boundary (Widom Isobar at 220.64 bar) */}
+          {!isProcess && maxT >= 373.95 && (
+            <g>
+              <line
+                x1={critX}
+                y1={critY}
+                x2={margin.left + plotWidth}
+                y2={critY}
+                stroke={isDark ? "#c084fc" : "#7e22ce"}
+                strokeWidth="2"
+                strokeDasharray="4 3"
+                pointerEvents="none"
+              />
+              <text
+                x={tToX(437)}
+                y={critY + 12}
+                fill={isDark ? "#c084fc" : "#7e22ce"}
+                fontSize="8.5"
+                fontFamily="monospace"
+                fontWeight="bold"
+                textAnchor="middle"
+                pointerEvents="none"
+              >
+                Supercritical Isobar (220.6 bar)
+              </text>
+
+              {/* Critical Point Pin & Label (Positioned completely to the LEFT of critX so it never overlaps the purple zone) */}
+              <g
+                className="cursor-pointer"
+                onMouseEnter={() => {
+                  const cp = landmarks.find((l) => l.id === "critical_point");
+                  if (cp) setHoveredLandmark(cp);
+                }}
+                onMouseLeave={() => setHoveredLandmark(null)}
+                onPointerDown={(e) => {
+                  e.stopPropagation();
+                  const cp = landmarks.find((l) => l.id === "critical_point");
+                  if (cp) {
+                    setSelectedLandmark(cp);
+                    setTempC(cp.tempC);
+                    setPressMbar(cp.pressMbar);
+                  }
+                }}
+              >
+                <circle cx={critX} cy={critY} r="18" fill="transparent" />
+                <circle
+                  cx={critX}
+                  cy={critY}
+                  r="7.5"
+                  fill="#ec4899"
+                  stroke={badgeBg}
+                  strokeWidth="2"
+                  style={{ filter: "drop-shadow(0 0 6px #ec4899)" }}
+                />
+                <g transform={`translate(${critX - 10}, ${critY - 8})`}>
+                  <rect
+                    x="-182"
+                    y="-12"
+                    width="182"
+                    height="16"
+                    rx="3"
+                    fill={badgeBg}
+                    stroke="#ec4899"
+                    strokeWidth="1"
+                    opacity="0.95"
+                  />
+                  <text
+                    x="-91"
+                    y="0"
+                    fill="#ec4899"
+                    fontSize="9"
+                    fontFamily="monospace"
+                    fontWeight="900"
+                    textAnchor="middle"
+                  >
+                    ★ Critical Point (374°C, 221 bar)
+                  </text>
+                </g>
+              </g>
+
+              {/* Interactive scH₂O Region Badge in the purple zone */}
+              <g
+                className="cursor-pointer"
+                onMouseEnter={() => {
+                  const sc = landmarks.find((l) => l.id === "supercritical_water");
+                  if (sc) setHoveredLandmark(sc);
+                }}
+                onMouseLeave={() => setHoveredLandmark(null)}
+                onPointerDown={(e) => {
+                  e.stopPropagation();
+                  const sc = landmarks.find((l) => l.id === "supercritical_water");
+                  if (sc) {
+                    setSelectedLandmark(sc);
+                    setTempC(sc.tempC);
+                    setPressMbar(sc.pressMbar);
+                  }
+                }}
+              >
+                <circle cx={tToX(437)} cy={pToY(400000)} r="24" fill="transparent" />
+                <g transform={`translate(${tToX(437)}, ${pToY(400000)})`}>
+                  <rect
+                    x="-68"
+                    y="-11"
+                    width="136"
+                    height="20"
+                    rx="5"
+                    fill={badgeBg}
+                    stroke={isDark ? "#c084fc" : "#7e22ce"}
+                    strokeWidth="1.5"
+                    style={{ filter: "drop-shadow(0 2px 8px rgba(126, 34, 206, 0.4))" }}
+                  />
+                  <text
+                    x="0"
+                    y="3"
+                    fill={isDark ? "#c084fc" : "#7e22ce"}
+                    fontSize="9"
+                    fontFamily="monospace"
+                    fontWeight="900"
+                    textAnchor="middle"
+                  >
+                    ⚡ scH₂O (Supercritical)
+                  </text>
+                </g>
+              </g>
+            </g>
+          )}
 
           {/* Region Minimalist Watermarks (Carefully positioned to avoid all curves) */}
           {showRegions && (
@@ -939,6 +1130,45 @@ export function PhaseDiagramExplorer() {
               >
                 VAPOUR (GAS)
               </text>
+              {!isProcess && maxT >= 373.95 && (
+                <g>
+                  <text
+                    x={tToX(437)}
+                    y={margin.top + 28}
+                    fill={isDark ? "#d8b4fe" : "#581c87"}
+                    fontSize="11"
+                    fontFamily="monospace"
+                    fontWeight="900"
+                    textAnchor="middle"
+                    letterSpacing="1"
+                  >
+                    SUPERCRITICAL FLUID
+                  </text>
+                  <text
+                    x={tToX(437)}
+                    y={margin.top + 42}
+                    fill={isDark ? "#d8b4fe" : "#581c87"}
+                    fontSize="8.5"
+                    fontFamily="monospace"
+                    fontWeight="bold"
+                    textAnchor="middle"
+                  >
+                    (Zero Surface Tension)
+                  </text>
+                  <text
+                    x={tToX(437)}
+                    y={pToY(0.005)}
+                    fill={vaporWatermarkColor}
+                    fontSize="11"
+                    fontFamily="monospace"
+                    fontWeight="900"
+                    textAnchor="middle"
+                    letterSpacing="1"
+                  >
+                    SUPERHEATED STEAM
+                  </text>
+                </g>
+              )}
             </g>
           )}
 
@@ -1129,36 +1359,44 @@ export function PhaseDiagramExplorer() {
               <text x={stdCondX} y={stdCondY + 3.5} fill={axisTextPrimary} fontSize="9" fontFamily="monospace" fontWeight="900" textAnchor="middle">
                 1
               </text>
-              <text x={stdCondX + 10} y={stdCondY - 8} fill={axisTextPrimary} fontSize="9" fontFamily="monospace" fontWeight="bold">
-                Charge (25°C)
-              </text>
+              {isProcess && (
+                <text x={stdCondX + 10} y={stdCondY - 8} fill={axisTextPrimary} fontSize="9" fontFamily="monospace" fontWeight="bold">
+                  Charge (25°C)
+                </text>
+              )}
 
               {/* Waypoint ②: Frozen Granules (-40°C, 1013 mbar) */}
               <circle cx={tToX(-40)} cy={stdCondY} r="7" fill={badgeBg} stroke="#0284c7" strokeWidth="2" />
               <text x={tToX(-40)} y={stdCondY + 3.5} fill="#0284c7" fontSize="9" fontFamily="monospace" fontWeight="900" textAnchor="middle">
                 2
               </text>
-              <text x={tToX(-40) - 10} y={stdCondY - 8} fill="#0284c7" fontSize="9" fontFamily="monospace" fontWeight="bold" textAnchor="end">
-                Freeze (-40°C)
-              </text>
+              {isProcess && (
+                <text x={tToX(-40) - 10} y={stdCondY - 8} fill="#0284c7" fontSize="9" fontFamily="monospace" fontWeight="bold" textAnchor="end">
+                  Freeze (-40°C)
+                </text>
+              )}
 
               {/* Waypoint ③: Deep Vacuum Ignition (-40°C, 0.1 mbar) */}
               <circle cx={tToX(-40)} cy={pToY(0.1)} r="7" fill={badgeBg} stroke={isDark ? "#fbbf24" : "#b45309"} strokeWidth="2" />
               <text x={tToX(-40)} y={pToY(0.1) + 3.5} fill={isDark ? "#fbbf24" : "#b45309"} fontSize="9" fontFamily="monospace" fontWeight="900" textAnchor="middle">
                 3
               </text>
-              <text x={tToX(-40) - 10} y={pToY(0.1) + 3.5} fill={isDark ? "#fbbf24" : "#b45309"} fontSize="9" fontFamily="monospace" fontWeight="bold" textAnchor="end">
-                0.1 mbar
-              </text>
+              {isProcess && (
+                <text x={tToX(-40) - 10} y={pToY(0.1) + 3.5} fill={isDark ? "#fbbf24" : "#b45309"} fontSize="9" fontFamily="monospace" fontWeight="bold" textAnchor="end">
+                  0.1 mbar
+                </text>
+              )}
 
               {/* Waypoint ④: Final Sublimation Bulk Powder (25°C, 0.1 mbar) */}
               <circle cx={tToX(25)} cy={pToY(0.1)} r="7" fill={badgeBg} stroke="#15803d" strokeWidth="2" />
               <text x={tToX(25)} y={pToY(0.1) + 3.5} fill="#15803d" fontSize="9" fontFamily="monospace" fontWeight="900" textAnchor="middle">
                 4
               </text>
-              <text x={tToX(25) + 10} y={pToY(0.1) + 3.5} fill="#15803d" fontSize="9" fontFamily="monospace" fontWeight="bold">
-                Dry Powder (+25°C)
-              </text>
+              {isProcess && (
+                <text x={tToX(25) + 10} y={pToY(0.1) + 3.5} fill="#15803d" fontSize="9" fontFamily="monospace" fontWeight="bold">
+                  Dry Powder (+25°C)
+                </text>
+              )}
             </g>
           )}
 
@@ -1228,7 +1466,7 @@ export function PhaseDiagramExplorer() {
           {/* Top X-Axis Ticks & Labels: Kelvin (Reaches 0 Kelvin = Absolute Zero!) */}
           {(isProcess
             ? [-80, -60, -40, -20, 0, 20, 40, 60, 80, 100, 120]
-            : [-273.15, -200, -150, -100, -50, 0, 50, 100, 150, 200, 250, 300, 350, 400]
+            : [-273.15, -200, -150, -100, -50, 0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500]
           ).map((t) => {
             const k = t + 273.15;
             const kStr = k <= 0.05 ? "0 K (Abs Zero)" : `${k.toFixed(0)} K`;
@@ -1260,7 +1498,7 @@ export function PhaseDiagramExplorer() {
           {/* Bottom X-Axis Ticks & Labels: Celsius */}
           {(isProcess
             ? [-80, -60, -40, -20, 0, 20, 40, 60, 80, 100, 120]
-            : [-273.15, -200, -150, -100, -50, 0, 50, 100, 150, 200, 250, 300, 350, 400]
+            : [-273.15, -200, -150, -100, -50, 0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500]
           ).map((t) => {
             const cStr = t === -273.15 ? "-273.15°C" : `${t}°C`;
             return (

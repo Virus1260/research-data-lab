@@ -1449,7 +1449,7 @@ export function ExhibitReader({
           if (token.startsWith("**") && token.endsWith("**")) {
             return (
               <strong key={idx} className="font-bold text-ink-primary">
-                {token.slice(2, -2)}
+                {renderInline(token.slice(2, -2))}
               </strong>
             );
           }
@@ -1458,7 +1458,7 @@ export function ExhibitReader({
           if (token.startsWith("*") && token.endsWith("*") && !token.startsWith("**")) {
             return (
               <em key={idx} className="italic text-ink-primary">
-                {token.slice(1, -1)}
+                {renderInline(token.slice(1, -1))}
               </em>
             );
           }

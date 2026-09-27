@@ -118,8 +118,11 @@ export function NarratorDeck() {
     syncToSelection,
   } = useNarrator();
 
-  if (!currentTrack && !voiceStudioOpen) {
-    return null;
+  // Only render the narrator UI if narration has been actively initiated:
+  // (playing, voice studio open, transcript open, reader teleprompter panel open, or maximized)
+  if (!voiceStudioOpen && !transcriptOpen && !readerPanelOpen) {
+    if (!currentTrack) return null;
+    if (isMinimized && !isPlaying) return null;
   }
 
   const rates = [0.8, 0.9, 0.975, 1.0, 1.15, 1.25];
@@ -465,11 +468,11 @@ export function NarratorDeck() {
           </div>
         )}
 
-        {/* Minimized Floating Corner Pill */}
-        {currentTrack && isMinimized && (
-          <div className="flex justify-end animate-fade-in pointer-events-auto">
+        {/* Minimized Floating Corner Pill (Parked at bottom-right right next to the circular audio button) */}
+        {currentTrack && isMinimized && isPlaying && (
+          <div className="fixed bottom-6 right-22 sm:right-24 z-50 animate-fade-in pointer-events-auto">
             <div
-              className="flex items-center gap-2 p-2 px-3.5 rounded-full shadow-2xl backdrop-blur-xl border transition-all hover:scale-105"
+              className="flex items-center gap-2 p-1.5 px-3 rounded-full shadow-2xl backdrop-blur-xl border transition-all hover:scale-105"
               style={{
                 background: "color-mix(in srgb, var(--bg-panel) 92%, transparent)",
                 borderColor: "var(--border-strong)",
@@ -477,31 +480,27 @@ export function NarratorDeck() {
             >
               <button
                 onClick={() => setIsMinimized(false)}
-                className="flex items-center gap-1.5 text-xs font-mono font-bold text-ink-primary hover:text-amber transition"
+                className="flex items-center gap-1.5 text-xs font-mono font-bold text-ink-primary hover:text-amber transition cursor-pointer"
                 title="Expand Narrator Console"
               >
-                <span className="text-base">{selectedPersona.avatar}</span>
-                <span>{selectedPersona.name.split(" ")[0]}</span>
-                {isPlaying && <span className="w-1.5 h-1.5 rounded-full bg-amber animate-ping" />}
+                <span className="text-sm">{selectedPersona.avatar}</span>
+                <span className="text-[11px]">{selectedPersona.name.split(" ")[0]}</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-amber animate-ping" />
               </button>
 
               <div className="w-px h-3.5 bg-hairline" />
 
               <button
                 onClick={togglePlay}
-                className="p-1.5 rounded-full bg-amber text-on-amber hover:scale-110 transition shadow-sm"
-                title={isPlaying ? "Pause Narration" : "Resume Narration"}
+                className="p-1.5 rounded-full bg-amber text-on-amber hover:scale-110 transition shadow-sm cursor-pointer"
+                title="Pause Narration"
               >
-                {isPlaying ? (
-                  <Pause className="w-3 h-3 fill-current" />
-                ) : (
-                  <Play className="w-3 h-3 fill-current ml-0.5" />
-                )}
+                <Pause className="w-3 h-3 fill-current" />
               </button>
 
               <button
                 onClick={() => setIsMinimized(false)}
-                className="p-1 text-ink-dim hover:text-ink-primary transition"
+                className="p-1 text-ink-dim hover:text-ink-primary transition cursor-pointer"
                 title="Maximize Player"
               >
                 <Maximize2 className="w-3.5 h-3.5" />

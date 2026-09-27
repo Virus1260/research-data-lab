@@ -44,7 +44,7 @@ export function getWaterVaporPressureMbar(tempC: number): number {
 /**
  * Determines water phase state at given temperature (°C) and pressure (mbar)
  */
-export type PhaseState = "SOLID" | "LIQUID" | "VAPOR" | "SUBLIMING" | "MELTING" | "BOILING";
+export type PhaseState = "SOLID" | "LIQUID" | "VAPOR" | "SUBLIMING" | "MELTING" | "BOILING" | "SUPERCRITICAL";
 
 export function getWaterPhaseState(tempC: number, pressMbar: number): {
   state: PhaseState;
@@ -54,6 +54,16 @@ export function getWaterPhaseState(tempC: number, pressMbar: number): {
 } {
   const tpT = WATER_CONSTANTS.TRIPLE_POINT_TEMP_C;
   const tpP = WATER_CONSTANTS.TRIPLE_POINT_PRESS_MBAR;
+
+  // Supercritical state (Beyond Critical Point: 373.95 °C, 220.64 bar = 220,640 mbar)
+  if (tempC >= 373.95 && pressMbar >= 220640) {
+    return {
+      state: "SUPERCRITICAL",
+      color: "#C084FC",
+      description: "Supercritical fluid (scH₂O) — liquid and gas phases merge into a single dense fluid phase",
+      isFreezeDryingWindow: false,
+    };
+  }
 
   // Freeze drying operating window:
   // T between -55°C and -10°C, P between 0.01 mbar and 1.0 mbar
@@ -100,14 +110,14 @@ export function getWaterPhaseState(tempC: number, pressMbar: number): {
     const pVap = getWaterVaporPressureMbar(tempC);
     const relDiff = Math.abs(pressMbar - pVap) / (pVap || 1);
 
-    if (relDiff < 0.15) {
+    if (relDiff < 0.15 && tempC <= 373.95) {
       return {
         state: "BOILING",
         color: "#F87171",
         description: "Liquid-vapor boiling equilibrium",
         isFreezeDryingWindow: false,
       };
-    } else if (pressMbar > pVap) {
+    } else if (pressMbar > pVap && tempC < 373.95) {
       return {
         state: "LIQUID",
         color: "#38BDF8",
@@ -118,7 +128,7 @@ export function getWaterPhaseState(tempC: number, pressMbar: number): {
       return {
         state: "VAPOR",
         color: "#A78BFA",
-        description: "Superheated water vapor / steam",
+        description: tempC > 373.95 ? "Superheated steam above critical temperature" : "Water vapor / steam",
         isFreezeDryingWindow: false,
       };
     }
