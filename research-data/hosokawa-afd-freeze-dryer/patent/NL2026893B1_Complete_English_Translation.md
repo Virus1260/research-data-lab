@@ -189,28 +189,131 @@ In an embodiment, the freeze-drying chamber is formed within a substantially dow
 * **FIG 4**: Process flow diagram illustrating the operational steps of loading, freezing, evacuation, elutriation, reverse pulse cleaning, and final product harvest.
 * **FIG 5**: State timing and pressure diagram illustrating chamber pressure curves, jacket temperatures, isolation valve positions (214), and blowback pulse events across the full freeze drying cycle.
 
-### Complete Reference Numeral Schedule
-* **1 / 101**: Complete freeze dryer skid apparatus
-* **2 / 102**: Conical vessel body
-* **3 / 103**: Internal freeze drying chamber
-* **4 / 104**: Top vessel head / cover
-* **5 / 105**: Helical mixing screw member
-* **7 / 107**: Thermal fluid jacket on conical vessel wall
-* **9 / 109**: Heating/cooling fluid connection ports
-* **12 / 112**: Apex discharge spherical/ball valve plug
-* **15 / 115**: Product discharge outlet nozzle
-* **16 / 116**: Screw flighting
-* **28 / 128**: Top drive gearbox and motor
-* **30 / 130**: Main vapor outlet nozzle on vessel cover
-* **34 / 134**: Interconnecting vacuum conduit
-* **40 / 140**: External dynamic material collector column
-* **41 / 141**: Collector cylindrical housing
-* **42 / 142**: Collector heating jacket
-* **70 / 170**: Sintered porous filter candle
-* **73 / 173**: Reverse pulse blowback gas lance
-* **83 / 183**: Fine powder receiver collection canister
-* **92 / 192**: High-speed reverse pulse solenoid valves
-* **99 / 199**: CIP / SIP rotating spray balls
-* **210**: High-velocity fines entrainment bypass line
-* **214**: Pneumatic main vapor isolation valve
-* **216**: Tangential headspace gas sweep nozzles
+### Complete Reference Numeral Schedule (Figures 1A to 5)
+
+#### Subsystem 1: Conical Vacuum Vessel & Orbital Agitator Core (Embodiment 1)
+* **1**: Freeze dryer apparatus (*Vriesdroger 1*) - Complete skid-mounted active freeze-drying system with conical vessel and external dynamic filter collector.
+* **2**: Conical vessel body (*Conische vat 2*) - Downwardly tapering conical vacuum vessel shell housing the primary agitation and freeze-drying chamber.
+* **3**: Freeze-drying chamber (*Vriesdroogkamer 3*) - Hermetically enclosed vacuum process volume inside vessel 2 where product is frozen, stirred, and sublimated.
+* **9**: Lower mounting flange (*Onderflens 9*) - Apex mounting flange at bottom of vessel wall 10 for securing releasable discharge valve 15.
+* **10**: Conical shaped vessel wall (*Conisch gevormde vatwand 10*) - Downwardly converging conical shell wall containing internal concentric heating/cooling jackets.
+* **11**: Open top side (*Open bovenzijde 11*) - Full-diameter upper aperture rim of conical vessel wall 10 providing access to internal chamber 3.
+* **12**: Open bottom side / apex (*Open onderzijde 12*) - Lower discharge orifice at conical apex of wall 10 closed off during drying by valve 15.
+* **13**: Top vessel lid / cover (*Bovendeksel 13*) - Vacuum-tight domed lid bolted to open top side 11 of vessel wall 10.
+* **14**: Clamping screws / bolts (*Klemschroeven 14*) - Perimeter fasteners clamping top lid body 25 to upper vessel mounting flange 22.
+* **15**: Releasable bottom outlet (*Losneembare uitlaat 15*) - Flush spherical segment / ball segment discharge valve at apex 12 for batch cake discharging.
+* **16**: Agitating screw member (*Roerelement / Roerschroef 16*) - Cantilevered rotating and orbiting screw conveying frozen material upwardly along heated vessel wall 10.
+* **17**: Screw drive motor (*Aandrijving 17*) - Upper gearmotor operatively driving rotation and orbital path of cantilevered agitating screw 16.
+* **18**: Drive transmission (*Transmissie 18*) - Mechanical torque transmission transferring motor power to orbiting screw drive shaft.
+* **19**: Gear assembly / orbital head (*Tandwielstelsel 19*) - Epicyclic gear train guiding screw orbiting motion with small clearance (19) along conical wall 10.
+* **20**: First jacket compartment (*Eerste compartiment 20*) - Inner concentric thermal fluid channel in vessel wall 10 for circulating refrigerant or heating fluid.
+* **21**: Second jacket compartment (*Tweede compartiment 21*) - Outer concentric thermal channel in double-jacketed vessel wall 10 providing dual-zone temperature control.
+* **22**: Upper mounting flange (*Bovenflens 22*) - Machined top flange at upper rim 11 of wall 10 mating with clamping flange 26 of top lid 13.
+* **23**: Outlet attachment flange (*Bevestigingsflens 23*) - Sanitary downstream discharge flange on valve 15 for coupling receiving containers or pneumatic transfer lines.
+* **24**: Operating handle / actuator (*Hendel 24*) - Manual lever or pneumatic actuator for pivoting bottom valve 15 between open and closed positions.
+
+#### Subsystem 2: Top Lid Assembly, Viewports & Utility Flanges
+* **25**: Top lid body (*Deksellichaam 25*) - Circular domed structural head plate of top lid 13 sealing chamber 3 against vacuum differential.
+* **26**: Outer clamping flange (*Klemflens 26*) - Perimeter flange on lid body 25 receiving clamping screws 14 to seal against vessel flange 22.
+* **27**: Attachment flanges / ports (*Bevestigingsflenzen 27*) - Multiple sanitary nozzle ports penetrating top lid body 25 for process sensors, sight lights, and utilities.
+* **28**: Illumination source (*Verlichtingsbron 28*) - Sanitary sight light fixture mounted on lid flange 27 illuminating chamber interior (also top drive in Embodiment 2).
+* **29**: Atmospheric vent valve (*Ontluchtingsklep 29*) - Sterile gas vent / vacuum break valve mounted on lid flange 27 for chamber pressure equalization.
+* **30**: Sight glass viewport (*Kijkglas 30*) - Hermetic viewport window on lid flange 27 allowing visual inspection of powder bed and screw motion.
+* **31**: Outlet conduit bus / vapor stub (*Uitlaatbus 31*) - Large-bore vapor nozzle extending through lid 13 debouching into freeze-drying chamber 3.
+* **32**: First couple flange (*Eerste koppelingsflens 32*) - Sanitary connection flange at distal termination of outlet bus 31.
+* **33**: Switch mounting bracket (*Schakelaarbeugel 33*) - Rigid bracket welded/bolted to first couple flange 32 holding safety interlock switch 34.
+* **34**: Safety interlock switch (*Veiligheidsschakelaar 34*) - Proximity/magnetic safety sensor confirming secure vacuum line mating before vacuum pump can engage.
+* **35**: Coupling clamp (*Koppelingsklem 35*) - Heavy-duty segmented clamp securing first couple flange 32 and second couple flange 49 together.
+
+#### Subsystem 3: Dynamic Material Collector Column & Heated Shell
+* **40**: Material collector assembly (*Materiaalverzamelaar 40*) - External dynamic fines separator column arranged outside drying chamber 3 in vacuum flow path.
+* **41**: Circular cylindrical tube (*Cirkelvormige cilindrische buis 41*) - Main vertical cylindrical column housing of material collector 40 containing filter candle 70.
+* **42**: Heated column jacket (*Buislichaam / Verwarmingsmantel 42*) - Double-walled thermal jacket on tube 41 preventing subliming vapor from condensing or freezing onto candle.
+* **43**: Upper end of tube body (*Bovenuiteinde 43*) - Flanged upper rim of collector tube 41 supporting filter holder 55 and clean gas plenum lid 60.
+* **44**: Lower end of tube body (*Onderuiteinde 44*) - Bottom rim of collector tube 41 terminating in converging conical powder discharge hopper 80.
+* **45**: Upper body portion (*Eerste / Bovenste lichaamsdeel 45*) - Upper vertical zone of tube body 42 receiving tangential incoming vapor-solids flow.
+* **46**: Lower portion / inlet conduit (*Tweede lichaamsdeel / Fluïduminlaat 46*) - Lower column section and vapor intake duct debouching tangentially into tube 41.
+* **47**: First inlet conduit part (*Eerste inlaatleidingdeel 47*) - Tangential entry nozzle inclined downward at sharp angle into tube 41 imparting cyclonic pre-separation.
+* **48**: Second inlet conduit part (*Tweede inlaatleidingdeel 48*) - 90-degree elbow conduit segment extending from first inlet part 47 toward vessel outlet bus 31.
+* **49**: Second couple flange (*Tweede koppelingsflens 49*) - Mating flange of inlet conduit coupling to first couple flange 32 via coupling clamp 35.
+* **50**: Magnet mounting bracket (*Magneetbeugel 50*) - Support bracket mounted on second couple flange 49 holding permanent target magnet 51.
+* **51**: Switching magnet (*Schakelmagneet 51*) - Permanent magnet activating safety switch 34 upon complete airtight flange clamp engagement.
+
+#### Subsystem 4: Micronic Filter Candle, Support Basket & Clamping Ring
+* **55**: Filter holder assembly (*Filterhouder 55*) - Upper support head mounted at upper end 43 of collector tube 41 suspending filter candle 70.
+* **56**: Cylindrical holder body (*Filterhouderlichaam 56*) - Outer cylindrical collar of filter holder 55 matching the outer diameter of tube body 42.
+* **57**: Internal holding ledge (*Steunrand / Houderrichel 57*) - Inwardly projecting annular shoulder supporting filter candle collar 72 and clamping ring 59.
+* **58**: Filter through-hole (*Filterdoorvoeropening 58*) - Central circular aperture in holding ledge 57 through which filter candle 70 is inserted.
+* **59**: Clamping ring (*Klemring 59*) - Rigid annular sealing ring positioned above holding ledge 57 over filter through-hole 58.
+* **60**: Filter holder lid / cover (*Filterhouderdeksel 60*) - Removable top domed cover sealing filter holder head 55 against atmosphere under deep vacuum.
+* **61**: Holder lid body (*Houderdeksellichaam 61*) - Circular flanged structural plate of filter holder lid 60.
+* **62**: Annular pressing ring (*Aandrukring 62*) - Downwardly projecting annular ring on lid body 61 exerting mechanical clamping pressure onto ring 59.
+* **63**: Clean vapor outlet conduit (*Uitlaatleiding 63*) - Sanitary exhaust nozzle on lid 60 routing clean filtered sublimation vapor to external condenser/vacuum pump.
+* **70**: Porous filter assembly (*Filter / Filterpatroon 70*) - High-efficiency cylindrical porous filter candle dividing collector path into raw and clean gas zones.
+* **71**: Filter basket / cage (*Filterkorf 71*) - Rigid stainless steel structural support cage preventing filter membrane collapse under differential vacuum.
+* **72**: Main basket collar (*Hoofdkorfdeel 72*) - Substantially annular top collar of filter basket 71 seating onto internal holding ledge 57.
+* **73**: Abutting flange (*Aanslagflens 73*) - External lip of filter candle resting on holding ledge 57 (also pulse lance tube in top embodiment).
+* **74**: Longitudinal basket rods (*Korfstaven 74*) - Vertical structural wire rods of filter basket 71 extending downwards parallel to tube axis.
+* **75**: Transversal reinforcing rings (*Dwarsstaven 75*) - Circumferential stiffening hoops welded along basket rods 74 resisting reverse-pulse hoop stresses.
+* **76**: Filter screen candle (*Filterdoek / Filterzeef 76*) - Porous sintered metal membrane / woven mesh sleeve (0.5 to 3.0 micron) retaining fine powder particles.
+* **77**: Reinforcing wire (*Verstevigingsdraad 77*) - Perimeter retaining wire at upper rim of filter screen 76 clamped beneath abutting flange 73.
+
+#### Subsystem 5: Powder Discharge Funnel, Collection Canister & Secondary Desorption
+* **80**: Funnel-shaped material outlet (*Trechtervormige materiaaluitlaat 80*) - Downwardly converging conical hopper at lower end 44 of collector tube 41 directing fines by gravity.
+* **81**: Material outlet opening (*Materiaaluitlaatopening 81*) - Discharge throat orifice at apex of funnel 80 through which dislodged powder cake exits collector.
+* **82**: Outlet opening flange (*Materiaaluitlaatopeningsflens 82*) - Sanitary mounting flange surrounding discharge opening 81 for coupling receiver canister 83.
+* **83**: Collected material recipient (*Ontvangstvat 83*) - Detachable vacuum collection pot / canister accumulating separated dry product powder.
+* **84**: Recipient body (*Opvanglichaam 84*) - Cylindrical pressure vessel shell and bottom head of fines receiver canister 83.
+* **85**: Recipient chamber (*Opvangkamer 85*) - Internal vacuum cavity within recipient body 84 where dried fines accumulate isolated from vessel shear.
+* **86**: Recipient inlet opening (*Inlaatopening 86*) - Upper sanitary inlet neck of recipient body 84 receiving fallen powder cake from collector 40.
+* **87**: Intermediate coupling piece (*Tussenkoppelstuk 87*) - Sanitary clamp fitting or isolation valve connecting flange 82 to canister inlet opening 86.
+* **88**: Secondary heating device (*Verwarmingselement 88*) - Thermal fluid jacket or heating mantle on container 83 for secondary moisture desorption under vacuum.
+
+#### Subsystem 6: Reverse-Pulse Blowback System & Headspace Gas Sweeping
+* **90**: Purge gas inlet assembly (*Spoelinlaat 90*) - High-pressure reverse-pulse gas supply connection mounted on clean vapor outlet conduit 63.
+* **91**: Purge inlet lance pipe (*Spoelinlaatbuis / Blaaslans 91*) - Gas lance extending coaxially through outlet 63 down into center of filter candle 70.
+* **92**: Reverse-pulse purge valve (*Terugblaasklep / Spoelklep 92*) - Fast-acting solenoid pulse valve injecting compressed inert gas (N2) to shock cake off filter screen 76.
+* **96**: Gas connecting manifold (*Aansluitspruitstuk 96*) - Utility header mounted on vessel top lid 13 distributing purge gas to multiple sweep nozzles.
+* **97**: Gas supply conduit pipe (*Gasleiding 97*) - Piping delivering dry nitrogen or clean process gas from external regulated supply to manifold 96.
+* **98**: Gas flow control valve (*Gasklep 98*) - Precision metering valve controlling micro-bleed gas flow into chamber 3 to enhance sublimation heat transfer.
+* **99**: Headspace blow / CIP nozzles (*Blaasmondstukken 99*) - Internal spray balls / directional nozzles facing chamber 3 for dust sweeping and automated CIP/SIP wash.
+
+#### Subsystem 7: Top-Mounted Direct Collector Embodiment (100 Series)
+* **101**: Top-mounted freeze dryer (*Vriesdroger 101*) - Lyophilizer skid according to second embodiment with collector 140 mounted directly vertically over lid 104.
+* **102**: Conical vessel body (*Conische vat 102*) - Conical vessel shell body of second embodiment supporting top-mounted filter column.
+* **103**: Freeze-drying chamber (*Vriesdroogkamer 103*) - Process vacuum space within vessel 102 communicating directly with overhead collector 140.
+* **104**: Top vessel cover (*Bovendeksel 104*) - Upper vessel head structurally supporting butterfly valve 200, collector 140, and bypass line 210.
+* **110**: Conical vessel wall (*Conische vatwand 110*) - Jacketed conical wall structure of vessel 102 with concentric thermal channels.
+* **112**: Apex discharge opening (*Open onderzijde 112*) - Apex bottom opening of conical vessel 102 for discharging final reconstituted product batch.
+* **115**: Releasable bottom outlet (*Losneembare uitlaat 115*) - Flush bottom discharge valve of vessel 102 operated by pneumatic actuator.
+* **116**: Cantilevered mixing screw (*Roerelement / Roerschroef 116*) - Orbital agitating screw inside chamber 103 for initial liquid freezing and final batch re-blending.
+* **128**: Top gearmotor drive (*Aandrijving 128*) - Drive motor and orbital gearing assembly mounted on vessel cover 104 driving screw 116.
+* **130**: Main vapor outlet nozzle (*Dampuitlaat 130*) - Primary vapor exhaust nozzle on vessel cover 104 aligned with vertical axis of collector 140.
+* **131**: Vapor outlet bus (*Uitlaatbus 131*) - Vertical vapor connection stub extending upwardly from vessel cover 104 to lower flange of valve 200.
+* **132**: First couple flange (*Eerste koppelingsflens 132*) - Sanitary connection flange on outlet bus 131 securing to bottom inlet of butterfly valve 200.
+* **134**: Interconnecting vacuum line (*Vacuümleiding 134*) - Vacuum piping connecting top collector 140 clean vapor outlet to condenser and vacuum pump skid.
+* **140**: Top-mounted material collector (*Materiaalverzamelaar 140*) - Vertical dynamic filter column positioned directly over vessel cover 104 for gravitational cake drop.
+* **141**: Cylindrical housing tube (*Cilindrische buis 141*) - Vertical cylindrical shell body of top-mounted collector 140 housing candle 170.
+* **142**: Thermal heating jacket (*Verwarmingsmantel 142*) - Double-walled thermal jacket on tube 141 preventing sublimation vapor from freezing onto filter.
+* **146**: Fluid inlet conduit (*Fluïduminlaatleiding 146*) - Side tangential inlet conduit on collector 140 connected to high-velocity fines bypass line 210.
+* **149**: Second couple flange (*Tweede koppelingsflens 149*) - Flange on inlet conduit 146 coupling to upper end 211 of bypass conduit 210.
+* **170**: Porous filter candle (*Filterpatroon 170*) - Sintered porous stainless steel filter candle suspended within top-mounted collector 140.
+* **173**: Reverse pulse blow lance (*Terugblaaslans 173*) - Central gas lance tube inside filter candle 170 distributing pulse shock waves.
+* **176**: Filter screen candle (*Filterdoek / Filterzeef 176*) - Porous micronic filtering screen sleeve of filter candle 170 retaining dry fines.
+* **180**: Lower funnel hopper (*Trechtervormige uitloop 180*) - Conical bottom section of collector 140 guiding dislodged cake directly onto valve 200.
+* **181**: Material outlet opening (*Materiaaluitlaatopening 181*) - Bottom discharge opening of top collector 140 positioned directly above butterfly valve 200.
+* **182**: Material outlet flange (*Materiaaluitlaatopeningsflens 182*) - Lower flange of collector 140 bolted directly to upper inlet flange of butterfly valve 200.
+* **183**: Fine powder collection zone (*Poederopvanger 183*) - Temporary dust accumulation zone atop closed disc of butterfly valve 200 during sublimation.
+* **190**: Purge inlet assembly (*Spoelinlaat 190*) - Pulse gas inlet assembly mounted at upper head of top collector 140.
+* **192**: Reverse-pulse solenoid valve (*Terugblaasklep 192*) - High-speed pulse valve firing compressed inert gas through lance 173 into candle 170.
+* **199**: Headspace blow / CIP nozzles (*Blaasmondstukken 199*) - High-velocity spray nozzles mounted on vessel cover 104 for sweeping headspace walls.
+
+#### Subsystem 8: Fines Bypass Loop, Isolation Valves & Instrumentation
+* **200**: Butterfly isolation valve (*Vlinderklep 200*) - Sanitary valve between vessel cover 104 and collector 140. Open during freezing, closed during active elutriation, reopened for cake drop.
+* **210**: Fluid bypass conduit (*Fluïdumomleidingsleiding 210*) - High-velocity bypass pipe routing fines from headspace into collector inlet 146 when valve 200 is closed.
+* **211**: First conduit end (*Eerste leidinguiteinde 211*) - Upper discharge end of bypass conduit 210 coupled to inlet flange 149 of collector 140.
+* **212**: Second conduit end (*Tweede leidinguiteinde 212*) - Lower intake end of bypass conduit 210 connected to T-shaped connector 214 on vessel cover 104.
+* **214**: T-shaped connector (*T-vormig koppelstuk 214*) - Three-way flow diverting manifold mounted on vessel cover 104 connecting headspace to bypass line 210.
+* **216**: Tangential sweep nozzles (*Wandveegsproeiers 216*) - Directional nitrogen nozzles sweeping under vessel cover 104 entraining airborne dust into bypass 210.
+* **230**: Sight glass inspection viewport (*Kijkglas 230*) - Sanitary viewport window on T-connector 214 for visual verification of fines velocity and entrainment.
+

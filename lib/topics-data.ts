@@ -1475,6 +1475,46 @@ export const STATIC_CHAPTER_TOPICS: ChapterTopic[] = [
         "id": "3-engineering-numerals-physical-subsystems-key"
       },
       {
+        "level": 3,
+        "text": "Subsystem 1: Conical Vacuum Vessel & Orbital Agitator Core (Embodiment 1)",
+        "id": "subsystem-1-conical-vacuum-vessel-orbital-agitator-core-embodiment-1"
+      },
+      {
+        "level": 3,
+        "text": "Subsystem 2: Top Lid Assembly, Viewports & Utility Flanges",
+        "id": "subsystem-2-top-lid-assembly-viewports-utility-flanges"
+      },
+      {
+        "level": 3,
+        "text": "Subsystem 3: Dynamic Material Collector Column & Heated Shell",
+        "id": "subsystem-3-dynamic-material-collector-column-heated-shell"
+      },
+      {
+        "level": 3,
+        "text": "Subsystem 4: Micronic Filter Candle, Support Basket & Clamping Ring",
+        "id": "subsystem-4-micronic-filter-candle-support-basket-clamping-ring"
+      },
+      {
+        "level": 3,
+        "text": "Subsystem 5: Powder Discharge Funnel, Collection Canister & Secondary Desorption",
+        "id": "subsystem-5-powder-discharge-funnel-collection-canister-secondary-desorption"
+      },
+      {
+        "level": 3,
+        "text": "Subsystem 6: Reverse-Pulse Blowback System & Headspace Gas Sweeping",
+        "id": "subsystem-6-reverse-pulse-blowback-system-headspace-gas-sweeping"
+      },
+      {
+        "level": 3,
+        "text": "Subsystem 7: Top-Mounted Direct Collector Embodiment (100 Series)",
+        "id": "subsystem-7-top-mounted-direct-collector-embodiment-100-series"
+      },
+      {
+        "level": 3,
+        "text": "Subsystem 8: Fines Bypass Loop, Isolation Valves & Instrumentation",
+        "id": "subsystem-8-fines-bypass-loop-isolation-valves-instrumentation"
+      },
+      {
         "level": 2,
         "text": "4. Operational Cycle & SCADA State Machine Integration",
         "id": "4-operational-cycle-scada-state-machine-integration"
