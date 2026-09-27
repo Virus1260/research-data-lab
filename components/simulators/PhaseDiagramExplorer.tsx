@@ -28,12 +28,27 @@ import {
   AlertTriangle,
   Maximize2,
   Minimize2,
-  ZoomIn,
-  ZoomOut,
+  HelpCircle,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 
 export type ProcessType = "FREE" | "EVAP_HEAT" | "EVAP_VAC" | "SUBLIMATION";
 export type ViewScale = "PROCESS" | "FULL";
+
+interface LandmarkPoint {
+  id: string;
+  name: string;
+  shortLabel: string;
+  tempC: number;
+  pressMbar: number;
+  category: "landmark" | "polymorph" | "safety";
+  color: string;
+  badgePos: "top-left" | "top-right" | "bottom" | "right";
+  desc: string;
+  physics: string;
+  relevanceToAFD: string;
+}
 
 export function PhaseDiagramExplorer() {
   const { theme } = useTheme();
@@ -51,11 +66,13 @@ export function PhaseDiagramExplorer() {
   const [showRegions, setShowRegions] = useState<boolean>(true);
   const [showFdZone, setShowFdZone] = useState<boolean>(true);
   const [showKeyMarkers, setShowKeyMarkers] = useState<boolean>(true);
+  const [showPolymorphExplainer, setShowPolymorphExplainer] = useState<boolean>(false);
 
   // Full Screen State
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
 
-  // Hover cursor state
+  // Hover states: either arbitrary coordinate hover or landmark pin hover
+  const [hoveredLandmark, setHoveredLandmark] = useState<LandmarkPoint | null>(null);
   const [hoverCoord, setHoverCoord] = useState<{
     t: number;
     p: number;
@@ -182,9 +199,118 @@ export function PhaseDiagramExplorer() {
 
   const handlePointerLeave = () => {
     setHoverCoord(null);
+    setHoveredLandmark(null);
   };
 
-  // --- Thermodynamic Curves & Landforms ---
+  // --- Master Landmark Definitions with Plain English Explanations ---
+  const landmarks: LandmarkPoint[] = [
+    {
+      id: "triple_point",
+      name: "Solid / Liquid / Vapour Triple Point",
+      shortLabel: "Triple Point (0.01°C, 6.11 mbar)",
+      tempC: WATER_CONSTANTS.TRIPLE_POINT_TEMP_C,
+      pressMbar: WATER_CONSTANTS.TRIPLE_POINT_PRESS_MBAR,
+      category: "landmark",
+      color: "#f59e0b",
+      badgePos: "right",
+      desc: "The unique thermodynamic coordinate where ice, liquid water, and water vapor coexist in stable thermodynamic equilibrium.",
+      physics: "Temperature: 273.16 K (0.01 °C) • Pressure: 611.73 Pa (6.117 mbar = 0.006 atm).",
+      relevanceToAFD: "Crucial rule: Freeze-drying MUST operate strictly below 6.11 mbar. Above this pressure, ice melts to liquid water causing structural collapse!",
+    },
+    {
+      id: "freezing_point",
+      name: "Normal Freezing Point at 1 atm",
+      shortLabel: "0°C (1 atm Freezing)",
+      tempC: 0.0,
+      pressMbar: 1013.25,
+      category: "landmark",
+      color: "#38bdf8",
+      badgePos: "top-left",
+      desc: "Standard melting and freezing point of water under sea-level atmospheric pressure.",
+      physics: "Temperature: 273.15 K (0.00 °C) • Pressure: 101.325 kPa (1013.25 mbar = 1.0 atm).",
+      relevanceToAFD: "Latent heat of fusion: 334 kJ/kg. The cantilevered auger gently agitates the slurry during this phase to create loose, porous snow-like granules.",
+    },
+    {
+      id: "standard_conditions",
+      name: "Standard Room Conditions (Lab Ambient)",
+      shortLabel: "25°C Std Conditions",
+      tempC: 25.0,
+      pressMbar: 1013.25,
+      category: "landmark",
+      color: isDark ? "#ffffff" : "#0f172a",
+      badgePos: "bottom",
+      desc: "Standard laboratory charging conditions where pharmaceutical solutions and suspensions are loaded into the vessel.",
+      physics: "Temperature: 298.15 K (25.0 °C) • Pressure: 101.325 kPa (1.0 atm). Liquid water density: ~1.000 g/cm³.",
+      relevanceToAFD: "Starting point for batch charging. The vessel is pre-purged with sterile nitrogen before cooling begins.",
+    },
+    {
+      id: "boiling_point",
+      name: "Normal Boiling Point at 1 atm",
+      shortLabel: "100°C (1 atm Boiling)",
+      tempC: 100.0,
+      pressMbar: 1013.25,
+      category: "landmark",
+      color: "#ef4444",
+      badgePos: "top-right",
+      desc: "Temperature where saturation vapor pressure equals atmospheric pressure, causing bulk boiling and rapid steam evaporation.",
+      physics: "Temperature: 373.15 K (100.00 °C) • Pressure: 101.325 kPa (1.0 atm).",
+      relevanceToAFD: "Requires Latent Heat of Vaporization: 2,257 kJ/kg. High heat causes catastrophic denaturation of proteins, enzymes, and live probiotics!",
+    },
+    {
+      id: "critical_point",
+      name: "Thermodynamic Critical Point",
+      shortLabel: "Critical Point (374°C, 221 bar)",
+      tempC: 373.95,
+      pressMbar: 220640,
+      category: "landmark",
+      color: "#ec4899",
+      badgePos: "top-left",
+      desc: "The absolute termination of the liquid-gas boundary curve.",
+      physics: "Temperature: 647.10 K (373.95 °C) • Pressure: 22.064 MPa (220.64 bar).",
+      relevanceToAFD: "Beyond this point, liquid and gas merge into a single supercritical fluid with zero surface tension. Relevant to supercritical CO₂ extraction, but far above freeze-drying.",
+    },
+    {
+      id: "ice_ih",
+      name: "Ice Ih (Hexagonal Normal Ice)",
+      shortLabel: "Ice Ih (Normal Ice)",
+      tempC: -20.0,
+      pressMbar: 2.0,
+      category: "polymorph",
+      color: "#38bdf8",
+      badgePos: "right",
+      desc: "The everyday normal ice found on Earth, snow, and standard lyophilization. Hexagonal crystal geometry with open cavities.",
+      physics: "Density: 0.917 g/cm³ (lighter than liquid water, which is why ice floats!). Held by tetrahedral hydrogen bonding.",
+      relevanceToAFD: "This is the ONLY ice polymorph present during freeze-drying. Its porous structure sublimes directly into low-density vapor.",
+    },
+    {
+      id: "ice_ic",
+      name: "Ice Ic (Metastable Cubic Ice)",
+      shortLabel: "Ice Ic (Cubic Ice)",
+      tempC: -140.0,
+      pressMbar: 100.0,
+      category: "polymorph",
+      color: "#7dd3fc",
+      badgePos: "right",
+      desc: "A metastable cubic crystal form of ice formed by condensation of water vapor at cryogenic temperatures below -130 °C.",
+      physics: "Similar density to Ice Ih, but crystal lattice has diamond-cubic symmetry instead of hexagonal symmetry.",
+      relevanceToAFD: "Found in upper atmosphere clouds and space science; not produced in standard freeze drying skids.",
+    },
+    {
+      id: "high_pressure_ice",
+      name: "High-Pressure Ice Polymorphs (Ice II, III, V, VI, VII, X)",
+      shortLabel: "High-P Ice Polymorphs",
+      tempC: -40.0,
+      pressMbar: 500000,
+      category: "polymorph",
+      color: "#a855f7",
+      badgePos: "right",
+      desc: "Exotic crystal arrangements of water molecules that only exist under crushing planetary pressures (2,000 to 600,000 atmospheres!).",
+      physics: "Under extreme pressure, hydrogen bonds bend and the open hexagonal lattice collapses into dense, tightly packed structures that are heavier than liquid water!",
+      relevanceToAFD: "Shown in Hosokawa's educational webinar to illustrate the complete physical phase space of water. Deeply relevant to planetary astrophysics (interiors of icy moons like Ganymede and Callisto), but never reached in pharmaceutical dryers.",
+    },
+  ];
+
+  // --- Thermodynamic Curves Construction ---
   // Sublimation Curve: minT to 0.01°C
   const subCurvePoints: { x: number; y: number; t: number; p: number }[] = [];
   const tStepSub = isProcess ? 2 : 5;
@@ -192,7 +318,6 @@ export function PhaseDiagramExplorer() {
     const p = getIceSublimationPressureMbar(t);
     subCurvePoints.push({ x: tToX(t), y: pToY(p), t, p });
   }
-  // Anchor at exact triple point (0.01°C, 6.1112 mbar)
   const tpX = tToX(WATER_CONSTANTS.TRIPLE_POINT_TEMP_C);
   const tpY = pToY(WATER_CONSTANTS.TRIPLE_POINT_PRESS_MBAR);
   subCurvePoints.push({
@@ -225,7 +350,6 @@ export function PhaseDiagramExplorer() {
   const meltPath = `M ${tpX},${tpY} L ${meltTopX},${meltTopY}`;
 
   // Polygon Shaded Regions
-  // 1. SOLID REGION: Left of melting line and above sublimation curve
   const solidPolygon = [
     `${margin.left},${margin.top}`,
     `${meltTopX},${meltTopY}`,
@@ -235,7 +359,6 @@ export function PhaseDiagramExplorer() {
     `${margin.left},${margin.top}`,
   ].join(" ");
 
-  // 2. LIQUID REGION: Right of melting line, above vaporization curve up to Critical Point
   const liquidPolygon = [
     `${meltTopX},${meltTopY}`,
     `${tpX},${tpY}`,
@@ -244,7 +367,6 @@ export function PhaseDiagramExplorer() {
     `${meltTopX},${margin.top}`,
   ].join(" ");
 
-  // 3. VAPOUR REGION: Below sublimation and vaporization curves
   const vaporPolygon = [
     `${margin.left},${pToY(getIceSublimationPressureMbar(minT))}`,
     ...subCurvePoints.map((pt) => `${pt.x},${pt.y}`),
@@ -259,7 +381,7 @@ export function PhaseDiagramExplorer() {
   const fdBoxY1 = pToY(1.5);
   const fdBoxY2 = pToY(0.05);
 
-  // Key Physical Landmark Coordinates (From Screenshot 231932)
+  // Landmark Coordinates
   const normalBoilX = tToX(100);
   const normalBoilY = pToY(1013.25);
   const normalFreezeX = tToX(0);
@@ -269,7 +391,7 @@ export function PhaseDiagramExplorer() {
   const critX = tToX(373.95);
   const critY = pToY(220640);
 
-  // --- Process Pathway Definitions (Derived directly from Screenshots 232233 & 232329) ---
+  // --- Process Pathways Data (Derived directly from Screenshots 232233 & 232329) ---
   const processStepsData = {
     EVAP_HEAT: [
       {
@@ -342,7 +464,6 @@ export function PhaseDiagramExplorer() {
     ],
   };
 
-  // Sync process step to operating point
   const applyProcessStep = useCallback(
     (processKey: ProcessType, stepIdx: number) => {
       if (processKey === "FREE") return;
@@ -356,7 +477,6 @@ export function PhaseDiagramExplorer() {
     []
   );
 
-  // Auto-play animation loop
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (isPlaying && selectedProcess !== "FREE") {
@@ -388,7 +508,6 @@ export function PhaseDiagramExplorer() {
   const axisTextPrimary = isDark ? "#faf8f5" : "#120e0b";
   const axisTextMuted = isDark ? "#94a3b8" : "#4e4437";
   const badgeBg = isDark ? "#161b22" : "#ffffff";
-  const badgeBorder = isDark ? "rgba(255, 255, 255, 0.2)" : "rgba(18, 14, 11, 0.25)";
 
   return (
     <div
@@ -454,34 +573,6 @@ export function PhaseDiagramExplorer() {
               }`}
             >
               Full Scale
-            </button>
-          </div>
-
-          {/* Layer Visibility Toggles (Cleanly Placed Outside the Chart) */}
-          <div className="hidden sm:flex items-center rounded-xl bg-bg-inset border border-hairline p-0.5 text-[10px] font-mono">
-            <button
-              onClick={() => setShowRegions(!showRegions)}
-              className={`px-2 py-1 rounded-lg transition ${
-                showRegions ? "bg-bg-panel text-amber font-bold shadow-sm" : "text-ink-dim hover:text-ink-primary"
-              }`}
-            >
-              Regions
-            </button>
-            <button
-              onClick={() => setShowFdZone(!showFdZone)}
-              className={`px-2 py-1 rounded-lg transition ${
-                showFdZone ? "bg-bg-panel text-cryo font-bold shadow-sm" : "text-ink-dim hover:text-ink-primary"
-              }`}
-            >
-              AFD Zone
-            </button>
-            <button
-              onClick={() => setShowKeyMarkers(!showKeyMarkers)}
-              className={`px-2 py-1 rounded-lg transition ${
-                showKeyMarkers ? "bg-bg-panel text-amber-bright font-bold shadow-sm" : "text-ink-dim hover:text-ink-primary"
-              }`}
-            >
-              Markers
             </button>
           </div>
 
@@ -587,22 +678,19 @@ export function PhaseDiagramExplorer() {
         >
           <defs>
             {/* Theme-Adaptive Region Fills */}
-            {/* Solid: Cool Ice Blue */}
             <linearGradient id="solidRegionGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#0284c7" stopOpacity={isDark ? 0.38 : 0.22} />
-              <stop offset="100%" stopColor="#38bdf8" stopOpacity={isDark ? 0.18 : 0.08} />
+              <stop offset="0%" stopColor="#0284c7" stopOpacity={isDark ? 0.38 : 0.20} />
+              <stop offset="100%" stopColor="#38bdf8" stopOpacity={isDark ? 0.18 : 0.07} />
             </linearGradient>
 
-            {/* Liquid: Authentic Hosokawa Spring Green / Lime Emerald */}
             <linearGradient id="liquidRegionGrad" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#16a34a" stopOpacity={isDark ? 0.36 : 0.20} />
-              <stop offset="100%" stopColor="#4ade80" stopOpacity={isDark ? 0.16 : 0.08} />
+              <stop offset="100%" stopColor="#4ade80" stopOpacity={isDark ? 0.16 : 0.07} />
             </linearGradient>
 
-            {/* Vapour: Authentic Hosokawa Sand / Golden Yellow */}
             <linearGradient id="vaporRegionGrad" x1="0%" y1="100%" x2="100%" y2="0%">
               <stop offset="0%" stopColor="#d97706" stopOpacity={isDark ? 0.35 : 0.18} />
-              <stop offset="100%" stopColor="#fde047" stopOpacity={isDark ? 0.15 : 0.06} />
+              <stop offset="100%" stopColor="#fde047" stopOpacity={isDark ? 0.15 : 0.05} />
             </linearGradient>
 
             {/* Fine graph grid pattern */}
@@ -619,12 +707,6 @@ export function PhaseDiagramExplorer() {
             <marker id="arrowHead" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto">
               <path d="M 0 0 L 6 3 L 0 6 z" fill="var(--amber)" />
             </marker>
-            <marker id="arrowHeadCyan" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto">
-              <path d="M 0 0 L 6 3 L 0 6 z" fill="#0284c7" />
-            </marker>
-            <marker id="arrowHeadOrange" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto">
-              <path d="M 0 0 L 6 3 L 0 6 z" fill="#f97316" />
-            </marker>
             <marker id="arrowHeadPrimary" markerWidth="8" markerHeight="8" refX="5" refY="4" orient="auto">
               <path d="M 0 1 L 7 4 L 0 7 z" fill={axisTextPrimary} />
             </marker>
@@ -633,16 +715,11 @@ export function PhaseDiagramExplorer() {
           {/* Background Graph Paper */}
           <rect x={margin.left} y={margin.top} width={plotWidth} height={plotHeight} fill="url(#fineGrid)" />
 
-          {/* Region Shaded Fills (Distinct High-Contrast Zones) */}
+          {/* Region Shaded Fills */}
           {showRegions && (
             <g className="transition-opacity duration-300">
-              {/* Solid Ice Region */}
               <polygon points={solidPolygon} fill="url(#solidRegionGrad)" />
-
-              {/* Liquid Water Region */}
               <polygon points={liquidPolygon} fill="url(#liquidRegionGrad)" />
-
-              {/* Vapor Region */}
               <polygon points={vaporPolygon} fill="url(#vaporRegionGrad)" />
             </g>
           )}
@@ -691,7 +768,6 @@ export function PhaseDiagramExplorer() {
                 strokeDasharray="4 2"
                 className="animate-pulse"
               />
-              {/* High Contrast Badge for AFD Zone (Clear from other elements) */}
               <g transform={`translate(${fdBoxX1 + 8}, ${fdBoxY1 + 18})`}>
                 <rect
                   x="-3"
@@ -710,7 +786,7 @@ export function PhaseDiagramExplorer() {
             </g>
           )}
 
-          {/* Phase Boundary Curves (Thick, High-Contrast Lines) */}
+          {/* Phase Boundary Curves */}
           {/* Sublimation Line */}
           <path d={subCurvePath} fill="none" stroke={isDark ? "#38bdf8" : "#0284c7"} strokeWidth="3" />
 
@@ -720,10 +796,9 @@ export function PhaseDiagramExplorer() {
           {/* Solid-Liquid Melting Line */}
           <path d={meltPath} fill="none" stroke={isDark ? "#c084fc" : "#7c3aed"} strokeWidth="2.5" strokeDasharray="4 3" />
 
-          {/* Region Watermarks inside Canvas (Zero Interference with Points) */}
+          {/* Region Subtle Watermarks inside Canvas */}
           {showRegions && (
-            <g opacity={isDark ? 0.85 : 0.75} pointerEvents="none">
-              {/* Solid Watermark */}
+            <g opacity={isDark ? 0.8 : 0.7} pointerEvents="none">
               <text
                 x={tToX(isProcess ? -50 : -140)}
                 y={pToY(isProcess ? 20 : 1000)}
@@ -735,8 +810,6 @@ export function PhaseDiagramExplorer() {
               >
                 SOLID (ICE)
               </text>
-
-              {/* Liquid Watermark */}
               <text
                 x={tToX(isProcess ? 55 : 120)}
                 y={pToY(isProcess ? 300 : 5000)}
@@ -748,8 +821,6 @@ export function PhaseDiagramExplorer() {
               >
                 LIQUID WATER
               </text>
-
-              {/* Vapor Watermark */}
               <text
                 x={tToX(isProcess ? 65 : 160)}
                 y={pToY(isProcess ? 0.05 : 0.005)}
@@ -764,154 +835,85 @@ export function PhaseDiagramExplorer() {
             </g>
           )}
 
-          {/* Key Reference Markers with ZERO OVERLAP (Dynamic Staggering) */}
+          {/* DYNAMIC LANDMARK PINS (Hover-Driven: ZERO TEXT OVERLAP EVER) */}
           {showKeyMarkers && selectedProcess === "FREE" && (
-            <g className="transition-all">
-              {/* 1. TRIPLE POINT PIN (Solid/Liquid/Vapour 273.16 K, 611.73 Pa) */}
-              <circle cx={tpX} cy={tpY} r="8" fill="none" stroke="var(--amber)" strokeWidth="2.5" className="animate-ping" />
-              <circle cx={tpX} cy={tpY} r="5.5" fill="var(--amber)" stroke={badgeBg} strokeWidth="2" />
-              {/* Triple point callout line & box */}
-              <line x1={tpX} y1={tpY} x2={tpX + 45} y2={tpY - 14} stroke="var(--amber)" strokeWidth="1.2" />
-              <g transform={`translate(${tpX + 45}, ${tpY - 24})`}>
-                <rect
-                  x="-4"
-                  y="-12"
-                  width="186"
-                  height="18"
-                  rx="4"
-                  fill={badgeBg}
-                  stroke="var(--amber)"
-                  strokeWidth="1.2"
-                  filter="drop-shadow(0 2px 4px rgba(0,0,0,0.15))"
-                />
-                <text x="3" y="1" fill="var(--amber)" fontSize="9.5" fontFamily="monospace" fontWeight="bold">
-                  TRIPLE POINT (273.16 K, 611.7 Pa)
-                </text>
-              </g>
+            <g>
+              {landmarks
+                .filter((lm) => {
+                  if (isProcess) {
+                    return lm.tempC >= minT && lm.tempC <= maxT && lm.pressMbar >= Math.pow(10, minLogP) && lm.pressMbar <= Math.pow(10, maxLogP);
+                  }
+                  return true;
+                })
+                .map((lm) => {
+                  const px = tToX(lm.tempC);
+                  const py = pToY(lm.pressMbar);
+                  const isHovered = hoveredLandmark?.id === lm.id;
 
-              {/* 2. FREEZING POINT AT 1 ATM (0 °C, 101.325 kPa) */}
-              {/* DYNAMIC POSITION: ANCHORED ABOVE & TO THE LEFT IN SOLID ZONE */}
-              <g>
-                <circle cx={normalFreezeX} cy={normalFreezeY} r="5" fill="#ef4444" stroke={badgeBg} strokeWidth="1.5" />
-                {/* Vertical drop-line down to 0°C on axis */}
-                <line
-                  x1={normalFreezeX}
-                  y1={normalFreezeY}
-                  x2={normalFreezeX}
-                  y2={margin.top + plotHeight}
-                  stroke="#ef4444"
-                  strokeWidth="1.2"
-                  strokeDasharray="3 3"
-                  opacity="0.6"
-                />
-                {/* Leader line up-left to clear badge */}
-                <line x1={normalFreezeX} y1={normalFreezeY} x2={normalFreezeX - 30} y2={normalFreezeY - 24} stroke="#ef4444" strokeWidth="1.2" />
-                <g transform={`translate(${normalFreezeX - 165}, ${normalFreezeY - 32})`}>
-                  <rect
-                    x="-3"
-                    y="-11"
-                    width="134"
-                    height="17"
-                    rx="4"
-                    fill={badgeBg}
-                    stroke="#ef4444"
-                    strokeWidth="1"
-                    filter="drop-shadow(0 2px 4px rgba(0,0,0,0.15))"
-                  />
-                  <text x="2" y="1" fill="#ef4444" fontSize="9" fontFamily="monospace" fontWeight="bold">
-                    Freezing (273.15 K, 1 atm)
-                  </text>
-                </g>
-              </g>
+                  return (
+                    <g
+                      key={lm.id}
+                      className="cursor-pointer transition-all"
+                      onMouseEnter={() => setHoveredLandmark(lm)}
+                      onClick={() => {
+                        setTempC(lm.tempC);
+                        setPressMbar(lm.pressMbar);
+                      }}
+                    >
+                      {/* Pulse ring on hover */}
+                      {isHovered && (
+                        <circle cx={px} cy={py} r="14" fill="none" stroke={lm.color} strokeWidth="2" className="animate-ping" />
+                      )}
 
-              {/* 3. STANDARD CONDITIONS (25 °C, 101.325 kPa) */}
-              {/* DYNAMIC POSITION: ANCHORED BELOW IN LIQUID ZONE (NO HORIZONTAL OVERLAP!) */}
-              <g>
-                <circle cx={stdCondX} cy={stdCondY} r="5" fill={axisTextPrimary} stroke={badgeBg} strokeWidth="1.5" />
-                {/* Leader line straight down */}
-                <line x1={stdCondX} y1={stdCondY} x2={stdCondX} y2={stdCondY + 28} stroke={axisTextPrimary} strokeWidth="1.2" />
-                <g transform={`translate(${stdCondX - 70}, ${stdCondY + 36})`}>
-                  <rect
-                    x="-3"
-                    y="-11"
-                    width="140"
-                    height="17"
-                    rx="4"
-                    fill={badgeBg}
-                    stroke={axisTextPrimary}
-                    strokeWidth="1"
-                    filter="drop-shadow(0 2px 4px rgba(0,0,0,0.15))"
-                  />
-                  <text x="2" y="1" fill={axisTextPrimary} fontSize="9" fontFamily="monospace" fontWeight="bold">
-                    Standard conditions (25°C)
-                  </text>
-                </g>
-              </g>
+                      {/* Drop-line to axes for 1 atm landmarks */}
+                      {lm.pressMbar === 1013.25 && (
+                        <line
+                          x1={px}
+                          y1={py}
+                          x2={px}
+                          y2={margin.top + plotHeight}
+                          stroke={lm.color}
+                          strokeWidth="1.2"
+                          strokeDasharray="2 2"
+                          opacity={isHovered ? 0.9 : 0.4}
+                        />
+                      )}
 
-              {/* 4. BOILING POINT AT 1 ATM (100 °C, 101.325 kPa) */}
-              {/* DYNAMIC POSITION: ANCHORED ABOVE & TO THE LEFT (PREVENTS RIGHT EDGE OVERFLOW!) */}
-              <g>
-                <circle cx={normalBoilX} cy={normalBoilY} r="5" fill="#ef4444" stroke={badgeBg} strokeWidth="1.5" />
-                {/* Vertical drop-line down to 100°C on axis */}
-                <line
-                  x1={normalBoilX}
-                  y1={normalBoilY}
-                  x2={normalBoilX}
-                  y2={margin.top + plotHeight}
-                  stroke="#ef4444"
-                  strokeWidth="1.2"
-                  strokeDasharray="3 3"
-                  opacity="0.6"
-                />
-                {/* Leader line up-left away from the right border */}
-                <line x1={normalBoilX} y1={normalBoilY} x2={normalBoilX - 35} y2={normalBoilY - 24} stroke="#ef4444" strokeWidth="1.2" />
-                <g transform={`translate(${normalBoilX - 165}, ${normalBoilY - 32})`}>
-                  <rect
-                    x="-3"
-                    y="-11"
-                    width="130"
-                    height="17"
-                    rx="4"
-                    fill={badgeBg}
-                    stroke="#ef4444"
-                    strokeWidth="1"
-                    filter="drop-shadow(0 2px 4px rgba(0,0,0,0.15))"
-                  />
-                  <text x="2" y="1" fill="#ef4444" fontSize="9" fontFamily="monospace" fontWeight="bold">
-                    Boiling (373.15 K, 1 atm)
-                  </text>
-                </g>
-              </g>
+                      {/* Main Landmark Pin */}
+                      <circle
+                        cx={px}
+                        cy={py}
+                        r={isHovered ? 8 : lm.id === "triple_point" ? 7 : 5.5}
+                        fill={lm.color}
+                        stroke={badgeBg}
+                        strokeWidth={isHovered ? 3 : 2}
+                        style={{ filter: isHovered ? `drop-shadow(0 0 8px ${lm.color})` : "none" }}
+                      />
 
-              {/* 5. CRITICAL POINT (In Full View: 647 K, 22.064 MPa) */}
-              {!isProcess && (
-                <g>
-                  <circle cx={critX} cy={critY} r="6.5" fill="#ec4899" stroke={badgeBg} strokeWidth="2" />
-                  <g transform={`translate(${critX - 185}, ${critY - 12})`}>
-                    <rect
-                      x="-3"
-                      y="-11"
-                      width="178"
-                      height="17"
-                      rx="4"
-                      fill={badgeBg}
-                      stroke="#ec4899"
-                      strokeWidth="1"
-                    />
-                    <text x="2" y="1" fill="#ec4899" fontSize="9.5" fontFamily="monospace" fontWeight="bold">
-                      Critical point (647 K, 22.06 MPa)
-                    </text>
-                  </g>
-                </g>
-              )}
+                      {/* Discrete Small Pin Tag (Non-overlapping minimal label) */}
+                      <text
+                        x={px}
+                        y={lm.badgePos === "bottom" ? py + 14 : py - 10}
+                        fill={lm.color}
+                        fontSize="9"
+                        fontFamily="monospace"
+                        fontWeight="bold"
+                        textAnchor="middle"
+                        className="transition-opacity"
+                        opacity={isHovered ? 1 : 0.85}
+                      >
+                        {lm.shortLabel}
+                      </text>
+                    </g>
+                  );
+                })}
             </g>
           )}
 
-          {/* --- PROCESS PATHWAYS (Exactly as in Screenshots 232233 & 232329) --- */}
+          {/* --- PROCESS PATHWAYS (Screenshots 232233 & 232329) --- */}
           {/* Mode 02: Atmospheric Evaporation via Heating (Screenshot 232233) */}
           {selectedProcess === "EVAP_HEAT" && isProcess && (
             <g className="transition-all">
-              {/* Bold vector arrow for Heating across boiling line */}
               <line
                 x1={stdCondX}
                 y1={stdCondY}
@@ -925,7 +927,6 @@ export function PhaseDiagramExplorer() {
               <circle cx={stdCondX} cy={stdCondY} r="7" fill={axisTextPrimary} stroke={badgeBg} strokeWidth="2" />
               <circle cx={normalBoilX} cy={normalBoilY} r="7" fill="#ef4444" stroke={badgeBg} strokeWidth="2" />
 
-              {/* Authentic Big Callout Box matching Screenshot 232233 */}
               <g transform={`translate(${tToX(42)}, ${stdCondY - 34})`}>
                 <rect
                   x="-6"
@@ -948,7 +949,6 @@ export function PhaseDiagramExplorer() {
           {/* Mode 03: Vacuum Evaporation via Pressure Decrease (Screenshot 232233) */}
           {selectedProcess === "EVAP_VAC" && isProcess && (
             <g className="transition-all">
-              {/* Vertical arrow for Decrease Pressure */}
               <line
                 x1={tToX(40)}
                 y1={pToY(1013.25)}
@@ -962,7 +962,6 @@ export function PhaseDiagramExplorer() {
               <circle cx={tToX(40)} cy={pToY(1013.25)} r="7" fill="#0284c7" stroke={badgeBg} strokeWidth="2" />
               <circle cx={tToX(40)} cy={pToY(73.8)} r="7" fill="#16a34a" stroke={badgeBg} strokeWidth="2" />
 
-              {/* Authentic Big Callout Box matching Screenshot 232233 */}
               <g transform={`translate(${tToX(40) + 16}, ${pToY(300)})`}>
                 <rect
                   x="-6"
@@ -988,7 +987,6 @@ export function PhaseDiagramExplorer() {
           {/* Mode 04: Liquid to Solid to Vapor Sublimation (Screenshot 232329) */}
           {selectedProcess === "SUBLIMATION" && isProcess && (
             <g className="transition-all">
-              {/* 1. Cooling Arrow (Standard Conditions to -40°C at 1013 mbar) */}
               <line
                 x1={stdCondX}
                 y1={stdCondY}
@@ -999,8 +997,6 @@ export function PhaseDiagramExplorer() {
                 strokeDasharray="6 3"
                 markerEnd="url(#arrowHeadPrimary)"
               />
-
-              {/* 2. Decrease Pressure Arrow (-40°C, 1013 mbar down to 0.1 mbar) */}
               <line
                 x1={tToX(-40)}
                 y1={stdCondY}
@@ -1011,8 +1007,6 @@ export function PhaseDiagramExplorer() {
                 strokeDasharray="6 3"
                 markerEnd="url(#arrowHeadPrimary)"
               />
-
-              {/* 3. Heating / Sublimation Arrow (-40°C, 0.1 mbar across sublimation line into Vapour) */}
               <line
                 x1={tToX(-40)}
                 y1={pToY(0.1)}
@@ -1024,14 +1018,11 @@ export function PhaseDiagramExplorer() {
                 markerEnd="url(#arrowHeadPrimary)"
               />
 
-              {/* Checkpoints */}
               <circle cx={stdCondX} cy={stdCondY} r="6.5" fill={axisTextPrimary} stroke={badgeBg} strokeWidth="2" />
               <circle cx={tToX(-40)} cy={stdCondY} r="6.5" fill="#0284c7" stroke={badgeBg} strokeWidth="2" />
               <circle cx={tToX(-40)} cy={pToY(0.1)} r="6.5" fill="var(--amber)" stroke={badgeBg} strokeWidth="2" />
               <circle cx={tToX(25)} cy={pToY(0.1)} r="6.5" fill="#16a34a" stroke={badgeBg} strokeWidth="2" />
 
-              {/* Big Callout Labels matching Screenshot 232329 */}
-              {/* Cooling Box */}
               <g transform={`translate(${tToX(-22)}, ${stdCondY - 34})`}>
                 <rect
                   x="-6"
@@ -1049,7 +1040,6 @@ export function PhaseDiagramExplorer() {
                 </text>
               </g>
 
-              {/* Decrease Pressure Box */}
               <g transform={`translate(${tToX(-40) - 185}, ${pToY(20)})`}>
                 <rect
                   x="-6"
@@ -1070,7 +1060,6 @@ export function PhaseDiagramExplorer() {
                 </text>
               </g>
 
-              {/* Heating Box */}
               <g transform={`translate(${tToX(-15)}, ${pToY(0.1) + 24})`}>
                 <rect
                   x="-6"
@@ -1091,7 +1080,7 @@ export function PhaseDiagramExplorer() {
           )}
 
           {/* Current Dynamic Operating Point */}
-          <g>
+          <g pointerEvents="none">
             <circle
               cx={tToX(tempC)}
               cy={pToY(pressMbar)}
@@ -1115,7 +1104,7 @@ export function PhaseDiagramExplorer() {
           </g>
 
           {/* Interactive Hover Crosshair */}
-          {hoverCoord && (
+          {hoverCoord && !hoveredLandmark && (
             <g pointerEvents="none">
               <line
                 x1={hoverCoord.x}
@@ -1141,7 +1130,7 @@ export function PhaseDiagramExplorer() {
             </g>
           )}
 
-          {/* Outer Frame & Axes Lines (Ultra-High Contrast) */}
+          {/* Outer Frame */}
           <rect
             x={margin.left}
             y={margin.top}
@@ -1152,7 +1141,7 @@ export function PhaseDiagramExplorer() {
             strokeWidth="2"
           />
 
-          {/* Top X-Axis Ticks & Labels: Kelvin (Screenshot 231932 style) */}
+          {/* Top X-Axis Ticks & Labels: Kelvin */}
           {(isProcess ? [-60, -40, -20, 0, 20, 40, 60, 80, 100, 120] : [-250, -200, -150, -100, -50, 0, 50, 100, 150, 200, 250, 300, 350]).map((t) => (
             <g key={`top-tick-x-${t}`}>
               <line
@@ -1202,7 +1191,7 @@ export function PhaseDiagramExplorer() {
             </g>
           ))}
 
-          {/* Left Y-Axis Ticks & Labels: Pascals (Pa / kPa / MPa / GPa per Screenshot 231932) */}
+          {/* Left Y-Axis Ticks & Labels: Pascals */}
           {(isProcess ? [-3, -2, -1, 0, 1, 2, 3] : [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5]).map((logP) => {
             const pMbar = Math.pow(10, logP);
             const pa = pMbar * 100;
@@ -1236,7 +1225,7 @@ export function PhaseDiagramExplorer() {
             );
           })}
 
-          {/* Right Y-Axis Ticks & Labels: Bar / mbar / μbar (per Screenshot 231932) */}
+          {/* Right Y-Axis Ticks & Labels: Bar / mbar */}
           {(isProcess ? [-3, -2, -1, 0, 1, 2, 3] : [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5]).map((logP) => {
             const pMbar = Math.pow(10, logP);
             let barLabel = `${pMbar} mbar`;
@@ -1313,8 +1302,34 @@ export function PhaseDiagramExplorer() {
           </text>
         </svg>
 
-        {/* Live Hover Tooltip Card (Theme-Adaptive & Cleanly Docked) */}
-        {hoverCoord && (
+        {/* Live Hover Tooltip Card (Appears on Hover: Never Overlaps Chart Data) */}
+        {hoveredLandmark && (
+          <div
+            className="absolute top-4 left-4 max-w-sm p-3.5 rounded-xl border border-hairline shadow-2xl text-xs font-mono backdrop-blur-md z-30 transition-all"
+            style={{ backgroundColor: badgeBg, color: axisTextPrimary }}
+          >
+            <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-hairline">
+              <span className="font-extrabold text-sm" style={{ color: hoveredLandmark.color }}>
+                {hoveredLandmark.name}
+              </span>
+              <span className="px-2 py-0.5 rounded text-[10px] bg-bg-inset text-ink-muted uppercase">
+                {hoveredLandmark.category}
+              </span>
+            </div>
+            <p className="text-[11px] text-ink-secondary mb-1.5 leading-snug">
+              {hoveredLandmark.desc}
+            </p>
+            <div className="text-[10px] font-semibold text-cryo mb-1">
+              {hoveredLandmark.physics}
+            </div>
+            <div className="text-[10px] text-amber font-medium">
+              💡 {hoveredLandmark.relevanceToAFD}
+            </div>
+          </div>
+        )}
+
+        {/* Dynamic Coordinate Probe Card */}
+        {hoverCoord && !hoveredLandmark && (
           <div
             className="absolute bottom-3 left-4 px-4 py-2 rounded-xl border border-hairline shadow-lg text-xs font-mono flex flex-wrap items-center gap-3 backdrop-blur-md pointer-events-none z-20"
             style={{ backgroundColor: badgeBg, color: axisTextPrimary }}
@@ -1343,7 +1358,71 @@ export function PhaseDiagramExplorer() {
         )}
       </div>
 
-      {/* Process Step Scrubber & Explanation (When a process pathway is active) */}
+      {/* Educational Guide: What is an Ice Polymorph? (Deciphering Roman Numerals) */}
+      <div className="mt-4 rounded-xl border border-hairline bg-bg-surface overflow-hidden transition-all shadow-sm">
+        <button
+          onClick={() => setShowPolymorphExplainer(!showPolymorphExplainer)}
+          className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-bg-hover transition"
+        >
+          <div className="flex items-center gap-2">
+            <HelpCircle className="w-4 h-4 text-cryo" />
+            <span className="text-xs font-extrabold text-ink-primary">
+              What are Ice Polymorphs? Deciphering the Roman Numerals (Ice Ih, Ic, II, III...)
+            </span>
+          </div>
+          {showPolymorphExplainer ? (
+            <ChevronUp className="w-4 h-4 text-ink-dim" />
+          ) : (
+            <ChevronDown className="w-4 h-4 text-ink-dim" />
+          )}
+        </button>
+
+        {showPolymorphExplainer && (
+          <div className="px-4 pb-4 pt-1 text-xs text-ink-secondary space-y-2.5 border-t border-hairline/60">
+            <p className="leading-relaxed">
+              <strong className="text-ink-primary">Polymorphism in Water:</strong> Water does not freeze into just one kind of solid. Depending on temperature and pressure, water molecules (H₂O) assemble into at least <strong className="text-cryo">19 different crystalline structures (polymorphs)</strong>, designated by Roman numerals (Ice I through Ice XIX):
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 font-mono text-[11px]">
+              <div className="p-3 rounded-lg bg-bg-panel border border-hairline">
+                <div className="text-cryo font-bold text-xs flex items-center gap-1.5">
+                  <Snowflake className="w-3.5 h-3.5" /> Ice Ih (Hexagonal)
+                </div>
+                <div className="text-ink-secondary mt-1 text-[11px] leading-snug">
+                  Everyday normal ice on Earth at atmospheric pressure. The water molecules form an open hexagonal honeycomb held by hydrogen bonds. Because of these open pockets, <strong className="text-ink-primary">Ice Ih is less dense than water (0.917 g/cm³)</strong>, which is why ice cubes float!
+                </div>
+                <div className="mt-2 text-[10px] text-amber font-semibold">
+                  ★ The ONLY ice phase in freeze-drying.
+                </div>
+              </div>
+
+              <div className="p-3 rounded-lg bg-bg-panel border border-hairline">
+                <div className="text-sky-400 font-bold text-xs flex items-center gap-1.5">
+                  <Activity className="w-3.5 h-3.5" /> Ice Ic (Cubic Ice)
+                </div>
+                <div className="text-ink-secondary mt-1 text-[11px] leading-snug">
+                  A metastable cubic crystal form created when water vapor condenses at deep cryogenic temperatures (below -130 °C). Found in high-altitude clouds and space ice.
+                </div>
+              </div>
+
+              <div className="p-3 rounded-lg bg-bg-panel border border-hairline">
+                <div className="text-purple-400 font-bold text-xs flex items-center gap-1.5">
+                  <Layers className="w-3.5 h-3.5" /> Ice II, III, V, VI, VII, X
+                </div>
+                <div className="text-ink-secondary mt-1 text-[11px] leading-snug">
+                  High-pressure exotic ice phases that only exist under extreme planetary pressures (&gt; 2,000 to 600,000 atmospheres). Under this pressure, the open honeycomb collapses into dense crystals that <strong className="text-ink-primary">sink in water</strong>! Found deep inside icy moons like Ganymede and Neptune.
+                </div>
+              </div>
+            </div>
+
+            <p className="text-[11px] text-ink-dim pt-1 italic">
+              <strong>Why Hosokawa included them:</strong> Hosokawa displayed the full-scale diagram in their webinar to demonstrate that the <span className="text-amber font-semibold">AFD Freeze-Drying Operating Envelope (0.05 to 1.5 mbar, -55°C to -10°C)</span> occupies a tiny, highly-controlled thermodynamic niche strictly inside the <span className="text-cryo font-semibold">Ice Ih</span> sublimation region beneath the triple point!
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Process Step Scrubber (When a process pathway is active) */}
       {selectedProcess !== "FREE" && (
         <div className="mt-4 p-4 rounded-xl bg-bg-surface border border-hairline transition-all">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
