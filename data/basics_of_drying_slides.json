@@ -1,0 +1,407 @@
+[
+  {
+    "slide_number": 1,
+    "title": "Basics of Material Drying Technology — Title & Introduction",
+    "section": "Fundamentals",
+    "timestamp": "00:02",
+    "src": "/drying_webinar/unique_slides/slide_01.png",
+    "description": "Opening presentation by Hosokawa Micron Powder Systems Educational Center introducing thermal drying mechanics and industrial drying technology.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 2,
+    "title": "Webinar Roadmap & Table of Contents",
+    "section": "Fundamentals",
+    "timestamp": "00:15",
+    "src": "/drying_webinar/unique_slides/slide_02.png",
+    "description": "Roadmap: 1. What is Drying, 2. Thermodynamics, 3. Drying Curves, 4. Selection Criteria, 5. Flash & Vacuum Drying, 6. Active Freeze Drying.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 3,
+    "title": "What is Drying? Process Definition",
+    "section": "Fundamentals",
+    "timestamp": "00:44",
+    "src": "/drying_webinar/unique_slides/slide_03.png",
+    "description": "Formal definition of drying: removing a volatile liquid (typically water or solvent) from a solid, semi-solid, or liquid mass to produce a solid dry product.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 4,
+    "title": "Liquid Removal Mechanisms: Mechanical vs Thermal",
+    "section": "Fundamentals",
+    "timestamp": "01:11",
+    "src": "/drying_webinar/unique_slides/slide_04.png",
+    "description": "Comparison of mechanical separation (filtration, centrifugation) requiring low energy vs thermal phase change requiring higher latent heat.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 5,
+    "title": "Mechanical Dewatering Equipment: Filters & Centrifuges",
+    "section": "Fundamentals",
+    "timestamp": "01:58",
+    "src": "/drying_webinar/unique_slides/slide_05.png",
+    "description": "Mechanical dewatering equipment overview: decanter centrifuges, membrane filter presses, and rotary drum vacuum filters for preliminary solids dewatering.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 6,
+    "title": "Thermodynamic Separation: Evaporation vs Sublimation",
+    "section": "Fundamentals",
+    "timestamp": "02:29",
+    "src": "/drying_webinar/unique_slides/slide_06.png",
+    "description": "Thermodynamic liquid removal methods: liquid-to-vapor phase transition (evaporation/boiling in flash/vacuum dryers) vs solid-to-vapor (sublimation in freeze dryers).",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 7,
+    "title": "Thermodynamic Drying Principles",
+    "section": "Fundamentals",
+    "timestamp": "02:34",
+    "src": "/drying_webinar/unique_slides/slide_07.png",
+    "description": "Energy balance and transport phenomena: supplying heat of vaporization while simultaneously removing evolved vapor from the product boundary layer.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 8,
+    "title": "Water Phase Diagram & Thermodynamic States",
+    "section": "Thermodynamics",
+    "timestamp": "03:12",
+    "src": "/drying_webinar/unique_slides/slide_08.png",
+    "description": "Pressure-temperature equilibrium diagram illustrating ice, liquid water, and vapor phases, highlighting the triple point (0.01 °C, 6.11 mbar).",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 9,
+    "title": "Interpreting the Pressure-Temperature Phase Diagram",
+    "section": "Thermodynamics",
+    "timestamp": "03:21",
+    "src": "/drying_webinar/unique_slides/slide_09.png",
+    "description": "Analyzing phase boundaries: melting curve, boiling/vapor pressure curve, and the sublimation equilibrium line across orders of magnitude in pressure.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 10,
+    "title": "Evaporative Drying Pathway (Liquid to Vapor)",
+    "section": "Thermodynamics",
+    "timestamp": "04:04",
+    "src": "/drying_webinar/unique_slides/slide_10.png",
+    "description": "Thermodynamic trajectory for atmospheric and vacuum evaporation: heating wet solids above saturation temperature at operating pressure to drive off solvent.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 11,
+    "title": "Sublimation Pathway: Liquid to Solid to Vapor (Lyophilization)",
+    "section": "Thermodynamics",
+    "timestamp": "04:43",
+    "src": "/drying_webinar/unique_slides/slide_11.png",
+    "description": "The freeze drying route: freezing below the eutectic/collapse temperature, then reducing pressure below the triple point to sublimate ice directly into vapor without liquid melting.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 12,
+    "title": "Sensible Heat & Thermal Energy Transfer",
+    "section": "Thermodynamics",
+    "timestamp": "05:57",
+    "src": "/drying_webinar/unique_slides/slide_12.png",
+    "description": "Sensible heat calculation: Q = m · cp · ΔT governing the heating or pre-cooling of wet feedstocks prior to phase transitions.",
+    "revisited_count": 2
+  },
+  {
+    "slide_number": 13,
+    "title": "Specific Heat Capacities of Solids, Water & Ice",
+    "section": "Thermodynamics",
+    "timestamp": "06:07",
+    "src": "/drying_webinar/unique_slides/slide_13.png",
+    "description": "Comparative specific heat values: water (4.18 kJ/kg·K), ice (2.05 kJ/kg·K), and typical mineral/pharmaceutical dry solids (0.8–1.5 kJ/kg·K).",
+    "revisited_count": 2
+  },
+  {
+    "slide_number": 14,
+    "title": "Latent Heat of Phase Change (ΔH_vap & ΔH_sub)",
+    "section": "Thermodynamics",
+    "timestamp": "07:23",
+    "src": "/drying_webinar/unique_slides/slide_14.png",
+    "description": "Latent energy requirements: heat of vaporization (2,260 kJ/kg for water) versus heat of sublimation (2,840 kJ/kg for ice = fusion + vaporization).",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 15,
+    "title": "Industrial Implications of Latent Heat",
+    "section": "Thermodynamics",
+    "timestamp": "07:48",
+    "src": "/drying_webinar/unique_slides/slide_15.png",
+    "description": "Why drying consumes substantial thermal utility: sublimation demands ~2,840 kJ of heat input per kilogram of ice removed, necessitating efficient jacket heat transfer.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 16,
+    "title": "Moisture Binding Mechanisms: Free vs Bound Moisture",
+    "section": "Drying Kinetics",
+    "timestamp": "10:37",
+    "src": "/drying_webinar/unique_slides/slide_16.png",
+    "description": "Classification of product water: surface free moisture, capillary/pore water, cellular moisture, and molecularly bound water of crystallization.",
+    "revisited_count": 2
+  },
+  {
+    "slide_number": 17,
+    "title": "Drying Kinetics & Rate Periods",
+    "section": "Drying Kinetics",
+    "timestamp": "10:58",
+    "src": "/drying_webinar/unique_slides/slide_17.png",
+    "description": "Classic drying stages: initial warm-up period, constant rate drying period (surface evaporation), and critical moisture point transition.",
+    "revisited_count": 2
+  },
+  {
+    "slide_number": 18,
+    "title": "Sample Drying Curve: Constant vs Falling Rate Periods",
+    "section": "Drying Kinetics",
+    "timestamp": "11:41",
+    "src": "/drying_webinar/unique_slides/slide_18.png",
+    "description": "Plot of drying rate dX/dt and moisture content versus time, illustrating diffusion-controlled internal moisture migration during the falling rate regime.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 19,
+    "title": "Direct vs Indirect Drying Equipment Architectures",
+    "section": "Equipment Selection",
+    "timestamp": "12:47",
+    "src": "/drying_webinar/unique_slides/slide_19.png",
+    "description": "Comparing direct drying (convective hot gas contact, e.g. flash/spray dryers) versus indirect drying (contact conduction through heated walls/jackets under vacuum).",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 20,
+    "title": "Why Vacuum Drying? Boiling Point Suppression",
+    "section": "Equipment Selection",
+    "timestamp": "14:11",
+    "src": "/drying_webinar/unique_slides/slide_20.png",
+    "description": "Benefits of vacuum operation: lowers boiling temperature from 100 °C to 20–40 °C, protecting thermally sensitive APIs, polymers, and food ingredients.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 21,
+    "title": "Vacuum Drying Temperature & Pressure Curves",
+    "section": "Equipment Selection",
+    "timestamp": "15:51",
+    "src": "/drying_webinar/unique_slides/slide_21.png",
+    "description": "Clapeyron vacuum curve showing boiling temperature depression as chamber absolute pressure decreases from 1013 mbar down to 10 mbar.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 22,
+    "title": "Flash Drying: Instantaneous Pneumatic Drying Dynamics",
+    "section": "Flash Drying",
+    "timestamp": "17:24",
+    "src": "/drying_webinar/unique_slides/slide_22.png",
+    "description": "Principle of flash drying: high-velocity heated gas disperses wet cakes in seconds with high thermal efficiency and continuous throughput.",
+    "revisited_count": 3
+  },
+  {
+    "slide_number": 23,
+    "title": "Thermal Sensitivity: 'Won't My Product Melt in a Flash Dryer?'",
+    "section": "Flash Drying",
+    "timestamp": "17:30",
+    "src": "/drying_webinar/unique_slides/slide_23.png",
+    "description": "Evaporative cooling phenomenon: rapid surface evaporation keeps wet product particles at the wet-bulb temperature, well below the hot inlet gas temperature.",
+    "revisited_count": 3
+  },
+  {
+    "slide_number": 24,
+    "title": "Why Freeze Drying? Applications for Delicate Powders",
+    "section": "Freeze Drying",
+    "timestamp": "20:24",
+    "src": "/drying_webinar/unique_slides/slide_24.png",
+    "description": "Target applications: nano-materials, heat-labile APIs, biological proteins, living cultures, fragile crystals, and instant dispersible powders.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 25,
+    "title": "Solids Concentration as a Major Operating Variable",
+    "section": "Process Economics",
+    "timestamp": "21:54",
+    "src": "/drying_webinar/unique_slides/slide_25.png",
+    "description": "Impact of initial feed concentration: increasing feed solids from 20% to 50% reduces required evaporation energy and cycle time by more than half.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 26,
+    "title": "Batch vs Continuous Drying: Decision Matrix",
+    "section": "Process Economics",
+    "timestamp": "22:23",
+    "src": "/drying_webinar/unique_slides/slide_26.png",
+    "description": "Engineering tradeoffs: batch systems excel for multi-product flexibility, high containment, and validation; continuous systems optimize high-tonnage commodity production.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 27,
+    "title": "Systematic Dryer Selection Framework",
+    "section": "Process Economics",
+    "timestamp": "23:08",
+    "src": "/drying_webinar/unique_slides/slide_27.png",
+    "description": "Decision flowchart based on feed consistency (slurry, paste, cake, granules), thermal limits, solvent recovery, ATEX zoning, and throughput.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 28,
+    "title": "Typical Vacuum Drying System Flowsheet",
+    "section": "Vacuum Systems",
+    "timestamp": "26:19",
+    "src": "/drying_webinar/unique_slides/slide_28.png",
+    "description": "Turnkey engineering schematic: agitated vacuum dryer, heated vapor filter, condenser, solvent receiver, dry vacuum pump, and heating/cooling skid.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 29,
+    "title": "Hosokawa Nauta Conical Batch Vacuum Dryer",
+    "section": "Vacuum Systems",
+    "timestamp": "26:55",
+    "src": "/drying_webinar/unique_slides/slide_29.png",
+    "description": "Anatomy of the classic Vrieco-Nauta conical screw vacuum dryer: orbiting auger, thermal fluid jacket, bottom discharge valve, and vapor dome.",
+    "revisited_count": 2
+  },
+  {
+    "slide_number": 30,
+    "title": "Process Case Study: Catalyst Carrier Production",
+    "section": "Case Studies",
+    "timestamp": "27:47",
+    "src": "/drying_webinar/unique_slides/slide_30.png",
+    "description": "Step-by-step catalyst manufacturing: impregnation, gentle convective blending, vacuum drying, and thermal calcination in an integrated vessel.",
+    "revisited_count": 2
+  },
+  {
+    "slide_number": 31,
+    "title": "Vacuum Drying Application Spectrum",
+    "section": "Case Studies",
+    "timestamp": "29:33",
+    "src": "/drying_webinar/unique_slides/slide_31.png",
+    "description": "Commercial applications: hazardous solvent recovery, crystalline pharmaceuticals, toxic chemicals, high-potency compounds, and specialty pigments.",
+    "revisited_count": 2
+  },
+  {
+    "slide_number": 32,
+    "title": "Typical Flash Drying System Flowsheet",
+    "section": "Flash Drying",
+    "timestamp": "30:03",
+    "src": "/drying_webinar/unique_slides/slide_32.png",
+    "description": "Complete process layout: wet feed screw, disintegrator/rotor, drying air duct, high-efficiency cyclone collector, and exhaust baghouse filter.",
+    "revisited_count": 3
+  },
+  {
+    "slide_number": 33,
+    "title": "Hosokawa Micron Drymeister (DMR) Flash Dryer",
+    "section": "Flash Drying",
+    "timestamp": "30:51",
+    "src": "/drying_webinar/unique_slides/slide_33.png",
+    "description": "Compact high-shear flash dryer combining grinding, dispersion, classification, and flash drying in a single continuous unit.",
+    "revisited_count": 2
+  },
+  {
+    "slide_number": 34,
+    "title": "Energy Optimization: Increased Gas Inlet Temperature",
+    "section": "Energy Optimization",
+    "timestamp": "33:40",
+    "src": "/drying_webinar/unique_slides/slide_34.png",
+    "description": "Thermal thermodynamic analysis: maximizing temperature differential (ΔT = T_in - T_out) significantly increases heat input per cubic meter of air.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 35,
+    "title": "Energy Optimization: Exhaust Gas Heat Recovery",
+    "section": "Energy Optimization",
+    "timestamp": "33:45",
+    "src": "/drying_webinar/unique_slides/slide_35.png",
+    "description": "Heat exchanger integration: recovering waste heat from 120 °C moist exhaust air to preheat incoming 10 °C process air, saving over 160 kW.",
+    "revisited_count": 2
+  },
+  {
+    "slide_number": 36,
+    "title": "Energy Optimization: Mechanical Pre-Concentration",
+    "section": "Energy Optimization",
+    "timestamp": "33:46",
+    "src": "/drying_webinar/unique_slides/slide_36.png",
+    "description": "Process case study (CaCO3): dewatering from 35% to 65% dry solids mechanically yields a massive 72.5% energy reduction in downstream thermal drying.",
+    "revisited_count": 2
+  },
+  {
+    "slide_number": 37,
+    "title": "Industrial Applications of Flash Drying",
+    "section": "Flash Drying",
+    "timestamp": "36:44",
+    "src": "/drying_webinar/unique_slides/slide_37.png",
+    "description": "Materials processed: starches, chemical salts, minerals, silica, pigments, and food starches dried continuously in split seconds.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 38,
+    "title": "Thermodynamics of Freeze Drying (Phase Space Deep Dive)",
+    "section": "Active Freeze Drying",
+    "timestamp": "37:03",
+    "src": "/drying_webinar/unique_slides/slide_38.png",
+    "description": "Detailed log P vs T water phase space showing the exact freezing trajectory at 1 atm, evacuation below 6.11 mbar, and sublimation heating window.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 39,
+    "title": "The Art of Freeze Drying: Solid Cake vs Porous Matrix",
+    "section": "Active Freeze Drying",
+    "timestamp": "38:46",
+    "src": "/drying_webinar/unique_slides/slide_39.png",
+    "description": "Microstructural comparison: avoiding dense solid cakes by fostering an open porous matrix that enables rapid vapor escape and instant rehydration.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 40,
+    "title": "Conventional Shelf/Tray Lyophilizer vs Active Freeze Dryer",
+    "section": "Active Freeze Drying",
+    "timestamp": "40:56",
+    "src": "/drying_webinar/unique_slides/slide_40.png",
+    "description": "Detailed comparison matrix: manual tray handling vs closed automated vessel; static cakes needing crushing vs directly discharged free-flowing powder.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 41,
+    "title": "Freeze Drying Temperature Dynamics: Shelf vs Product",
+    "section": "Active Freeze Drying",
+    "timestamp": "41:06",
+    "src": "/drying_webinar/unique_slides/slide_41.png",
+    "description": "Sublimation heat transfer lag: temperature differential between heating surface and product sublimation front in static trays versus stirred dynamic beds.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 42,
+    "title": "The Active Freeze Drying Process (AFD Kinematics)",
+    "section": "Active Freeze Drying",
+    "timestamp": "42:08",
+    "src": "/drying_webinar/unique_slides/slide_42.png",
+    "description": "Dynamic agitated sublimation: ice granules shrink continuously as heat is transferred from jacketed wall, releasing loose, uniform spherical particles.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 43,
+    "title": "Commercial Active Freeze Drying Applications",
+    "section": "Active Freeze Drying",
+    "timestamp": "43:05",
+    "src": "/drying_webinar/unique_slides/slide_43.png",
+    "description": "AFD production examples: pharmaceutical antibiotics, APIs, biological enzymes, functional nutraceuticals, nanomaterials, and dispersible inhalables.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 44,
+    "title": "Drying Technology Cross-Comparison Matrix",
+    "section": "Summary",
+    "timestamp": "44:01",
+    "src": "/drying_webinar/unique_slides/slide_44.png",
+    "description": "Comprehensive comparative benchmark across Tray Lyophilizers, Active Freeze Dryers, Conical Vacuum Dryers, and Continuous Flash Dryers.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 45,
+    "title": "Q&A Session & Hosokawa Engineering Contacts",
+    "section": "Summary",
+    "timestamp": "44:26",
+    "src": "/drying_webinar/unique_slides/slide_45.png",
+    "description": "Concluding slide with technical Q&A discussion, Hosokawa Micron Powder Systems testing facility details, and engineering contact information.",
+    "revisited_count": 1
+  }
+]

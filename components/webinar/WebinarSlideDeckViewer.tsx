@@ -34,16 +34,22 @@ export interface SlideItem {
 
 interface Props {
   slides: SlideItem[];
+  deckTitle?: string;
+  deckSubtitle?: string;
   pptxUrl?: string;
   pdfUrl?: string;
   youtubeUrl?: string;
+  sections?: { label: string; startIdx: number }[];
 }
 
 export function WebinarSlideDeckViewer({
   slides,
+  deckTitle = "Hosokawa Nauta® Mixing & Drying Technology",
+  deckSubtitle = "33 CANONICAL SLIDES • ZERO DUPLICATES",
   pptxUrl = "/nauta_webinar/Nauta_Mixing_and_Drying_Technology_Webinar.pptx",
   pdfUrl = "/nauta_webinar/Nauta_Mixing_and_Drying_Technology_Webinar.pdf",
   youtubeUrl = "https://www.youtube.com/watch?v=91mCewt5t38&t=39s",
+  sections,
 }: Props) {
   const [currentIdx, setCurrentIdx] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -150,19 +156,22 @@ export function WebinarSlideDeckViewer({
     const parts = ts.split(":");
     if (parts.length === 2) {
       const sec = parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
-      return `https://www.youtube.com/watch?v=91mCewt5t38&t=${sec}s`;
+      const cleanBase = youtubeUrl.split("&t=")[0].split("?t=")[0];
+      const sep = cleanBase.includes("?") ? "&" : "?";
+      return `${cleanBase}${sep}t=${sec}s`;
     }
     return youtubeUrl;
   };
 
-  const sections = [
-    { label: "Overview & Geometry", startIdx: 0 },
-    { label: "Mixing Kinematics", startIdx: 6 },
-    { label: "Hardware & Clearances", startIdx: 11 },
-    { label: "Vacuum Drying & AFD", startIdx: 22 },
-    { label: "Metal Powders", startIdx: 30 },
-    { label: "CAD Detail Drawings", startIdx: 31 },
-  ];
+  const resolvedSections = sections || (() => {
+    const map = new Map<string, number>();
+    slides.forEach((s, idx) => {
+      if (s.section && !map.has(s.section)) {
+        map.set(s.section, idx);
+      }
+    });
+    return Array.from(map.entries()).map(([label, startIdx]) => ({ label, startIdx }));
+  })();
 
   return (
     <div
@@ -183,11 +192,11 @@ export function WebinarSlideDeckViewer({
                 WEBINAR MASTER DECK
               </span>
               <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-bg-surface border border-hairline text-ink-dim">
-                33 CANONICAL SLIDES • ZERO DUPLICATES
+                {deckSubtitle}
               </span>
             </div>
             <h2 className="text-base sm:text-lg font-extrabold text-ink-primary font-serif tracking-tight">
-              Hosokawa Nauta® Mixing & Drying Technology
+              {deckTitle}
             </h2>
           </div>
         </div>
@@ -239,19 +248,23 @@ export function WebinarSlideDeckViewer({
       {/* Section Jump Anchors */}
       <div className="flex items-center gap-1.5 py-3 overflow-x-auto no-scrollbar border-b border-hairline text-xs font-mono">
         <span className="text-ink-dim pr-1 hidden sm:inline-block">JUMP TO:</span>
-        {sections.map((sec) => (
-          <button
-            key={sec.label}
-            onClick={() => setCurrentIdx(sec.startIdx)}
-            className={`px-2.5 py-1 rounded-lg shrink-0 transition ${
-              currentIdx >= sec.startIdx && (sec.startIdx === 31 || currentIdx < sections[sections.indexOf(sec) + 1]?.startIdx)
-                ? "bg-amber/15 text-amber font-bold border border-amber/30"
-                : "bg-bg-surface/60 hover:bg-bg-hover text-ink-dim hover:text-ink-secondary border border-hairline/50"
-            }`}
-          >
-            {sec.label}
-          </button>
-        ))}
+        {resolvedSections.map((sec, sIdx) => {
+          const nextSec = resolvedSections[sIdx + 1];
+          const isActive = currentIdx >= sec.startIdx && (!nextSec || currentIdx < nextSec.startIdx);
+          return (
+            <button
+              key={sec.label}
+              onClick={() => setCurrentIdx(sec.startIdx)}
+              className={`px-2.5 py-1 rounded-lg shrink-0 transition ${
+                isActive
+                  ? "bg-amber/15 text-amber font-bold border border-amber/30"
+                  : "bg-bg-surface/60 hover:bg-bg-hover text-ink-dim hover:text-ink-secondary border border-hairline/50"
+              }`}
+            >
+              {sec.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Main 16:9 Presentation Canvas */}

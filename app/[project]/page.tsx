@@ -82,7 +82,7 @@ export default async function LabPage({ params }: { params: Promise<{ project: s
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber/15 border border-amber/40 text-amber hover:bg-amber/25 font-mono text-xs transition shadow-sm"
             >
               <Presentation className="w-3.5 h-3.5 text-amber" />
-              <span>Nauta Webinar &amp; PPT Deck (33 Slides)</span>
+              <span>Hosokawa Webinars &amp; PPT Decks (78 Slides)</span>
             </Link>
 
             <Link
