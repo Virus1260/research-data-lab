@@ -106,6 +106,8 @@ export function NarratorDeck() {
     setIsMinimized,
     setTranscriptOpen,
     setVoiceStudioOpen,
+    readerPanelOpen,
+    setReaderPanelOpen,
     setSelectedPersona,
     setPacingMode,
     setSpeechEngine,
@@ -644,6 +646,19 @@ export function NarratorDeck() {
                 >
                   <Headphones className="w-3.5 h-3.5 text-amber" />
                   <span className="hidden sm:inline">Voice Studio</span>
+                </button>
+
+                <button
+                  onClick={() => setReaderPanelOpen(!readerPanelOpen)}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-mono border transition flex items-center gap-1.5 ${
+                    readerPanelOpen
+                      ? "bg-amber-subtle text-amber border-amber/40 font-bold"
+                      : "bg-bg-surface hover:bg-bg-hover text-ink-secondary border-hairline"
+                  }`}
+                  title="Toggle Reader Monitor & Teleprompter Panel"
+                >
+                  <Activity className="w-3.5 h-3.5 text-amber" />
+                  <span className="hidden sm:inline">Monitor</span>
                 </button>
 
                 {manifest && (

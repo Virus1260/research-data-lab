@@ -25,7 +25,7 @@ export interface VoicePersona {
 export const VOICE_PERSONAS: VoicePersona[] = [
   // ─── GOOGLE GEMINI TTS VOICES (Featured) ────────────────────────────────────
   // Umbriel: Google's warm, baritone lead narrator voice (modeled after Gemini Umbriel)
-  // Edge Neural counterpart: en-US-AndrewMultilingualNeural — warm, smooth, relaxed
+  // Edge Neural counterpart: en-US-AndrewMultilingualNeural - warm, smooth, relaxed
   {
     id: "umbriel",
     name: "Umbriel",
@@ -49,7 +49,7 @@ export const VOICE_PERSONAS: VoicePersona[] = [
     ],
   },
   // Gacrux: Google's crisp, articulate female research narrator (modeled after Gemini Gacrux)
-  // Edge Neural counterpart: en-US-AvaMultilingualNeural — mature, sharp, high-clarity
+  // Edge Neural counterpart: en-US-AvaMultilingualNeural - mature, sharp, high-clarity
   {
     id: "gacrux",
     name: "Gacrux",
@@ -57,7 +57,7 @@ export const VOICE_PERSONAS: VoicePersona[] = [
     gender: "female",
     accent: "Google Gemini",
     isGemini: true,
-    description: "Google's premier female narrator — mature, articulate, and precise. Crystal-clear academic delivery with natural research authority.",
+    description: "Google's premier female narrator - mature, articulate, and precise. Crystal-clear academic delivery with natural research authority.",
     avatar: "✧",
     pitch: 1.005,   // +1Hz relative to 220 Hz female base → crisp, present alto
     rate: 1.0,      // Precise, measured cadence matching Google Gacrux's sharp delivery
@@ -196,7 +196,7 @@ export const VOICE_PERSONAS: VoicePersona[] = [
   },
 ];
 
-// Default to Umbriel — Google's warm lead narrator (first entry)
+// Default to Umbriel: Google's warm lead narrator (first entry)
 export const DEFAULT_PERSONA = VOICE_PERSONAS[0];
 export const GEMINI_VOICES = VOICE_PERSONAS.filter((p) => p.isGemini === true);
 
@@ -204,8 +204,13 @@ export interface SpeechChunk {
   rawText: string;
   text: string;
   pauseAfterMs: number;
-  type: "heading" | "paragraph" | "sentence" | "formula" | "bullet";
+  type: "heading" | "paragraph" | "sentence" | "formula" | "bullet" | "table";
   emphasis?: boolean;
+  tableData?: {
+    parameter: string;
+    values: { column: string; value: string }[];
+    fullRow?: string[];
+  };
 }
 
 /**
@@ -459,20 +464,111 @@ export function chunkTextForHumanSpeech(
   markdownText: string,
   pauseScale: number = 1.0
 ): SpeechChunk[] {
-  // Pre-process and translate tables into relational conversational text before chunking
-  const preProcessedText = preProcessTablesToConversationalText(markdownText);
-  const lines = preProcessedText.split("\n");
+  const rawLines = markdownText.split("\n");
   const chunks: SpeechChunk[] = [];
-
-  // Lookahead Regex Pattern to preserve decimal numbers and multi-period sequences
   const sentenceRegex = /(?:[^.!?]|\.(?=\d)|\.{2,})+(?:[.!?]+(?:\s+|$)|$)/g;
 
-  for (const rawLine of lines) {
+  let i = 0;
+  while (i < rawLines.length) {
+    const rawLine = rawLines[i];
     const line = rawLine.trim();
-    if (!line) continue;
+
+    if (!line) {
+      i++;
+      continue;
+    }
 
     // Skip code blocks, raw image tags, and JSX components
     if (line.startsWith("```") || line.startsWith("![") || line.startsWith("<")) {
+      i++;
+      continue;
+    }
+
+    // Check if line is start of markdown table
+    if (line.startsWith("|")) {
+      const tableRows: string[][] = [];
+      while (i < rawLines.length && rawLines[i].trim().startsWith("|")) {
+        const tLine = rawLines[i].trim();
+        const cells = tLine
+          .split("|")
+          .map((c) => c.trim())
+          .filter((_, idx, arr) => idx > 0 && idx < arr.length - 1);
+        const isSeparator = cells.every((cell) => /^:?-+:?$/.test(cell));
+        if (!isSeparator && cells.length > 0) {
+          tableRows.push(cells);
+        }
+        i++;
+      }
+
+      if (tableRows.length > 1) {
+        const headers = tableRows[0].map(cleanTableCell);
+        const dataRows = tableRows.slice(1);
+        const paramColumnName = headers[0];
+        const dataColumns = headers.slice(1);
+
+        // Intro chunk for the table
+        const introText = `Reviewing the comparative data for ${paramColumnName} across ${
+          dataColumns.length === 1
+            ? dataColumns[0]
+            : dataColumns.length === 2
+            ? `${dataColumns[0]} and ${dataColumns[1]}`
+            : `${dataColumns.slice(0, -1).join(", ")}, and ${dataColumns[dataColumns.length - 1]}`
+        }.`;
+
+        chunks.push({
+          rawText: headers.join(" | "),
+          text: introText,
+          pauseAfterMs: Math.round(1100 * pauseScale),
+          type: "table",
+          emphasis: true,
+          tableData: {
+            parameter: paramColumnName,
+            values: dataColumns.map((col) => ({ column: col, value: "" })),
+            fullRow: headers,
+          },
+        });
+
+        // Row by row relational chunks
+        dataRows.forEach((rawRow, rIdx) => {
+          const row = rawRow.map(cleanTableCell);
+          if (row.length < headers.length) return;
+
+          const parameter = row[0];
+          const values = row.slice(1);
+
+          const transition =
+            rIdx === 0
+              ? "For "
+              : rIdx === dataRows.length - 1
+              ? "Finally, for "
+              : "Next, looking at ";
+
+          let spokenRow = transition + `${parameter}: `;
+          if (dataColumns.length === 1) {
+            spokenRow += `${dataColumns[0]} is ${values[0]}.`;
+          } else if (dataColumns.length === 2) {
+            spokenRow += `${dataColumns[0]} is ${values[0]}, while ${dataColumns[1]} is ${values[1]}.`;
+          } else {
+            const details = dataColumns.map((col, vIdx) => `${col} is ${values[vIdx] || ""}`);
+            spokenRow += `${details.slice(0, -1).join("; ")}; and ${details[details.length - 1]}.`;
+          }
+
+          chunks.push({
+            rawText: rawRow.join(" | "),
+            text: humanizeEngineeringText(spokenRow),
+            pauseAfterMs: Math.round(1000 * pauseScale),
+            type: "table",
+            tableData: {
+              parameter,
+              values: dataColumns.map((col, vIdx) => ({
+                column: col,
+                value: values[vIdx] || "",
+              })),
+              fullRow: row,
+            },
+          });
+        });
+      }
       continue;
     }
 
@@ -487,6 +583,7 @@ export function chunkTextForHumanSpeech(
         type: "heading",
         emphasis: true,
       });
+      i++;
       continue;
     }
 
@@ -501,6 +598,7 @@ export function chunkTextForHumanSpeech(
         type: "heading",
         emphasis: true,
       });
+      i++;
       continue;
     }
 
@@ -514,6 +612,7 @@ export function chunkTextForHumanSpeech(
         pauseAfterMs: Math.round(900 * pauseScale),
         type: "heading",
       });
+      i++;
       continue;
     }
 
@@ -527,6 +626,7 @@ export function chunkTextForHumanSpeech(
         pauseAfterMs: Math.round(750 * pauseScale),
         type: "bullet",
       });
+      i++;
       continue;
     }
 
@@ -542,16 +642,18 @@ export function chunkTextForHumanSpeech(
       const rawS = rawSentences[sIdx]?.trim() || s;
       const isLastSentence = sIdx === sentences.length - 1;
       const pause = isLastSentence
-        ? Math.round(950 * pauseScale) // Paragraph end breath
-        : Math.round(550 * pauseScale); // Sentence end pause
+        ? Math.round(950 * pauseScale)
+        : Math.round(550 * pauseScale);
 
       chunks.push({
         rawText: rawS,
         text: s,
         pauseAfterMs: pause,
-        type: "sentence",
+        type: "paragraph",
       });
     }
+
+    i++;
   }
 
   return chunks;

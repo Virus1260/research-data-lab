@@ -44,6 +44,13 @@ interface NarratorContextType {
   availableVoices: SpeechSynthesisVoice[];
   hasActiveSelection: boolean;
   selectedSnippet: string;
+  speechChunks: SpeechChunk[];
+  currentChunkIndex: number;
+  currentChunk: SpeechChunk | null;
+  readerPanelOpen: boolean;
+  setReaderPanelOpen: (open: boolean) => void;
+  seekToChunk: (index: number) => void;
+  prepareChapterText: (text: string, slug?: string, title?: string) => void;
   loadTrack: (
     slug: string,
     title: string,
@@ -87,6 +94,7 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
   const [manifest, setManifest] = useState<AudioManifest | null>(null);
   const [transcriptOpen, setTranscriptOpen] = useState(false);
   const [voiceStudioOpen, setVoiceStudioOpen] = useState(false);
+  const [readerPanelOpen, setReaderPanelOpen] = useState<boolean>(true);
   const [selectedPersona, setSelectedPersona] = useState<VoicePersona>(VOICE_PERSONAS[0]); // Default to Dr. Ananya Sharma
   const [pacingMode, setPacingMode] = useState<PacingMode>("academic");
   const [speechEngine, setSpeechEngineState] = useState<SpeechEngine>("neural"); // Default to Ultra HD Edge Neural
@@ -98,6 +106,8 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [hasActiveSelection, setHasActiveSelection] = useState(false);
   const [selectedSnippet, setSelectedSnippet] = useState("");
+  const [speechChunks, setSpeechChunks] = useState<SpeechChunk[]>([]);
+  const [currentChunkIndex, setCurrentChunkIndex] = useState<number>(0);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const neuralAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -415,6 +425,7 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
         if (!isPlayingRef.current || isPausedRef.current) return;
         const nextIndex = index + 1;
         currentChunkIndexRef.current = nextIndex;
+        setCurrentChunkIndex(nextIndex);
         const pauseScale = pacing === "academic" ? 1.2 : 1.0;
         const pauseMs = (chunk.pauseAfterMs * pauseScale) / playbackRateRef.current;
 
@@ -430,6 +441,7 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
         console.warn("Local SpeechSynthesis error, advancing chunk:", e.error);
         if (isPlayingRef.current && !isPausedRef.current) {
           currentChunkIndexRef.current = index + 1;
+          setCurrentChunkIndex(index + 1);
           speakChunk(index + 1);
         }
       };
@@ -458,6 +470,7 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
       if (!chunksRef.current || chunksRef.current.length === 0) {
         if (fallbackFullTextRef.current) {
           chunksRef.current = chunkTextForHumanSpeech(fallbackFullTextRef.current, selectedPersonaRef.current.pauseScale);
+          setSpeechChunks(chunksRef.current);
         }
       }
 
@@ -470,12 +483,14 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
         isPlayingRef.current = false;
         isPausedRef.current = false;
         currentChunkIndexRef.current = 0;
+        setCurrentChunkIndex(0);
         setActiveSpokenPhrase("");
         return;
       }
 
       const chunk = chunks[index];
       currentChunkIndexRef.current = index;
+      setCurrentChunkIndex(index);
       const cleanPhrase = (chunk.rawText || chunk.text)
         .replace(/\*\*([^*]+)\*\*/g, "$1")
         .replace(/\*([^*]+)\*/g, "$1")
@@ -537,6 +552,7 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
           if (!isPlayingRef.current || isPausedRef.current) return;
           const nextIndex = index + 1;
           currentChunkIndexRef.current = nextIndex;
+          setCurrentChunkIndex(nextIndex);
           const pauseScale = pacing === "academic" ? 1.2 : 1.0;
           const pauseMs = (chunk.pauseAfterMs * pauseScale) / playbackRateRef.current;
 
@@ -579,6 +595,9 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
   ) => {
     if (fallbackText) {
       fallbackFullTextRef.current = fallbackText;
+      const chunks = chunkTextForHumanSpeech(fallbackText, selectedPersonaRef.current.pauseScale);
+      chunksRef.current = chunks;
+      setSpeechChunks(chunks);
     }
 
     // Synchronously resume audio hardware on user gesture
@@ -658,7 +677,9 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
     fallbackFullTextRef.current = text;
     const chunks = chunkTextForHumanSpeech(text, selectedPersona.pauseScale);
     chunksRef.current = chunks;
+    setSpeechChunks(chunks);
     currentChunkIndexRef.current = startIndex;
+    setCurrentChunkIndex(startIndex);
 
     // Approximate total duration based on reading rate
     const totalWords = text.split(/\s+/).length;
@@ -759,6 +780,7 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
         Math.min(chunks.length - 1, Math.floor((time / duration) * chunks.length))
       );
       currentChunkIndexRef.current = targetIdx;
+      setCurrentChunkIndex(targetIdx);
       setCurrentTime(time);
       if (isPlayingRef.current && !isPausedRef.current) {
         speakChunk(targetIdx);
@@ -784,6 +806,7 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
         Math.min(chunks.length - 1, currentChunkIndexRef.current + chunkDelta)
       );
       currentChunkIndexRef.current = targetIdx;
+      setCurrentChunkIndex(targetIdx);
       if (isPlayingRef.current && !isPausedRef.current) {
         speakChunk(targetIdx);
       } else {
@@ -906,10 +929,69 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
     isPlayingRef.current = true;
     isPausedRef.current = false;
     currentChunkIndexRef.current = targetIdx;
+    setCurrentChunkIndex(targetIdx);
+    setSpeechChunks(chunksRef.current);
 
     speakChunk(targetIdx);
     return true;
   };
+
+  const currentChunk = speechChunks[currentChunkIndex] || null;
+
+  const prepareChapterText = useCallback((text: string, slug?: string, title?: string) => {
+    if (!text) return;
+    fallbackFullTextRef.current = text;
+    const chunks = chunkTextForHumanSpeech(text, selectedPersonaRef.current.pauseScale);
+    chunksRef.current = chunks;
+    setSpeechChunks(chunks);
+    if (slug || title) {
+      setCurrentTrack((prev) => {
+        if (prev?.slug === slug) return prev;
+        return { slug: slug || "chapter", title: title || "Chapter Narration", audioUrl: "", isTTS: true };
+      });
+    }
+  }, []);
+
+  const seekToChunk = useCallback(
+    (index: number) => {
+      // Synchronously resume audio hardware on user gesture
+      if (typeof window !== "undefined") {
+        if (audioCtxRef.current && audioCtxRef.current.state === "suspended") {
+          audioCtxRef.current.resume().catch(() => {});
+        }
+        if (window.speechSynthesis && window.speechSynthesis.paused) {
+          window.speechSynthesis.resume();
+        }
+      }
+
+      if (!chunksRef.current || chunksRef.current.length === 0) {
+        if (fallbackFullTextRef.current) {
+          chunksRef.current = chunkTextForHumanSpeech(
+            fallbackFullTextRef.current,
+            selectedPersonaRef.current.pauseScale
+          );
+          setSpeechChunks(chunksRef.current);
+        }
+      }
+      const chunks = chunksRef.current;
+      if (!chunks || chunks.length === 0) return;
+      const targetIdx = Math.max(0, Math.min(chunks.length - 1, index));
+      currentChunkIndexRef.current = targetIdx;
+      setCurrentChunkIndex(targetIdx);
+
+      setCurrentTrack((prev) =>
+        prev
+          ? { ...prev, isTTS: true }
+          : { slug: "chapter-speech", title: "Document Narration", audioUrl: "", isTTS: true }
+      );
+
+      setIsPlaying(true);
+      isPlayingRef.current = true;
+      isPausedRef.current = false;
+      speakChunk(targetIdx);
+    },
+    [speakChunk]
+  );
 
   const livePitchHz = getPersonaPitchHz(selectedPersona);
 
@@ -927,6 +1009,7 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
         manifest,
         transcriptOpen,
         voiceStudioOpen,
+        readerPanelOpen,
         selectedPersona,
         pacingMode,
         speechEngine,
@@ -939,6 +1022,12 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
         availableVoices,
         hasActiveSelection,
         selectedSnippet,
+        speechChunks,
+        currentChunkIndex,
+        currentChunk,
+        setReaderPanelOpen,
+        seekToChunk,
+        prepareChapterText,
         loadTrack,
         togglePlay,
         seek,

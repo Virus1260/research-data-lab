@@ -198,7 +198,7 @@ export function RealtimeVoiceGraph({
   }, [isExpanded]);
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // 1. MINI COMPACT VISUALIZER (IN DECK BAR) — AUTHENTIC 0.0 IDLE STATE
+  // 1. MINI COMPACT VISUALIZER (IN DECK BAR) - AUTHENTIC 0.0 IDLE STATE
   // ─────────────────────────────────────────────────────────────────────────────
   useEffect(() => {
     const canvas = miniCanvasRef.current;
@@ -648,7 +648,7 @@ export function RealtimeVoiceGraph({
           ctx.fillStyle = dark ? "#cbd5e1" : "#5c5243";
           ctx.font = "bold 10px monospace";
           ctx.textAlign = "center";
-          ctx.fillText("Time (seconds) — 5-Second Rolling Speech Prosody Window", padLeft + chartW / 2, padTop + chartH + 34);
+          ctx.fillText("Time (seconds) - 5-Second Rolling Speech Prosody Window", padLeft + chartW / 2, padTop + chartH + 34);
 
           ctx.save();
           ctx.translate(16, padTop + chartH / 2);
@@ -1004,7 +1004,7 @@ export function RealtimeVoiceGraph({
 
           ctx.fillStyle = dark ? "#cbd5e1" : "#5c5243";
           ctx.font = "bold 10px monospace";
-          ctx.fillText("Time (seconds) — Spectrogram Density", padLeft + chartW / 2, padTop + chartH + 34);
+          ctx.fillText("Time (seconds) - Spectrogram Density", padLeft + chartW / 2, padTop + chartH + 34);
 
           ctx.textAlign = "right";
           ctx.fillStyle = dark ? "rgba(241, 245, 249, 0.85)" : "#2e261d";
@@ -1054,7 +1054,7 @@ export function RealtimeVoiceGraph({
           ctx.fillStyle = dark ? "#cbd5e1" : "#5c5243";
           ctx.font = "bold 10px monospace";
           ctx.textAlign = "center";
-          ctx.fillText("Time (milliseconds) — Vocal Fold Glottal Cycle (T₀)", padLeft + chartW / 2, padTop + chartH + 34);
+          ctx.fillText("Time (milliseconds) - Vocal Fold Glottal Cycle (T0)", padLeft + chartW / 2, padTop + chartH + 34);
 
           ctx.save();
           ctx.translate(16, padTop + chartH / 2);
