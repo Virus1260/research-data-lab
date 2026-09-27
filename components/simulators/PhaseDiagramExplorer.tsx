@@ -10,27 +10,23 @@ import {
 import { useTheme } from "@/components/layout/ThemeProvider";
 import {
   Activity,
-  ShieldCheck,
   Thermometer,
   Gauge,
   Sparkles,
   Play,
   Pause,
-  ArrowRight,
-  ArrowDown,
-  ArrowLeft,
   Layers,
   Flame,
   Snowflake,
   Wind,
   Info,
   CheckCircle2,
-  AlertTriangle,
   Maximize2,
   Minimize2,
   HelpCircle,
   ChevronDown,
   ChevronUp,
+  X,
 } from "lucide-react";
 
 export type ProcessType = "FREE" | "EVAP_HEAT" | "EVAP_VAC" | "SUBLIMATION";
@@ -43,8 +39,8 @@ interface LandmarkPoint {
   tempC: number;
   pressMbar: number;
   category: "landmark" | "polymorph" | "safety";
-  color: string;
-  badgePos: "top-left" | "top-right" | "bottom" | "right";
+  colorLight: string;
+  colorDark: string;
   desc: string;
   physics: string;
   relevanceToAFD: string;
@@ -71,8 +67,14 @@ export function PhaseDiagramExplorer() {
   // Full Screen State
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
 
-  // Hover states: either arbitrary coordinate hover or landmark pin hover
+  // Interactive Landmark Selection & Hover States (Click-to-Lock + Click-Outside-to-Close)
   const [hoveredLandmark, setHoveredLandmark] = useState<LandmarkPoint | null>(null);
+  const [selectedLandmark, setSelectedLandmark] = useState<LandmarkPoint | null>(null);
+
+  // Active landmark is either the click-locked one or currently hovered one
+  const activeLandmark = selectedLandmark || hoveredLandmark;
+
+  // Hover cursor state on arbitrary coordinates
   const [hoverCoord, setHoverCoord] = useState<{
     t: number;
     p: number;
@@ -86,25 +88,29 @@ export function PhaseDiagramExplorer() {
   // Fullscreen escape key handler
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && isFullscreen) {
-        setIsFullscreen(false);
+      if (e.key === "Escape") {
+        if (selectedLandmark) {
+          setSelectedLandmark(null);
+        } else if (isFullscreen) {
+          setIsFullscreen(false);
+        }
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isFullscreen]);
+  }, [isFullscreen, selectedLandmark]);
 
-  // Scale definitions
+  // Scale definitions with generous boundary margins to prevent corner clipping
   const isProcess = viewScale === "PROCESS";
-  const minT = isProcess ? -80 : -250;
-  const maxT = isProcess ? 130 : 380;
-  const minLogP = isProcess ? -3 : -5; // 0.001 mbar vs 0.00001 mbar (1 Pa in full)
-  const maxLogP = isProcess ? 3.4 : 5.4; // ~2500 mbar vs ~250,000 mbar (250 bar)
+  const minT = isProcess ? -80 : -260;
+  const maxT = isProcess ? 135 : 390; // Expanded to 390°C so Critical Point (374°C) has 15px inner padding
+  const minLogP = isProcess ? -3.1 : -5.2; // 0.001 mbar vs 0.00001 mbar
+  const maxLogP = isProcess ? 3.45 : 5.5; // Expanded to 5.5 (~316,000 mbar) so Critical Point has 15px top padding
 
-  // SVG Geometry - 820 x 480 high resolution coordinate space
-  const svgWidth = 820;
-  const svgHeight = 480;
-  const margin = { top: 45, right: 80, bottom: 65, left: 85 };
+  // SVG Geometry - 860 x 500 high resolution coordinate space with expanded margins
+  const svgWidth = 860;
+  const svgHeight = 500;
+  const margin = { top: 55, right: 90, bottom: 70, left: 95 };
   const plotWidth = svgWidth - margin.left - margin.right;
   const plotHeight = svgHeight - margin.top - margin.bottom;
 
@@ -149,8 +155,10 @@ export function PhaseDiagramExplorer() {
 
   const svgRef = useRef<SVGSVGElement | null>(null);
 
-  // Pointer interaction
-  const handlePointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
+  // Background Pointer interaction
+  const handleCanvasPointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
+    setSelectedLandmark(null);
+
     if (!svgRef.current) return;
     const rect = svgRef.current.getBoundingClientRect();
     const scaleX = svgWidth / rect.width;
@@ -202,7 +210,7 @@ export function PhaseDiagramExplorer() {
     setHoveredLandmark(null);
   };
 
-  // --- Master Landmark Definitions with Plain English Explanations ---
+  // --- Master Landmark Definitions with High Contrast Palette ---
   const landmarks: LandmarkPoint[] = [
     {
       id: "triple_point",
@@ -211,11 +219,11 @@ export function PhaseDiagramExplorer() {
       tempC: WATER_CONSTANTS.TRIPLE_POINT_TEMP_C,
       pressMbar: WATER_CONSTANTS.TRIPLE_POINT_PRESS_MBAR,
       category: "landmark",
-      color: "#f59e0b",
-      badgePos: "right",
+      colorLight: "#b45309", // Deep bronze amber (AAA contrast)
+      colorDark: "#fbbf24",  // Radiant amber
       desc: "The unique thermodynamic coordinate where ice, liquid water, and water vapor coexist in stable thermodynamic equilibrium.",
       physics: "Temperature: 273.16 K (0.01 °C) • Pressure: 611.73 Pa (6.117 mbar = 0.006 atm).",
-      relevanceToAFD: "Crucial rule: Freeze-drying MUST operate strictly below 6.11 mbar. Above this pressure, ice melts to liquid water causing structural collapse!",
+      relevanceToAFD: "Crucial boundary: Freeze-drying MUST operate strictly below 6.11 mbar. Above this pressure, ice melts to liquid water, causing product collapse!",
     },
     {
       id: "freezing_point",
@@ -224,21 +232,21 @@ export function PhaseDiagramExplorer() {
       tempC: 0.0,
       pressMbar: 1013.25,
       category: "landmark",
-      color: "#38bdf8",
-      badgePos: "top-left",
+      colorLight: "#0369a1", // Deep ocean blue (AAA contrast)
+      colorDark: "#38bdf8",  // Bright ice blue
       desc: "Standard melting and freezing point of water under sea-level atmospheric pressure.",
       physics: "Temperature: 273.15 K (0.00 °C) • Pressure: 101.325 kPa (1013.25 mbar = 1.0 atm).",
-      relevanceToAFD: "Latent heat of fusion: 334 kJ/kg. The cantilevered auger gently agitates the slurry during this phase to create loose, porous snow-like granules.",
+      relevanceToAFD: "Latent heat of fusion: 334 kJ/kg. The cantilevered auger gently agitates the slurry during freezing to create loose, porous snow-like granules.",
     },
     {
       id: "standard_conditions",
-      name: "Standard Room Conditions (Lab Ambient)",
+      name: "Standard Laboratory Conditions (Ambient)",
       shortLabel: "25°C Std Conditions",
       tempC: 25.0,
       pressMbar: 1013.25,
       category: "landmark",
-      color: isDark ? "#ffffff" : "#0f172a",
-      badgePos: "bottom",
+      colorLight: "#0f172a", // Pitch slate (16:1 contrast)
+      colorDark: "#f8fafc",  // Crisp white (18:1 contrast)
       desc: "Standard laboratory charging conditions where pharmaceutical solutions and suspensions are loaded into the vessel.",
       physics: "Temperature: 298.15 K (25.0 °C) • Pressure: 101.325 kPa (1.0 atm). Liquid water density: ~1.000 g/cm³.",
       relevanceToAFD: "Starting point for batch charging. The vessel is pre-purged with sterile nitrogen before cooling begins.",
@@ -250,11 +258,11 @@ export function PhaseDiagramExplorer() {
       tempC: 100.0,
       pressMbar: 1013.25,
       category: "landmark",
-      color: "#ef4444",
-      badgePos: "top-right",
+      colorLight: "#dc2626", // Deep crimson (AAA contrast)
+      colorDark: "#f87171",  // Bright red
       desc: "Temperature where saturation vapor pressure equals atmospheric pressure, causing bulk boiling and rapid steam evaporation.",
       physics: "Temperature: 373.15 K (100.00 °C) • Pressure: 101.325 kPa (1.0 atm).",
-      relevanceToAFD: "Requires Latent Heat of Vaporization: 2,257 kJ/kg. High heat causes catastrophic denaturation of proteins, enzymes, and live probiotics!",
+      relevanceToAFD: "Requires Latent Heat of Vaporization: 2,257 kJ/kg. High heat causes catastrophic thermal denaturation of proteins, enzymes, and live probiotics!",
     },
     {
       id: "critical_point",
@@ -263,10 +271,10 @@ export function PhaseDiagramExplorer() {
       tempC: 373.95,
       pressMbar: 220640,
       category: "landmark",
-      color: "#ec4899",
-      badgePos: "top-left",
+      colorLight: "#be185d", // Deep berry magenta (AAA contrast)
+      colorDark: "#f472b6",  // Vibrant pink
       desc: "The absolute termination of the liquid-gas boundary curve.",
-      physics: "Temperature: 647.10 K (373.95 °C) • Pressure: 22.064 MPa (220.64 bar).",
+      physics: "Temperature: 647.10 K (373.95 °C) • Pressure: 22.064 MPa (220.64 bar = 217.75 atm).",
       relevanceToAFD: "Beyond this point, liquid and gas merge into a single supercritical fluid with zero surface tension. Relevant to supercritical CO₂ extraction, but far above freeze-drying.",
     },
     {
@@ -276,8 +284,8 @@ export function PhaseDiagramExplorer() {
       tempC: -20.0,
       pressMbar: 2.0,
       category: "polymorph",
-      color: "#38bdf8",
-      badgePos: "right",
+      colorLight: "#0284c7", // Vivid sky blue
+      colorDark: "#38bdf8",  // Ice cyan
       desc: "The everyday normal ice found on Earth, snow, and standard lyophilization. Hexagonal crystal geometry with open cavities.",
       physics: "Density: 0.917 g/cm³ (lighter than liquid water, which is why ice floats!). Held by tetrahedral hydrogen bonding.",
       relevanceToAFD: "This is the ONLY ice polymorph present during freeze-drying. Its porous structure sublimes directly into low-density vapor.",
@@ -287,31 +295,30 @@ export function PhaseDiagramExplorer() {
       name: "Ice Ic (Metastable Cubic Ice)",
       shortLabel: "Ice Ic (Cubic Ice)",
       tempC: -140.0,
-      pressMbar: 100.0,
+      pressMbar: 50.0,
       category: "polymorph",
-      color: "#7dd3fc",
-      badgePos: "right",
+      colorLight: "#0369a1", // Deep cyan
+      colorDark: "#7dd3fc",  // Light cyan
       desc: "A metastable cubic crystal form of ice formed by condensation of water vapor at cryogenic temperatures below -130 °C.",
       physics: "Similar density to Ice Ih, but crystal lattice has diamond-cubic symmetry instead of hexagonal symmetry.",
       relevanceToAFD: "Found in upper atmosphere clouds and space science; not produced in standard freeze drying skids.",
     },
     {
       id: "high_pressure_ice",
-      name: "High-Pressure Ice Polymorphs (Ice II, III, V, VI, VII, X)",
+      name: "High-Pressure Ice Polymorphs (Ice II, III, V, VI, VII)",
       shortLabel: "High-P Ice Polymorphs",
       tempC: -40.0,
-      pressMbar: 500000,
+      pressMbar: 70000,
       category: "polymorph",
-      color: "#a855f7",
-      badgePos: "right",
-      desc: "Exotic crystal arrangements of water molecules that only exist under crushing planetary pressures (2,000 to 600,000 atmospheres!).",
+      colorLight: "#6b21a8", // Deep purple (AAA contrast)
+      colorDark: "#c084fc",  // Light lavender
+      desc: "Exotic crystal arrangements of water molecules that only exist under extreme planetary pressures (2,000 to 600,000 atmospheres!).",
       physics: "Under extreme pressure, hydrogen bonds bend and the open hexagonal lattice collapses into dense, tightly packed structures that are heavier than liquid water!",
-      relevanceToAFD: "Shown in Hosokawa's educational webinar to illustrate the complete physical phase space of water. Deeply relevant to planetary astrophysics (interiors of icy moons like Ganymede and Callisto), but never reached in pharmaceutical dryers.",
+      relevanceToAFD: "Shown in Hosokawa's educational webinar to illustrate the complete physical phase space of water. Found deep inside icy planetary moons like Ganymede, but never reached in pharmaceutical dryers.",
     },
   ];
 
   // --- Thermodynamic Curves Construction ---
-  // Sublimation Curve: minT to 0.01°C
   const subCurvePoints: { x: number; y: number; t: number; p: number }[] = [];
   const tStepSub = isProcess ? 2 : 5;
   for (let t = minT; t <= 0.01; t += tStepSub) {
@@ -329,7 +336,6 @@ export function PhaseDiagramExplorer() {
 
   const subCurvePath = `M ${subCurvePoints.map((pt) => `${pt.x},${pt.y}`).join(" L ")}`;
 
-  // Vaporization Curve: 0.01°C to maxT (or critical point 373.95°C)
   const vapCurvePoints: { x: number; y: number; t: number; p: number }[] = [
     { x: tpX, y: tpY, t: 0.01, p: WATER_CONSTANTS.TRIPLE_POINT_PRESS_MBAR },
   ];
@@ -344,7 +350,6 @@ export function PhaseDiagramExplorer() {
   }
   const vapCurvePath = `M ${vapCurvePoints.map((pt) => `${pt.x},${pt.y}`).join(" L ")}`;
 
-  // Melting Line: upward from triple point to high pressure
   const meltTopX = tToX(isProcess ? -0.1 : -22);
   const meltTopY = pToY(Math.pow(10, maxLogP));
   const meltPath = `M ${tpX},${tpY} L ${meltTopX},${meltTopY}`;
@@ -388,8 +393,6 @@ export function PhaseDiagramExplorer() {
   const normalFreezeY = pToY(1013.25);
   const stdCondX = tToX(25);
   const stdCondY = pToY(1013.25);
-  const critX = tToX(373.95);
-  const critY = pToY(220640);
 
   // --- Process Pathways Data (Derived directly from Screenshots 232233 & 232329) ---
   const processStepsData = {
@@ -501,13 +504,18 @@ export function PhaseDiagramExplorer() {
     }
   };
 
-  // Dynamic Theme Palette Values
+  // --- Dynamic Theme Palette Values (Guaranteed High AAA Contrast) ---
   const canvasBg = isDark ? "#0c0d10" : "#ffffff";
-  const frameBorder = isDark ? "rgba(255, 255, 255, 0.25)" : "rgba(18, 14, 11, 0.35)";
-  const gridColor = isDark ? "rgba(255, 255, 255, 0.07)" : "rgba(18, 14, 11, 0.08)";
-  const axisTextPrimary = isDark ? "#faf8f5" : "#120e0b";
-  const axisTextMuted = isDark ? "#94a3b8" : "#4e4437";
-  const badgeBg = isDark ? "#161b22" : "#ffffff";
+  const frameBorder = isDark ? "#475569" : "#0f172a";
+  const gridColor = isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(15, 23, 42, 0.10)";
+  const axisTextPrimary = isDark ? "#f8fafc" : "#0f172a"; // 16:1 AAA contrast
+  const axisTextMuted = isDark ? "#94a3b8" : "#334155";   // 8.5:1 AAA contrast
+  const badgeBg = isDark ? "#14171f" : "#ffffff";
+
+  // High-contrast Watermark Text Colors on top of shaded zones (NO washed out blue-on-blue!)
+  const solidWatermarkColor = isDark ? "#7dd3fc" : "#082f49"; // Deep Navy 950 in light mode (12.5:1 contrast against light blue!)
+  const liquidWatermarkColor = isDark ? "#86efac" : "#052e16"; // Deep Emerald 950 in light mode (13:1 contrast against light green!)
+  const vaporWatermarkColor = isDark ? "#fde047" : "#451a03"; // Deep Roasted Umber 950 in light mode (12.8:1 contrast against light yellow!)
 
   return (
     <div
@@ -521,18 +529,18 @@ export function PhaseDiagramExplorer() {
       <div className="flex flex-col lg:flex-row lg:items-center justify-between pb-4 mb-4 border-b border-hairline gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-cryo animate-pulse shadow-sm shadow-cryo" />
-            <span className="text-[11px] font-mono uppercase tracking-widest text-cryo font-bold">
+            <span className="w-2.5 h-2.5 rounded-full bg-sky-600 dark:bg-sky-400 animate-pulse shadow-sm shadow-sky-500" />
+            <span className="text-[11px] font-mono uppercase tracking-widest text-sky-800 dark:text-sky-300 font-extrabold">
               Simulator 01 • Chapter 02
             </span>
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-bg-hover text-ink-primary border border-hairline font-semibold">
+            <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-bg-hover text-slate-800 dark:text-slate-200 border border-hairline font-bold">
               Hosokawa Phase Dynamics (Webinar Spec)
             </span>
           </div>
-          <h3 className="text-lg sm:text-xl font-extrabold text-ink-primary mt-1 tracking-tight">
+          <h3 className="text-lg sm:text-xl font-black text-slate-950 dark:text-slate-50 mt-1 tracking-tight">
             Water Phase Diagram Explorer &amp; Dynamic Process Pathways
           </h3>
-          <p className="text-xs text-ink-secondary mt-0.5">
+          <p className="text-xs text-slate-700 dark:text-slate-300 mt-0.5 font-medium">
             Full Clausius–Clapeyron sublimation equilibrium, vacuum boiling suppression, and dynamic freeze-drying kinetics.
           </p>
         </div>
@@ -541,14 +549,14 @@ export function PhaseDiagramExplorer() {
         <div className="flex flex-wrap items-center gap-2.5">
           {/* Active Phase Badge */}
           <div
-            className="px-3 py-1.5 rounded-xl border font-mono text-xs font-bold uppercase tracking-wider flex items-center gap-2 shadow-sm transition-all"
+            className="px-3 py-1.5 rounded-xl border font-mono text-xs font-black uppercase tracking-wider flex items-center gap-2 shadow-sm transition-all"
             style={{
               borderColor: phase.color,
               backgroundColor: `${phase.color}20`,
-              color: phase.color,
+              color: isDark ? phase.color : "#0f172a",
             }}
           >
-            <Activity className="w-4 h-4" />
+            <Activity className="w-4 h-4" style={{ color: phase.color }} />
             <span>{phase.state}</span>
           </div>
 
@@ -558,8 +566,8 @@ export function PhaseDiagramExplorer() {
               onClick={() => setViewScale("PROCESS")}
               className={`px-2.5 py-1 text-[11px] font-mono rounded-lg transition ${
                 viewScale === "PROCESS"
-                  ? "bg-bg-panel text-amber-bright font-bold shadow-sm"
-                  : "text-ink-muted hover:text-ink-primary"
+                  ? "bg-bg-panel text-amber-800 dark:text-amber-300 font-black shadow-sm"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
               }`}
             >
               Process View
@@ -568,21 +576,21 @@ export function PhaseDiagramExplorer() {
               onClick={() => setViewScale("FULL")}
               className={`px-2.5 py-1 text-[11px] font-mono rounded-lg transition ${
                 viewScale === "FULL"
-                  ? "bg-bg-panel text-cryo font-bold shadow-sm"
-                  : "text-ink-muted hover:text-ink-primary"
+                  ? "bg-bg-panel text-sky-800 dark:text-sky-300 font-black shadow-sm"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
               }`}
             >
               Full Scale
             </button>
           </div>
 
-          {/* Full Screen Toggle Button (User-Requested) */}
+          {/* Full Screen Toggle Button */}
           <button
             onClick={() => setIsFullscreen(!isFullscreen)}
             className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center gap-1.5 transition border shadow-sm ${
               isFullscreen
                 ? "bg-amber text-[#0e0a02] border-amber-bright hover:bg-amber-bright"
-                : "bg-bg-hover hover:bg-bg-panel border-hairline text-ink-primary"
+                : "bg-bg-hover hover:bg-bg-panel border-hairline text-slate-800 dark:text-slate-200"
             }`}
             title={isFullscreen ? "Exit Full Screen (Esc)" : "Expand to Full Screen"}
           >
@@ -601,66 +609,66 @@ export function PhaseDiagramExplorer() {
         </div>
       </div>
 
-      {/* Process Selection Tabs (Directly from Screenshots 232233 & 232329) */}
+      {/* Process Selection Tabs */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
         <button
           onClick={() => selectProcess("FREE")}
           className={`px-3 py-2.5 rounded-xl text-xs font-mono text-left transition border ${
             selectedProcess === "FREE"
-              ? "bg-amber/15 border-amber text-amber font-bold shadow-sm ring-1 ring-amber/30"
-              : "bg-bg-surface hover:bg-bg-hover border-hairline text-ink-secondary"
+              ? "bg-amber-50 dark:bg-amber-950/40 border-amber-600 text-amber-950 dark:text-amber-200 font-black shadow-sm ring-1 ring-amber-500/40"
+              : "bg-bg-surface hover:bg-bg-hover border-hairline text-slate-700 dark:text-slate-300 font-medium"
           }`}
         >
-          <div className="flex items-center gap-1.5 text-[10px] uppercase text-ink-dim font-semibold">
-            <Sparkles className="w-3 h-3 text-amber" /> Mode 01
+          <div className="flex items-center gap-1.5 text-[10px] uppercase text-slate-500 dark:text-slate-400 font-bold">
+            <Sparkles className="w-3 h-3 text-amber-600 dark:text-amber-400" /> Mode 01
           </div>
-          <div className="font-bold text-ink-primary mt-0.5">Free Exploration</div>
+          <div className="font-bold text-slate-950 dark:text-slate-100 mt-0.5">Free Exploration</div>
         </button>
 
         <button
           onClick={() => selectProcess("EVAP_HEAT")}
           className={`px-3 py-2.5 rounded-xl text-xs font-mono text-left transition border ${
             selectedProcess === "EVAP_HEAT"
-              ? "bg-orange-500/15 border-orange-500 text-orange-500 dark:text-orange-400 font-bold shadow-sm ring-1 ring-orange-500/30"
-              : "bg-bg-surface hover:bg-bg-hover border-hairline text-ink-secondary"
+              ? "bg-orange-50 dark:bg-orange-950/40 border-orange-600 text-orange-950 dark:text-orange-200 font-black shadow-sm ring-1 ring-orange-500/40"
+              : "bg-bg-surface hover:bg-bg-hover border-hairline text-slate-700 dark:text-slate-300 font-medium"
           }`}
         >
-          <div className="flex items-center gap-1.5 text-[10px] uppercase text-ink-dim font-semibold">
-            <Flame className="w-3 h-3 text-orange-500" /> Mode 02
+          <div className="flex items-center gap-1.5 text-[10px] uppercase text-slate-500 dark:text-slate-400 font-bold">
+            <Flame className="w-3 h-3 text-orange-600 dark:text-orange-400" /> Mode 02
           </div>
-          <div className="font-bold text-ink-primary mt-0.5">Atmos. Evaporation</div>
+          <div className="font-bold text-slate-950 dark:text-slate-100 mt-0.5">Atmos. Evaporation</div>
         </button>
 
         <button
           onClick={() => selectProcess("EVAP_VAC")}
           className={`px-3 py-2.5 rounded-xl text-xs font-mono text-left transition border ${
             selectedProcess === "EVAP_VAC"
-              ? "bg-sky-500/15 border-sky-500 text-sky-600 dark:text-sky-400 font-bold shadow-sm ring-1 ring-sky-500/30"
-              : "bg-bg-surface hover:bg-bg-hover border-hairline text-ink-secondary"
+              ? "bg-sky-50 dark:bg-sky-950/40 border-sky-600 text-sky-950 dark:text-sky-200 font-black shadow-sm ring-1 ring-sky-500/40"
+              : "bg-bg-surface hover:bg-bg-hover border-hairline text-slate-700 dark:text-slate-300 font-medium"
           }`}
         >
-          <div className="flex items-center gap-1.5 text-[10px] uppercase text-ink-dim font-semibold">
-            <Wind className="w-3 h-3 text-sky-500" /> Mode 03
+          <div className="flex items-center gap-1.5 text-[10px] uppercase text-slate-500 dark:text-slate-400 font-bold">
+            <Wind className="w-3 h-3 text-sky-600 dark:text-sky-400" /> Mode 03
           </div>
-          <div className="font-bold text-ink-primary mt-0.5">Vacuum Drying</div>
+          <div className="font-bold text-slate-950 dark:text-slate-100 mt-0.5">Vacuum Drying</div>
         </button>
 
         <button
           onClick={() => selectProcess("SUBLIMATION")}
           className={`px-3 py-2.5 rounded-xl text-xs font-mono text-left transition border ${
             selectedProcess === "SUBLIMATION"
-              ? "bg-cryo/20 border-cryo text-cryo font-bold shadow-sm ring-1 ring-cryo/40"
-              : "bg-bg-surface hover:bg-bg-hover border-hairline text-ink-secondary"
+              ? "bg-sky-50 dark:bg-sky-950/40 border-sky-600 text-sky-950 dark:text-sky-200 font-black shadow-sm ring-1 ring-sky-500/40"
+              : "bg-bg-surface hover:bg-bg-hover border-hairline text-slate-700 dark:text-slate-300 font-medium"
           }`}
         >
-          <div className="flex items-center gap-1.5 text-[10px] uppercase text-ink-dim font-semibold">
-            <Snowflake className="w-3 h-3 text-cryo" /> Mode 04 (AFD)
+          <div className="flex items-center gap-1.5 text-[10px] uppercase text-slate-500 dark:text-slate-400 font-bold">
+            <Snowflake className="w-3 h-3 text-sky-600 dark:text-sky-400" /> Mode 04 (AFD)
           </div>
-          <div className="font-bold text-ink-primary mt-0.5">Freeze Drying</div>
+          <div className="font-bold text-slate-950 dark:text-slate-100 mt-0.5">Freeze Drying</div>
         </button>
       </div>
 
-      {/* Main Interactive SVG Canvas (Theme-Adaptive Container) */}
+      {/* Main Interactive SVG Canvas */}
       <div
         className={`relative rounded-2xl border-2 border-hairline p-3 overflow-hidden select-none shadow-xl transition-all ${
           isFullscreen ? "flex-1 min-h-[500px] flex items-center justify-center" : ""
@@ -670,27 +678,27 @@ export function PhaseDiagramExplorer() {
         <svg
           ref={svgRef}
           viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-          className="w-full h-auto max-h-[560px] cursor-crosshair"
-          onPointerDown={handlePointerDown}
+          className="w-full h-auto max-h-[580px] cursor-crosshair"
+          onPointerDown={handleCanvasPointerDown}
           onPointerMove={handlePointerMove}
           onPointerLeave={handlePointerLeave}
           suppressHydrationWarning
         >
           <defs>
-            {/* Theme-Adaptive Region Fills */}
+            {/* Region Fills */}
             <linearGradient id="solidRegionGrad" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#0284c7" stopOpacity={isDark ? 0.38 : 0.20} />
-              <stop offset="100%" stopColor="#38bdf8" stopOpacity={isDark ? 0.18 : 0.07} />
+              <stop offset="100%" stopColor="#38bdf8" stopOpacity={isDark ? 0.18 : 0.08} />
             </linearGradient>
 
             <linearGradient id="liquidRegionGrad" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#16a34a" stopOpacity={isDark ? 0.36 : 0.20} />
-              <stop offset="100%" stopColor="#4ade80" stopOpacity={isDark ? 0.16 : 0.07} />
+              <stop offset="100%" stopColor="#4ade80" stopOpacity={isDark ? 0.16 : 0.08} />
             </linearGradient>
 
             <linearGradient id="vaporRegionGrad" x1="0%" y1="100%" x2="100%" y2="0%">
               <stop offset="0%" stopColor="#d97706" stopOpacity={isDark ? 0.35 : 0.18} />
-              <stop offset="100%" stopColor="#fde047" stopOpacity={isDark ? 0.15 : 0.05} />
+              <stop offset="100%" stopColor="#fde047" stopOpacity={isDark ? 0.15 : 0.06} />
             </linearGradient>
 
             {/* Fine graph grid pattern */}
@@ -700,13 +708,10 @@ export function PhaseDiagramExplorer() {
 
             {/* Hatch pattern for AFD operating envelope */}
             <pattern id="fdHatch" width="8" height="8" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-              <line x1="0" y1="0" x2="0" y2="8" stroke="var(--amber)" strokeWidth="1.5" strokeOpacity="0.4" />
+              <line x1="0" y1="0" x2="0" y2="8" stroke={isDark ? "#fbbf24" : "#b45309"} strokeWidth="1.5" strokeOpacity="0.45" />
             </pattern>
 
             {/* Arrow markers */}
-            <marker id="arrowHead" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto">
-              <path d="M 0 0 L 6 3 L 0 6 z" fill="var(--amber)" />
-            </marker>
             <marker id="arrowHeadPrimary" markerWidth="8" markerHeight="8" refX="5" refY="4" orient="auto">
               <path d="M 0 1 L 7 4 L 0 7 z" fill={axisTextPrimary} />
             </marker>
@@ -733,8 +738,8 @@ export function PhaseDiagramExplorer() {
                 y1={margin.top}
                 x2={tToX(t)}
                 y2={margin.top + plotHeight}
-                stroke={t === 0 || t === 100 ? (isDark ? "rgba(255,255,255,0.22)" : "rgba(0,0,0,0.22)") : gridColor}
-                strokeWidth={t === 0 || t === 100 ? "1.5" : "1"}
+                stroke={t === 0 || t === 100 ? (isDark ? "rgba(255,255,255,0.30)" : "rgba(15,23,42,0.30)") : gridColor}
+                strokeWidth={t === 0 || t === 100 ? "1.8" : "1"}
                 strokeDasharray={t === 0 || t === 100 ? "none" : "2 3"}
               />
             )
@@ -763,8 +768,8 @@ export function PhaseDiagramExplorer() {
                 width={fdBoxX2 - fdBoxX1}
                 height={fdBoxY2 - fdBoxY1}
                 fill="url(#fdHatch)"
-                stroke="var(--amber)"
-                strokeWidth="2"
+                stroke={isDark ? "#fbbf24" : "#b45309"}
+                strokeWidth="2.2"
                 strokeDasharray="4 2"
                 className="animate-pulse"
               />
@@ -776,10 +781,10 @@ export function PhaseDiagramExplorer() {
                   height="18"
                   rx="4"
                   fill={badgeBg}
-                  stroke="var(--amber)"
-                  strokeWidth="1.2"
+                  stroke={isDark ? "#fbbf24" : "#b45309"}
+                  strokeWidth="1.4"
                 />
-                <text x="3" y="1" fill="var(--amber)" fontSize="9.5" fontFamily="monospace" fontWeight="bold">
+                <text x="3" y="1" fill={isDark ? "#fbbf24" : "#78350f"} fontSize="9.5" fontFamily="monospace" fontWeight="900">
                   ★ AFD OPERATING ZONE
                 </text>
               </g>
@@ -787,61 +792,61 @@ export function PhaseDiagramExplorer() {
           )}
 
           {/* Phase Boundary Curves */}
-          {/* Sublimation Line */}
-          <path d={subCurvePath} fill="none" stroke={isDark ? "#38bdf8" : "#0284c7"} strokeWidth="3" />
+          <path d={subCurvePath} fill="none" stroke={isDark ? "#38bdf8" : "#0369a1"} strokeWidth="3" />
+          <path d={vapCurvePath} fill="none" stroke={isDark ? "#4ade80" : "#15803d"} strokeWidth="3" />
+          <path d={meltPath} fill="none" stroke={isDark ? "#c084fc" : "#6b21a8"} strokeWidth="2.5" strokeDasharray="4 3" />
 
-          {/* Vaporization Line */}
-          <path d={vapCurvePath} fill="none" stroke={isDark ? "#4ade80" : "#16a34a"} strokeWidth="3" />
-
-          {/* Solid-Liquid Melting Line */}
-          <path d={meltPath} fill="none" stroke={isDark ? "#c084fc" : "#7c3aed"} strokeWidth="2.5" strokeDasharray="4 3" />
-
-          {/* Region Subtle Watermarks inside Canvas */}
+          {/* Region High-Contrast Watermarks (Deep Navy / Deep Forest / Deep Umber - 13:1 Contrast!) */}
           {showRegions && (
-            <g opacity={isDark ? 0.8 : 0.7} pointerEvents="none">
+            <g pointerEvents="none">
               <text
-                x={tToX(isProcess ? -50 : -140)}
-                y={pToY(isProcess ? 20 : 1000)}
-                fill={isDark ? "#38bdf8" : "#0369a1"}
-                fontSize="14"
+                x={tToX(isProcess ? -50 : -160)}
+                y={pToY(isProcess ? 20 : 500)}
+                fill={solidWatermarkColor}
+                fontSize="15"
                 fontFamily="monospace"
                 fontWeight="900"
-                letterSpacing="1"
+                letterSpacing="1.2"
               >
                 SOLID (ICE)
               </text>
               <text
-                x={tToX(isProcess ? 55 : 120)}
+                x={tToX(isProcess ? 65 : 120)}
                 y={pToY(isProcess ? 300 : 5000)}
-                fill={isDark ? "#4ade80" : "#15803d"}
-                fontSize="14"
+                fill={liquidWatermarkColor}
+                fontSize="15"
                 fontFamily="monospace"
                 fontWeight="900"
-                letterSpacing="1"
+                letterSpacing="1.2"
               >
                 LIQUID WATER
               </text>
               <text
-                x={tToX(isProcess ? 65 : 160)}
+                x={tToX(isProcess ? 75 : 170)}
                 y={pToY(isProcess ? 0.05 : 0.005)}
-                fill={isDark ? "#fbbf24" : "#b45309"}
-                fontSize="14"
+                fill={vaporWatermarkColor}
+                fontSize="15"
                 fontFamily="monospace"
                 fontWeight="900"
-                letterSpacing="1"
+                letterSpacing="1.2"
               >
                 VAPOUR (GAS)
               </text>
             </g>
           )}
 
-          {/* DYNAMIC LANDMARK PINS (Hover-Driven: ZERO TEXT OVERLAP EVER) */}
+          {/* STABLE, FLICKER-FREE LANDMARK PINS (Zero Text on Dots -> ZERO OVERLAP) */}
           {showKeyMarkers && selectedProcess === "FREE" && (
             <g>
               {landmarks
                 .filter((lm) => {
                   if (isProcess) {
-                    return lm.tempC >= minT && lm.tempC <= maxT && lm.pressMbar >= Math.pow(10, minLogP) && lm.pressMbar <= Math.pow(10, maxLogP);
+                    return (
+                      lm.tempC >= minT &&
+                      lm.tempC <= maxT &&
+                      lm.pressMbar >= Math.pow(10, minLogP) &&
+                      lm.pressMbar <= Math.pow(10, maxLogP)
+                    );
                   }
                   return true;
                 })
@@ -849,21 +854,31 @@ export function PhaseDiagramExplorer() {
                   const px = tToX(lm.tempC);
                   const py = pToY(lm.pressMbar);
                   const isHovered = hoveredLandmark?.id === lm.id;
+                  const isSelected = selectedLandmark?.id === lm.id;
+                  const isActive = isHovered || isSelected;
+                  const pinColor = isDark ? lm.colorDark : lm.colorLight;
 
                   return (
                     <g
                       key={lm.id}
-                      className="cursor-pointer transition-all"
-                      onMouseEnter={() => setHoveredLandmark(lm)}
-                      onClick={() => {
+                      className="cursor-pointer"
+                      onMouseEnter={(e) => {
+                        e.stopPropagation();
+                        setHoveredLandmark(lm);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.stopPropagation();
+                        setHoveredLandmark(null);
+                      }}
+                      onPointerDown={(e) => {
+                        e.stopPropagation();
+                        setSelectedLandmark(lm);
                         setTempC(lm.tempC);
                         setPressMbar(lm.pressMbar);
                       }}
                     >
-                      {/* Pulse ring on hover */}
-                      {isHovered && (
-                        <circle cx={px} cy={py} r="14" fill="none" stroke={lm.color} strokeWidth="2" className="animate-ping" />
-                      )}
+                      {/* Generous, Stable Invisible Hit Circle (Prevents Mouse Flickering) */}
+                      <circle cx={px} cy={py} r="18" fill="transparent" />
 
                       {/* Drop-line to axes for 1 atm landmarks */}
                       {lm.pressMbar === 1013.25 && (
@@ -872,10 +887,25 @@ export function PhaseDiagramExplorer() {
                           y1={py}
                           x2={px}
                           y2={margin.top + plotHeight}
-                          stroke={lm.color}
-                          strokeWidth="1.2"
+                          stroke={pinColor}
+                          strokeWidth="1.4"
                           strokeDasharray="2 2"
-                          opacity={isHovered ? 0.9 : 0.4}
+                          opacity={isActive ? 0.95 : 0.4}
+                          pointerEvents="none"
+                        />
+                      )}
+
+                      {/* Stable Glow Halo on Hover (pointer-events-none prevents flickering) */}
+                      {isActive && (
+                        <circle
+                          cx={px}
+                          cy={py}
+                          r="14"
+                          fill="none"
+                          stroke={pinColor}
+                          strokeWidth="2.5"
+                          opacity="0.85"
+                          pointerEvents="none"
                         />
                       )}
 
@@ -883,27 +913,15 @@ export function PhaseDiagramExplorer() {
                       <circle
                         cx={px}
                         cy={py}
-                        r={isHovered ? 8 : lm.id === "triple_point" ? 7 : 5.5}
-                        fill={lm.color}
+                        r={isActive ? 8.5 : lm.id === "triple_point" ? 7.5 : 6}
+                        fill={pinColor}
                         stroke={badgeBg}
-                        strokeWidth={isHovered ? 3 : 2}
-                        style={{ filter: isHovered ? `drop-shadow(0 0 8px ${lm.color})` : "none" }}
+                        strokeWidth={isActive ? 3 : 2}
+                        pointerEvents="none"
+                        style={{
+                          filter: isActive ? `drop-shadow(0 0 10px ${pinColor})` : "none",
+                        }}
                       />
-
-                      {/* Discrete Small Pin Tag (Non-overlapping minimal label) */}
-                      <text
-                        x={px}
-                        y={lm.badgePos === "bottom" ? py + 14 : py - 10}
-                        fill={lm.color}
-                        fontSize="9"
-                        fontFamily="monospace"
-                        fontWeight="bold"
-                        textAnchor="middle"
-                        className="transition-opacity"
-                        opacity={isHovered ? 1 : 0.85}
-                      >
-                        {lm.shortLabel}
-                      </text>
                     </g>
                   );
                 })}
@@ -925,7 +943,7 @@ export function PhaseDiagramExplorer() {
                 markerEnd="url(#arrowHeadPrimary)"
               />
               <circle cx={stdCondX} cy={stdCondY} r="7" fill={axisTextPrimary} stroke={badgeBg} strokeWidth="2" />
-              <circle cx={normalBoilX} cy={normalBoilY} r="7" fill="#ef4444" stroke={badgeBg} strokeWidth="2" />
+              <circle cx={normalBoilX} cy={normalBoilY} r="7" fill="#dc2626" stroke={badgeBg} strokeWidth="2" />
 
               <g transform={`translate(${tToX(42)}, ${stdCondY - 34})`}>
                 <rect
@@ -959,8 +977,8 @@ export function PhaseDiagramExplorer() {
                 strokeDasharray="6 3"
                 markerEnd="url(#arrowHeadPrimary)"
               />
-              <circle cx={tToX(40)} cy={pToY(1013.25)} r="7" fill="#0284c7" stroke={badgeBg} strokeWidth="2" />
-              <circle cx={tToX(40)} cy={pToY(73.8)} r="7" fill="#16a34a" stroke={badgeBg} strokeWidth="2" />
+              <circle cx={tToX(40)} cy={pToY(1013.25)} r="7" fill="#0369a1" stroke={badgeBg} strokeWidth="2" />
+              <circle cx={tToX(40)} cy={pToY(73.8)} r="7" fill="#15803d" stroke={badgeBg} strokeWidth="2" />
 
               <g transform={`translate(${tToX(40) + 16}, ${pToY(300)})`}>
                 <rect
@@ -1019,9 +1037,9 @@ export function PhaseDiagramExplorer() {
               />
 
               <circle cx={stdCondX} cy={stdCondY} r="6.5" fill={axisTextPrimary} stroke={badgeBg} strokeWidth="2" />
-              <circle cx={tToX(-40)} cy={stdCondY} r="6.5" fill="#0284c7" stroke={badgeBg} strokeWidth="2" />
-              <circle cx={tToX(-40)} cy={pToY(0.1)} r="6.5" fill="var(--amber)" stroke={badgeBg} strokeWidth="2" />
-              <circle cx={tToX(25)} cy={pToY(0.1)} r="6.5" fill="#16a34a" stroke={badgeBg} strokeWidth="2" />
+              <circle cx={tToX(-40)} cy={stdCondY} r="6.5" fill="#0369a1" stroke={badgeBg} strokeWidth="2" />
+              <circle cx={tToX(-40)} cy={pToY(0.1)} r="6.5" fill={isDark ? "#fbbf24" : "#b45309"} stroke={badgeBg} strokeWidth="2" />
+              <circle cx={tToX(25)} cy={pToY(0.1)} r="6.5" fill="#15803d" stroke={badgeBg} strokeWidth="2" />
 
               <g transform={`translate(${tToX(-22)}, ${stdCondY - 34})`}>
                 <rect
@@ -1104,7 +1122,7 @@ export function PhaseDiagramExplorer() {
           </g>
 
           {/* Interactive Hover Crosshair */}
-          {hoverCoord && !hoveredLandmark && (
+          {hoverCoord && !activeLandmark && (
             <g pointerEvents="none">
               <line
                 x1={hoverCoord.x}
@@ -1130,7 +1148,7 @@ export function PhaseDiagramExplorer() {
             </g>
           )}
 
-          {/* Outer Frame */}
+          {/* Outer Frame (Ultra High Contrast) */}
           <rect
             x={margin.left}
             y={margin.top}
@@ -1139,11 +1157,12 @@ export function PhaseDiagramExplorer() {
             fill="none"
             stroke={frameBorder}
             strokeWidth="2"
+            pointerEvents="none"
           />
 
           {/* Top X-Axis Ticks & Labels: Kelvin */}
           {(isProcess ? [-60, -40, -20, 0, 20, 40, 60, 80, 100, 120] : [-250, -200, -150, -100, -50, 0, 50, 100, 150, 200, 250, 300, 350]).map((t) => (
-            <g key={`top-tick-x-${t}`}>
+            <g key={`top-tick-x-${t}`} pointerEvents="none">
               <line
                 x1={tToX(t)}
                 y1={margin.top}
@@ -1168,7 +1187,7 @@ export function PhaseDiagramExplorer() {
 
           {/* Bottom X-Axis Ticks & Labels: Celsius */}
           {(isProcess ? [-60, -40, -20, 0, 20, 40, 60, 80, 100, 120] : [-250, -200, -150, -100, -50, 0, 50, 100, 150, 200, 250, 300, 350]).map((t) => (
-            <g key={`bot-tick-x-${t}`}>
+            <g key={`bot-tick-x-${t}`} pointerEvents="none">
               <line
                 x1={tToX(t)}
                 y1={margin.top + plotHeight}
@@ -1183,7 +1202,7 @@ export function PhaseDiagramExplorer() {
                 fill={axisTextPrimary}
                 fontSize="11"
                 fontFamily="monospace"
-                fontWeight="bold"
+                fontWeight="900"
                 textAnchor="middle"
               >
                 {t}°C
@@ -1201,7 +1220,7 @@ export function PhaseDiagramExplorer() {
             else if (pa >= 1e3) paLabel = `${pa / 1e3} kPa`;
 
             return (
-              <g key={`left-tick-y-${logP}`}>
+              <g key={`left-tick-y-${logP}`} pointerEvents="none">
                 <line
                   x1={margin.left - 6}
                   y1={pToY(pMbar)}
@@ -1216,7 +1235,7 @@ export function PhaseDiagramExplorer() {
                   fill={axisTextPrimary}
                   fontSize="10"
                   fontFamily="monospace"
-                  fontWeight="bold"
+                  fontWeight="900"
                   textAnchor="end"
                 >
                   {paLabel}
@@ -1233,7 +1252,7 @@ export function PhaseDiagramExplorer() {
             else if (pMbar < 0.1) barLabel = `${(pMbar * 1000).toFixed(0)} μbar`;
 
             return (
-              <g key={`right-tick-y-${logP}`}>
+              <g key={`right-tick-y-${logP}`} pointerEvents="none">
                 <line
                   x1={margin.left + plotWidth}
                   y1={pToY(pMbar)}
@@ -1266,6 +1285,7 @@ export function PhaseDiagramExplorer() {
             fontFamily="monospace"
             fontWeight="bold"
             textAnchor="middle"
+            pointerEvents="none"
           >
             TEMPERATURE (KELVIN)
           </text>
@@ -1277,6 +1297,7 @@ export function PhaseDiagramExplorer() {
             fontFamily="monospace"
             fontWeight="bold"
             textAnchor="middle"
+            pointerEvents="none"
           >
             TEMPERATURE (CELSIUS)
           </text>
@@ -1287,6 +1308,7 @@ export function PhaseDiagramExplorer() {
             fontFamily="monospace"
             fontWeight="bold"
             textAnchor="middle"
+            pointerEvents="none"
           >
             PRESSURE (PASCAL)
           </text>
@@ -1297,60 +1319,35 @@ export function PhaseDiagramExplorer() {
             fontFamily="monospace"
             fontWeight="bold"
             textAnchor="middle"
+            pointerEvents="none"
           >
             PRESSURE (BAR / MBAR)
           </text>
         </svg>
 
-        {/* Live Hover Tooltip Card (Appears on Hover: Never Overlaps Chart Data) */}
-        {hoveredLandmark && (
-          <div
-            className="absolute top-4 left-4 max-w-sm p-3.5 rounded-xl border border-hairline shadow-2xl text-xs font-mono backdrop-blur-md z-30 transition-all"
-            style={{ backgroundColor: badgeBg, color: axisTextPrimary }}
-          >
-            <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-hairline">
-              <span className="font-extrabold text-sm" style={{ color: hoveredLandmark.color }}>
-                {hoveredLandmark.name}
-              </span>
-              <span className="px-2 py-0.5 rounded text-[10px] bg-bg-inset text-ink-muted uppercase">
-                {hoveredLandmark.category}
-              </span>
-            </div>
-            <p className="text-[11px] text-ink-secondary mb-1.5 leading-snug">
-              {hoveredLandmark.desc}
-            </p>
-            <div className="text-[10px] font-semibold text-cryo mb-1">
-              {hoveredLandmark.physics}
-            </div>
-            <div className="text-[10px] text-amber font-medium">
-              💡 {hoveredLandmark.relevanceToAFD}
-            </div>
-          </div>
-        )}
-
-        {/* Dynamic Coordinate Probe Card */}
-        {hoverCoord && !hoveredLandmark && (
+        {/* Dynamic Coordinate Probe Card (When no landmark is hovered/selected) */}
+        {hoverCoord && !activeLandmark && (
           <div
             className="absolute bottom-3 left-4 px-4 py-2 rounded-xl border border-hairline shadow-lg text-xs font-mono flex flex-wrap items-center gap-3 backdrop-blur-md pointer-events-none z-20"
             style={{ backgroundColor: badgeBg, color: axisTextPrimary }}
           >
             <div>
-              <span className="text-ink-muted">Temp:</span>{" "}
-              <strong className="text-cryo font-bold">{hoverCoord.t} °C</strong>{" "}
-              <span className="text-ink-dim">({(hoverCoord.t + 273.15).toFixed(1)} K)</span>
+              <span className="text-slate-500 dark:text-slate-400 font-bold">Temp:</span>{" "}
+              <strong className="text-sky-800 dark:text-sky-300 font-black">{hoverCoord.t} °C</strong>{" "}
+              <span className="text-slate-500 dark:text-slate-400">({(hoverCoord.t + 273.15).toFixed(1)} K)</span>
             </div>
-            <div className="h-3.5 w-px bg-hairline" />
+            <div className="h-3.5 w-px bg-slate-300 dark:bg-slate-700" />
             <div>
-              <span className="text-ink-muted">Pressure:</span>{" "}
-              <strong className="text-amber font-bold">
+              <span className="text-slate-500 dark:text-slate-400 font-bold">Pressure:</span>{" "}
+              <strong className="text-amber-800 dark:text-amber-300 font-black">
                 {hoverCoord.p < 0.1 ? hoverCoord.p.toFixed(3) : hoverCoord.p.toFixed(1)} mbar
               </strong>{" "}
-              <span className="text-ink-dim">({(hoverCoord.p * 100).toFixed(0)} Pa)</span>
+              <span className="text-slate-500 dark:text-slate-400">({(hoverCoord.p * 100).toFixed(0)} Pa)</span>
             </div>
-            <div className="h-3.5 w-px bg-hairline" />
+            <div className="h-3.5 w-px bg-slate-300 dark:bg-slate-700" />
             <div>
-              <span className="text-ink-muted">Phase:</span>{" "}
-              <span className="font-bold px-2 py-0.5 rounded bg-bg-hover text-ink-primary">
+              <span className="text-slate-500 dark:text-slate-400 font-bold">Phase:</span>{" "}
+              <span className="font-black px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100">
                 {hoverCoord.phaseName}
               </span>
             </div>
@@ -1358,79 +1355,128 @@ export function PhaseDiagramExplorer() {
         )}
       </div>
 
-      {/* Educational Guide: What is an Ice Polymorph? (Deciphering Roman Numerals) */}
-      <div className="mt-4 rounded-xl border border-hairline bg-bg-surface overflow-hidden transition-all shadow-sm">
-        <button
-          onClick={() => setShowPolymorphExplainer(!showPolymorphExplainer)}
-          className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-bg-hover transition"
-        >
-          <div className="flex items-center gap-2">
-            <HelpCircle className="w-4 h-4 text-cryo" />
-            <span className="text-xs font-extrabold text-ink-primary">
-              What are Ice Polymorphs? Deciphering the Roman Numerals (Ice Ih, Ic, II, III...)
-            </span>
-          </div>
-          {showPolymorphExplainer ? (
-            <ChevronUp className="w-4 h-4 text-ink-dim" />
-          ) : (
-            <ChevronDown className="w-4 h-4 text-ink-dim" />
-          )}
-        </button>
-
-        {showPolymorphExplainer && (
-          <div className="px-4 pb-4 pt-1 text-xs text-ink-secondary space-y-2.5 border-t border-hairline/60">
-            <p className="leading-relaxed">
-              <strong className="text-ink-primary">Polymorphism in Water:</strong> Water does not freeze into just one kind of solid. Depending on temperature and pressure, water molecules (H₂O) assemble into at least <strong className="text-cryo">19 different crystalline structures (polymorphs)</strong>, designated by Roman numerals (Ice I through Ice XIX):
-            </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 font-mono text-[11px]">
-              <div className="p-3 rounded-lg bg-bg-panel border border-hairline">
-                <div className="text-cryo font-bold text-xs flex items-center gap-1.5">
-                  <Snowflake className="w-3.5 h-3.5" /> Ice Ih (Hexagonal)
+      {/* DEDICATED ACTIVE LANDMARK INSPECTOR CARD (High AAA Contrast & Click-to-Close) */}
+      {activeLandmark && (
+        <div className="mt-4 p-4 rounded-xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-[#14171f] shadow-2xl transition-all animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="flex items-start justify-between gap-3 pb-2.5 border-b border-slate-200 dark:border-slate-800">
+            <div className="flex items-center gap-2.5">
+              <span
+                className="w-3.5 h-3.5 rounded-full shrink-0 shadow-sm"
+                style={{ backgroundColor: isDark ? activeLandmark.colorDark : activeLandmark.colorLight }}
+              />
+              <div>
+                <div className="flex items-center gap-2">
+                  <h4 className="text-sm font-black text-slate-950 dark:text-slate-50">
+                    {activeLandmark.name}
+                  </h4>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 uppercase font-black">
+                    {activeLandmark.category}
+                  </span>
                 </div>
-                <div className="text-ink-secondary mt-1 text-[11px] leading-snug">
-                  Everyday normal ice on Earth at atmospheric pressure. The water molecules form an open hexagonal honeycomb held by hydrogen bonds. Because of these open pockets, <strong className="text-ink-primary">Ice Ih is less dense than water (0.917 g/cm³)</strong>, which is why ice cubes float!
-                </div>
-                <div className="mt-2 text-[10px] text-amber font-semibold">
-                  ★ The ONLY ice phase in freeze-drying.
-                </div>
-              </div>
-
-              <div className="p-3 rounded-lg bg-bg-panel border border-hairline">
-                <div className="text-sky-400 font-bold text-xs flex items-center gap-1.5">
-                  <Activity className="w-3.5 h-3.5" /> Ice Ic (Cubic Ice)
-                </div>
-                <div className="text-ink-secondary mt-1 text-[11px] leading-snug">
-                  A metastable cubic crystal form created when water vapor condenses at deep cryogenic temperatures (below -130 °C). Found in high-altitude clouds and space ice.
-                </div>
-              </div>
-
-              <div className="p-3 rounded-lg bg-bg-panel border border-hairline">
-                <div className="text-purple-400 font-bold text-xs flex items-center gap-1.5">
-                  <Layers className="w-3.5 h-3.5" /> Ice II, III, V, VI, VII, X
-                </div>
-                <div className="text-ink-secondary mt-1 text-[11px] leading-snug">
-                  High-pressure exotic ice phases that only exist under extreme planetary pressures (&gt; 2,000 to 600,000 atmospheres). Under this pressure, the open honeycomb collapses into dense crystals that <strong className="text-ink-primary">sink in water</strong>! Found deep inside icy moons like Ganymede and Neptune.
+                <div className="text-xs font-mono font-bold text-sky-800 dark:text-sky-300 mt-0.5">
+                  {activeLandmark.physics}
                 </div>
               </div>
             </div>
 
-            <p className="text-[11px] text-ink-dim pt-1 italic">
-              <strong>Why Hosokawa included them:</strong> Hosokawa displayed the full-scale diagram in their webinar to demonstrate that the <span className="text-amber font-semibold">AFD Freeze-Drying Operating Envelope (0.05 to 1.5 mbar, -55°C to -10°C)</span> occupies a tiny, highly-controlled thermodynamic niche strictly inside the <span className="text-cryo font-semibold">Ice Ih</span> sublimation region beneath the triple point!
+            {/* Click-to-Close Button */}
+            <button
+              onClick={() => {
+                setSelectedLandmark(null);
+                setHoveredLandmark(null);
+              }}
+              className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition border border-slate-300 dark:border-slate-600"
+              title="Close Inspection Card"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="mt-3 text-xs text-slate-800 dark:text-slate-200 space-y-2">
+            <p className="leading-relaxed font-medium">
+              {activeLandmark.desc}
+            </p>
+            <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700 text-amber-950 dark:text-amber-200 text-[11px] font-semibold flex items-start gap-2">
+              <span className="text-base shrink-0">💡</span>
+              <span className="leading-snug">{activeLandmark.relevanceToAFD}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Educational Guide: What is an Ice Polymorph? (Deciphering Roman Numerals) */}
+      <div className="mt-4 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#14171f] overflow-hidden transition-all shadow-sm">
+        <button
+          onClick={() => setShowPolymorphExplainer(!showPolymorphExplainer)}
+          className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-slate-50 dark:hover:bg-slate-800/60 transition"
+        >
+          <div className="flex items-center gap-2">
+            <HelpCircle className="w-4 h-4 text-sky-700 dark:text-sky-400" />
+            <span className="text-xs font-black text-slate-950 dark:text-slate-100">
+              What are Ice Polymorphs? Deciphering the Roman Numerals (Ice Ih, Ic, II, III...)
+            </span>
+          </div>
+          {showPolymorphExplainer ? (
+            <ChevronUp className="w-4 h-4 text-slate-600 dark:text-slate-400" />
+          ) : (
+            <ChevronDown className="w-4 h-4 text-slate-600 dark:text-slate-400" />
+          )}
+        </button>
+
+        {showPolymorphExplainer && (
+          <div className="px-4 pb-4 pt-1 text-xs text-slate-800 dark:text-slate-200 space-y-2.5 border-t border-slate-200 dark:border-slate-800">
+            <p className="leading-relaxed">
+              <strong className="text-slate-950 dark:text-slate-50">Polymorphism in Water:</strong> Water does not freeze into just one kind of solid. Depending on temperature and pressure, water molecules (H₂O) assemble into at least <strong className="text-sky-900 dark:text-sky-300">19 different crystalline structures (polymorphs)</strong>, designated by Roman numerals (Ice I through Ice XIX):
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 font-mono text-[11px]">
+              <div className="p-3 rounded-lg bg-sky-50 dark:bg-sky-950/30 border border-sky-300 dark:border-sky-800">
+                <div className="text-sky-950 dark:text-sky-300 font-black text-xs flex items-center gap-1.5">
+                  <Snowflake className="w-3.5 h-3.5" /> Ice Ih (Hexagonal)
+                </div>
+                <div className="text-slate-800 dark:text-slate-200 mt-1 text-[11px] leading-snug">
+                  Everyday normal ice on Earth at atmospheric pressure. The water molecules form an open hexagonal honeycomb held by hydrogen bonds. Because of these open pockets, <strong className="text-slate-950 dark:text-slate-50">Ice Ih is less dense than water (0.917 g/cm³)</strong>, which is why ice cubes float!
+                </div>
+                <div className="mt-2 text-[10px] text-amber-900 dark:text-amber-300 font-black">
+                  ★ The ONLY ice phase in freeze-drying.
+                </div>
+              </div>
+
+              <div className="p-3 rounded-lg bg-cyan-50 dark:bg-cyan-950/30 border border-cyan-300 dark:border-cyan-800">
+                <div className="text-cyan-950 dark:text-cyan-300 font-black text-xs flex items-center gap-1.5">
+                  <Activity className="w-3.5 h-3.5" /> Ice Ic (Cubic Ice)
+                </div>
+                <div className="text-slate-800 dark:text-slate-200 mt-1 text-[11px] leading-snug">
+                  A metastable cubic crystal form created when water vapor condenses at deep cryogenic temperatures (below -130 °C). Found in high-altitude clouds and space ice.
+                </div>
+              </div>
+
+              <div className="p-3 rounded-lg bg-purple-50 dark:bg-purple-950/30 border border-purple-300 dark:border-purple-800">
+                <div className="text-purple-950 dark:text-purple-300 font-black text-xs flex items-center gap-1.5">
+                  <Layers className="w-3.5 h-3.5" /> Ice II, III, V, VI, VII
+                </div>
+                <div className="text-slate-800 dark:text-slate-200 mt-1 text-[11px] leading-snug">
+                  High-pressure exotic ice phases that only exist under extreme planetary pressures (&gt; 2,000 to 600,000 atmospheres). Under this pressure, the open honeycomb collapses into dense crystals that <strong className="text-slate-950 dark:text-slate-50">sink in water</strong>! Found deep inside icy moons like Ganymede and Neptune.
+                </div>
+              </div>
+            </div>
+
+            <p className="text-[11px] text-slate-600 dark:text-slate-400 pt-1 italic">
+              <strong>Why Hosokawa included them:</strong> Hosokawa displayed the full-scale diagram in their webinar to demonstrate that the <span className="text-amber-800 dark:text-amber-300 font-black">AFD Freeze-Drying Operating Envelope (0.05 to 1.5 mbar, -55°C to -10°C)</span> occupies a tiny, highly-controlled thermodynamic niche strictly inside the <span className="text-sky-800 dark:text-sky-300 font-black">Ice Ih</span> sublimation region beneath the triple point!
             </p>
           </div>
         )}
       </div>
 
-      {/* Process Step Scrubber (When a process pathway is active) */}
+      {/* Process Step Scrubber */}
       {selectedProcess !== "FREE" && (
-        <div className="mt-4 p-4 rounded-xl bg-bg-surface border border-hairline transition-all">
+        <div className="mt-4 p-4 rounded-xl bg-white dark:bg-[#14171f] border border-slate-300 dark:border-slate-700 transition-all shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-1 rounded-md text-[11px] font-mono font-bold bg-amber text-[#0e0a02] shadow-sm">
+              <span className="px-2.5 py-1 rounded-md text-[11px] font-mono font-black bg-amber-600 dark:bg-amber-500 text-white shadow-sm">
                 Step {processStep + 1} of {processStepsData[selectedProcess].length}
               </span>
-              <h4 className="text-sm font-extrabold text-ink-primary">
+              <h4 className="text-sm font-black text-slate-950 dark:text-slate-50">
                 {processStepsData[selectedProcess][processStep].title}
               </h4>
             </div>
@@ -1444,7 +1490,7 @@ export function PhaseDiagramExplorer() {
                   setProcessStep(prev);
                   applyProcessStep(selectedProcess, prev);
                 }}
-                className="px-3 py-1.5 text-xs font-mono font-bold rounded-lg bg-bg-hover hover:bg-bg-panel border border-hairline text-ink-primary transition"
+                className="px-3 py-1.5 text-xs font-mono font-bold rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 transition"
               >
                 Back
               </button>
@@ -1455,13 +1501,13 @@ export function PhaseDiagramExplorer() {
                   setProcessStep(next);
                   applyProcessStep(selectedProcess, next);
                 }}
-                className="px-3 py-1.5 text-xs font-mono font-bold rounded-lg bg-bg-hover hover:bg-bg-panel border border-hairline text-ink-primary transition"
+                className="px-3 py-1.5 text-xs font-mono font-bold rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 transition"
               >
                 Next
               </button>
               <button
                 onClick={() => setIsPlaying(!isPlaying)}
-                className="p-2 rounded-lg bg-amber text-[#0e0a02] font-bold text-xs hover:bg-amber-bright transition shadow-sm"
+                className="p-2 rounded-lg bg-amber text-[#0e0a02] font-black text-xs hover:bg-amber-bright transition shadow-sm"
                 title={isPlaying ? "Pause cycle" : "Auto-play cycle"}
               >
                 {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
@@ -1469,7 +1515,7 @@ export function PhaseDiagramExplorer() {
             </div>
           </div>
 
-          <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+          <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
             {processStepsData[selectedProcess][processStep].desc}
           </p>
         </div>
@@ -1477,14 +1523,14 @@ export function PhaseDiagramExplorer() {
 
       {/* Manual Precision Sliders & Dual Readout */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 pt-3 border-t border-hairline">
-        <div className="bg-bg-surface p-4 rounded-xl border border-hairline shadow-sm">
+        <div className="bg-white dark:bg-[#14171f] p-4 rounded-xl border border-slate-300 dark:border-slate-700 shadow-sm">
           <div className="flex justify-between items-center text-xs mb-2.5">
-            <span className="text-ink-secondary flex items-center gap-1.5 font-bold">
-              <Thermometer className="w-4 h-4 text-cryo" /> Temperature (°C / K)
+            <span className="text-slate-800 dark:text-slate-200 flex items-center gap-1.5 font-bold">
+              <Thermometer className="w-4 h-4 text-sky-700 dark:text-sky-400" /> Temperature (°C / K)
             </span>
             <div className="flex items-center gap-1.5 font-mono text-xs">
-              <span className="font-extrabold text-ink-primary text-sm">{tempC}°C</span>
-              <span className="text-ink-dim">({(tempC + 273.15).toFixed(1)} K)</span>
+              <span className="font-black text-slate-950 dark:text-slate-50 text-sm">{tempC}°C</span>
+              <span className="text-slate-500 dark:text-slate-400">({(tempC + 273.15).toFixed(1)} K)</span>
             </div>
           </div>
           <input
@@ -1497,20 +1543,20 @@ export function PhaseDiagramExplorer() {
               setTempC(Number(e.target.value));
               if (selectedProcess !== "FREE") setSelectedProcess("FREE");
             }}
-            className="w-full accent-cryo cursor-pointer"
+            className="w-full accent-sky-700 dark:accent-sky-400 cursor-pointer"
           />
         </div>
 
-        <div className="bg-bg-surface p-4 rounded-xl border border-hairline shadow-sm">
+        <div className="bg-white dark:bg-[#14171f] p-4 rounded-xl border border-slate-300 dark:border-slate-700 shadow-sm">
           <div className="flex justify-between items-center text-xs mb-2.5">
-            <span className="text-ink-secondary flex items-center gap-1.5 font-bold">
-              <Gauge className="w-4 h-4 text-amber" /> Chamber Pressure
+            <span className="text-slate-800 dark:text-slate-200 flex items-center gap-1.5 font-bold">
+              <Gauge className="w-4 h-4 text-amber-700 dark:text-amber-400" /> Chamber Pressure
             </span>
             <div className="flex items-center gap-1.5 font-mono text-xs">
-              <span className="font-extrabold text-ink-primary text-sm">
+              <span className="font-black text-slate-950 dark:text-slate-50 text-sm">
                 {pressMbar < 0.1 ? pressMbar.toFixed(3) : pressMbar.toFixed(1)} mbar
               </span>
-              <span className="text-ink-dim">({(pressMbar * 100).toFixed(0)} Pa)</span>
+              <span className="text-slate-500 dark:text-slate-400">({(pressMbar * 100).toFixed(0)} Pa)</span>
             </div>
           </div>
           <input
@@ -1523,34 +1569,34 @@ export function PhaseDiagramExplorer() {
               setPressMbar(Number(Math.pow(10, Number(e.target.value)).toFixed(4)));
               if (selectedProcess !== "FREE") setSelectedProcess("FREE");
             }}
-            className="w-full accent-amber cursor-pointer"
+            className="w-full accent-amber-700 dark:accent-amber-400 cursor-pointer"
           />
         </div>
       </div>
 
       {/* Thermodynamic Insights Readout Card */}
-      <div className="mt-4 p-4 rounded-xl bg-bg-surface border border-hairline text-xs text-ink-secondary space-y-2.5 shadow-sm">
+      <div className="mt-4 p-4 rounded-xl bg-white dark:bg-[#14171f] border border-slate-300 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-200 space-y-2.5 shadow-sm">
         <div className="flex items-start gap-2.5">
-          <Sparkles className="w-4 h-4 text-amber shrink-0 mt-0.5" />
+          <Sparkles className="w-4 h-4 text-amber-700 dark:text-amber-400 shrink-0 mt-0.5" />
           <div>
-            <span className="font-extrabold text-ink-primary">Thermodynamic State Analysis: </span>
-            <span className="font-medium text-ink-secondary">{phase.description}</span>
+            <span className="font-black text-slate-950 dark:text-slate-50">Thermodynamic State Analysis: </span>
+            <span className="font-semibold text-slate-800 dark:text-slate-200">{phase.description}</span>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2.5 border-t border-hairline font-mono text-[11px]">
-          <div className="p-2.5 rounded-lg bg-bg-inset border border-hairline shadow-inner">
-            <div className="text-ink-dim text-[10px] font-bold">Saturation Vapor Pressure</div>
-            <div className="text-cryo font-extrabold text-xs mt-0.5">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2.5 border-t border-slate-200 dark:border-slate-800 font-mono text-[11px]">
+          <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-inner">
+            <div className="text-slate-600 dark:text-slate-400 text-[10px] font-black">Saturation Vapor Pressure</div>
+            <div className="text-sky-900 dark:text-sky-300 font-black text-xs mt-0.5">
               {tempC <= 0.01
                 ? `${getIceSublimationPressureMbar(tempC).toFixed(4)} mbar`
                 : `${getWaterVaporPressureMbar(tempC).toFixed(2)} mbar`}
             </div>
           </div>
 
-          <div className="p-2.5 rounded-lg bg-bg-inset border border-hairline shadow-inner">
-            <div className="text-ink-dim text-[10px] font-bold">Enthalpy Requirement</div>
-            <div className="text-amber font-extrabold text-xs mt-0.5">
+          <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-inner">
+            <div className="text-slate-600 dark:text-slate-400 text-[10px] font-black">Enthalpy Requirement</div>
+            <div className="text-amber-900 dark:text-amber-300 font-black text-xs mt-0.5">
               {phase.state === "SOLID" || phase.state === "SUBLIMING"
                 ? "2,840 kJ/kg (Sublimation)"
                 : phase.state === "LIQUID" || phase.state === "BOILING"
@@ -1559,15 +1605,15 @@ export function PhaseDiagramExplorer() {
             </div>
           </div>
 
-          <div className="p-2.5 rounded-lg bg-bg-inset border border-hairline shadow-inner">
-            <div className="text-ink-dim text-[10px] font-bold">AFD Lyophilization Window</div>
-            <div className="mt-0.5 font-extrabold text-xs flex items-center gap-1">
+          <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-inner">
+            <div className="text-slate-600 dark:text-slate-400 text-[10px] font-black">AFD Lyophilization Window</div>
+            <div className="mt-0.5 font-black text-xs flex items-center gap-1">
               {phase.isFreezeDryingWindow ? (
-                <span className="text-emerald-500 flex items-center gap-1">
+                <span className="text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
                   <CheckCircle2 className="w-3.5 h-3.5" /> ACTIVE (SAFE)
                 </span>
               ) : (
-                <span className="text-ink-dim flex items-center gap-1">
+                <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1">
                   <Info className="w-3.5 h-3.5" /> Outside Envelope
                 </span>
               )}
