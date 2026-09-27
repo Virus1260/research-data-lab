@@ -231,16 +231,29 @@ export default async function LabPage({ params }: { params: Promise<{ project: s
               </Link>
 
               <Link
-                href={`/${project.slug}/lab`}
+                href={`/${project.slug}/02-physics-and-thermodynamics`}
                 className="p-3 rounded-xl bg-bg-inset border border-hairline hover:border-cryo/30 transition flex items-center justify-between group"
               >
                 <div>
                   <div className="text-xs font-bold text-ink-primary group-hover:text-cryo transition">
-                    Phase Diagram Plotter &amp; Lab
+                    Phase Diagram &amp; Thermodynamics Lab
                   </div>
                   <div className="text-[10px] text-ink-dim font-mono">Interactive Clausius–Clapeyron curves</div>
                 </div>
                 <ChevronRight className="w-4 h-4 text-ink-dim group-hover:text-cryo transition" />
+              </Link>
+
+              <Link
+                href={`/${project.slug}/webinar`}
+                className="p-3 rounded-xl bg-bg-inset border border-hairline hover:border-amber/30 transition flex items-center justify-between group"
+              >
+                <div>
+                  <div className="text-xs font-bold text-ink-primary group-hover:text-amber transition">
+                    Hosokawa Webinars &amp; PPT Portal
+                  </div>
+                  <div className="text-[10px] text-ink-dim font-mono">78 Canonical Slides • 0 Duplicates</div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-ink-dim group-hover:text-amber transition" />
               </Link>
 
               <Link

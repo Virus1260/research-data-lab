@@ -10,25 +10,31 @@ simulators: []
 
 # 08 — Instrumentation, Controls, Electrical, Structural Frame & Piping
 
-## 1. Instrumentation
+## 1. Process Instrumentation Architecture
 
-| Measurement | Typical sensor | Notes |
+| Measurement | Primary Sensor & Loop Tag | Functional Principle & Operating Metric |
 |---|---|---|
-| Chamber/vessel pressure | Capacitance manometer (primary/control) + Pirani gauge (secondary/diagnostic) | See file 06 §3b — the pair enables end-of-primary-drying detection via comparative pressure measurement |
-| Condenser/collector pressure | Same pair, mirrored | Best practice per 2017 AAPS PharmSciTech industry consensus paper: instrument both chamber and condenser sides |
-| Jacket fluid temperature (supply & return) | RTD (PT100) | Feeds TCU's PID control loop |
-| Product temperature | RTD or thermocouple probe(s) into the product mass | On an agitated bed this is harder to place reliably than a static-shelf vial probe — probe location/mounting is a genuine design problem worth prototyping early |
-| Agitator drive | Torque and/or motor current monitoring | Rising torque during freezing indicates the mass solidifying; useful as an in-process indicator even without a formal spec |
-| Level / fill | Sight glass (visual) at minimum; capacitance or load-cell based level sensing for automation | Sight glass is explicitly in Hosokawa's own patent drawing (file 05 §2) |
-| Filter differential pressure | Differential pressure transmitter across the material collector's filter | Rising ΔP indicates the filter is loading with dust — the trigger for a blowback/purge pulse |
-| Steam temperature (if SIP) | RTD at multiple distribution points | Required for SIP validation — see file 14 |
+| **Chamber Absolute Pressure** | Capacitance Manometer (`PIT-101A`) | Diaphragm deflection measuring true mechanical pressure ($0.01 - 10\text{ mbar}$) independently of gas composition. Drives vacuum throttle valve `PV-102`. |
+| **Comparative Diagnostic Pressure** | Pirani Thermal Gauge (`PIT-101B`) | Heated filament gauge; reads ~1.6× higher when pure water vapor dominates. Convergence of `PIT-101B` with `PIT-101A` detects sublimation completion. |
+| **Condenser Pressure** | Capacitance + Pirani Pair (`PIT-201A/B`) | Monitors condenser vapor load and ice accumulation; enables chamber-to-condenser pressure delta monitoring. |
+| **Jacket Supply & Return Temperature** | 4-Wire Pt100 RTDs (`TT-201`, `TT-202`) | Feeds TCU temperature control loop (`TIC-201`) modulating thermal fluid mixing across $-60^\circ\text{C}\text{ to }+80^\circ\text{C}$. |
+| **Dynamic Bed Temperature** | Fast-Response Thermocouple Rake (`TT-101`) | Measures core bed temperature; interlocked to ensure product stays below collapse temperature ($T_{\text{bed}} < T_c$). |
+| **Heated Top Dome Temperature** | Pt100 RTD (`TT-102`) | Feeds dome heater loop (`TIC-102`), maintaining dome wall at **+40 °C** to prevent water vapor condensation and filter cake blinding. |
+| **Agitator Kinematic Feedback** | Torque Transducer / Current (`JIT-101`) | Monitors 10:1 auger drive torque; rising torque indicates slurry crystallization during vacuum flash freezing. |
+| **Filter Differential Pressure** | Differential Transmitter (`PDT-102`) | Monitors pressure drop across porous filter media ($\Delta P \ge 50\text{ mbar}$ triggers reverse N₂ blowback `XV-104`). |
+| **WIP/CIP Cover Ring Pressure & Flow** | Sanitary Transmitter (`PIT-701`, `FT-701`) | Confirms 6.0 bar @ 9.0 m³/hr to the 5 fixed spray nozzles (115 mm pitch) over the orbital drive head per Hosokawa Drawing `8390105_1`. |
+| **WIP/CIP Wall Wash Pressure** | Sanitary Transmitter (`PIT-702`) | Confirms 3.0 bar wash water supply to downward-angled cone wall wetting nozzles per Hosokawa Drawing `8390106_1`. |
+| **SIP Sterilization Temperature** | Multi-Point RTD Sensors (`TT-501` to `TT-506`) | Cold spot monitoring during $121.1^\circ\text{C}$ steam sterilization (vessel bottom, discharge valve, and filter exhaust). |
 
-## 2. Valves
+---
 
-- **Vacuum-side isolation and bypass valves** (file 06 §5) — bellows/diaphragm-sealed, pneumatically or electrically actuated for automated cycle control, with position feedback (open/closed limit switches) reporting to the PLC.
-- **Sanitary process valves** (CIP supply, product path, utility isolation) — diaphragm valves are the standard sanitary choice throughout the pharma industry for their cleanability (no crevices, smooth diaphragm-sealed flow path) versus ball or gate valves.
-- **Bottom discharge ball-segment valve** (file 05 §6) — pneumatically actuated for automated, reproducible operation; manual handle acceptable for an early prototype.
-- **Blow-nozzle gas valves** — fast-acting solenoid valves for the short gas-pulse cleanup step.
+## 2. Sanitary Process & Vacuum Valve Selection
+
+- **Vacuum Throttling & Bypass Valves (`PV-102`, `XV-103`):** High-vacuum bellow-sealed angle and butterfly valves with fast pneumatic positioning, managing vapor evacuation and powder recirculation per Hosokawa patent NL2026893B1.
+- **Reverse-Pulse Blowback Solenoid (`XV-104`):** High-speed pneumatic valve delivering 4–6 bar dry nitrogen pulses to dislodge collected powder fines from the overhead filter elements.
+- **Sanitary Ball Segment Valve (`XV-105`):** Pneumatically operated bottom discharge valve with an inflatable USP Class VI elastomer seal, delivering zero dead space and hermetic vacuum retention.
+- **Sanitary Utility Valves (`FV-701`, `FV-702`):** ASME BPE compliant diaphragm valves for CIP distribution, electropolished 316L with PTFE diaphragms.
+- **Sterile Gas Break Valve (`XV-106`):** Spring-return fail-closed valve fed with $0.2\,\mu\text{m}$ sterile-filtered nitrogen for controlled atmospheric recovery.
 
 ## 3. Control system (PLC/HMI/SCADA)
 

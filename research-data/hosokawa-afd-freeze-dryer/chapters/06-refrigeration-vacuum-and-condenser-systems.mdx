@@ -48,13 +48,21 @@ This is one of the more subtle, easy-to-get-wrong parts of the system, and it's 
 ### 3c. Achievable vacuum level
 Per file 02/03, the process needs roughly **5 mbar down to 0.01 mbar** (Hosokawa's 2003 patent range) or the narrower **0.1–3 mbar** figure given in the 2020 patent for approaching the sublimation onset — comfortably within the range of a well-selected dry screw + Roots combination, and well short of the deep high-vacuum range (10⁻³ mbar and below) that would require diffusion or turbomolecular pumping. This is a "rough/medium vacuum" system, not a high-vacuum one — an important, cost-relevant distinction when selecting pumps.
 
-## 4. Condenser vs. material collector — don't conflate these
+## 4. Condenser vs. Heated Vapor Filter Dome (Material Collector)
 
-This is a point of genuine nuance the AFD's own patents make clear (file 03):
+In an agitated vacuum freeze dryer, the vapor extraction path must handle both high-velocity sublimed vapor and fine powder fines:
 
-- **A classic condenser** (refrigerated coil bank, as in a conventional shelf freeze dryer, and as still described as an option in Hosokawa's 2003 patent) works by **freezing water vapor as ice directly onto a cold surface**. It needs periodic defrosting and, per the 2003 patent's own numbers, coil spacing of at least 3-4 cm to tolerate roughly 1 cm of ice buildup before that's required. A dual-condenser arrangement (one online, one defrosting) supports continuous operation.
-- **The AFD's material collector** (per the 2020 patent, NL2026893B1) is functionally a **filter housing that traps dry powder dust** from the vapor stream on its way to the vacuum pump — it is not primarily a water-vapor condensing surface. Given the AFD dries a granular/powder bed rather than a static cake, a meaningful fraction of what leaves the vessel in the vapor stream is fine product dust entrained in the water vapor, not just water vapor alone — hence a *filter* (with blowback purge and a heated collection hopper below it) is the more critical downstream component for this specific architecture, layered with (not necessarily replacing) a conventional condenser/cold trap further downstream to actually capture the water vapor itself before it reaches the pump.
-- **For your own build**, a sound approach combining both patents' teaching is: material collector (filter + valve/bypass, per NL2026893B1) immediately downstream of the vessel to catch product dust and control ice-particle recirculation, **followed by** a conventional refrigerated condenser coil (per NL1022668C2) to actually condense the bulk of the water vapor before it reaches the vacuum pump, protecting the pump from moisture load. This two-stage arrangement is consistent with, and a reasonable synthesis of, what both patents separately disclose.
+![Classic Nauta Jacketed Vacuum Dryer Internal Filter Cutaway](/photos/classic_nauta_vacuum_dryer_internal_filter_cutaway.jpg)
+
+### A. The Heated Vapor Filter Dome
+- **Anti-Condensation Heating Jacket**: The filter dome housing mounted directly atop the conical vessel must be jacketed and heated (typically +35 °C to +50 °C). If the dome were unheated, sublimed vapor would encounter cold metal, condense as liquid droplets, and turn dry powder fines into a gummy paste that irreversibly blinds the filter elements.
+- **Filter Media**: Sintered stainless steel porous mesh or PTFE membrane cartridges rated for sub-micron powder retention ($0.2 - 1.0\ \mu\text{m}$).
+- **Automatic Reverse-Pulse Nitrogen Blowback**: Periodic pressurized nitrogen pulses (4–6 bar g, 50–100 ms duration) backflush each filter element sequentially. Dislodged dry powder drops straight back into the agitated conical bed, ensuring 100% batch yield without manual recovery.
+
+### B. Solvent Condenser & Vacuum Train
+- **Vertical Shell-and-Tube Surface Condenser**: Positioned downstream of the heated filter dome. Cold thermal fluid (−40 °C to −60 °C) circulates through the tubes, freezing or condensing water vapor out of the vapor stream.
+- **Solvent Receiver Tank**: Collects condensed solvents or melted defrost condensate ahead of the vacuum pumps.
+- **Dry Vacuum Pump Protection**: Because the surface condenser freezes/condenses >98% of the vapor load, the dry screw vacuum pump operates clean and dry, preventing moisture saturation and mechanical seizure.
 
 ## 5. Valve requirements on the vacuum path
 

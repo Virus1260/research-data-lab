@@ -121,21 +121,31 @@ Fittings on the top cover include:
 - Clean gas blow nozzles aimed at chamber walls for powder discharge assist.
 - Rotary spray devices for automated CIP cleaning.
 
-## 3. Agitator & Mixing Dynamics
+## 3. Agitator Kinematics & Mixing Dynamics
 
 ![Hosokawa Nauta Three-Action Conical Mixing Dynamics](/diagrams/nauta_three_action_mixing_dynamics.png)
 
 ![Nauta Agitator Screw, Flush Ball Valve & Wall Clearance Anatomy](/photos/nauta_internal_components_auger_valves_clearance.png)
 
-- **Type**: Centrally-driven ribbon, paddle blade, or orbital screw with swing arm. The orbital screw reflects Hosokawa standard practice.
-- **Wall clearance**: Maintain 0.5 to 15 mm clearance, targeting 1 to 10 mm. This clearance prevents wall caking while avoiding metal contact.
-- **Operating speed**: Gentle mixing suffices. Target screw speeds near 70 rpm with arm orbit at 1 to 2 rpm. Tip speeds range from 0.5 to 2.0 m/s.
-- **Drive and shaft sealing**:
-  1. **Magnetic coupling**: Eliminates dynamic seals through the pressure boundary. Prevents vacuum leakage. Requires specialized vendor procurement.
-  2. **Single mechanical rotary seal**: Low initial cost for bench prototypes. Poses highest risk for vacuum ingress.
-  3. **Double mechanical seal with sterile gas barrier**: Industry standard for aseptic vacuum vessels. Pressurized nitrogen buffer (held above vessel pressure) ensures any seal leakage directs pure gas into the vessel, preventing batch contamination.
-- **Bearings**: Position drive bearings outside the vessel shell to isolate lubricant from cryogenic operating temperatures.
-- **Cantilevered vs bottom bearing**: For pharmaceutical active freeze drying, cantilevered screws eliminate bottom seal contamination completely, as confirmed by Hosokawa technical webinar standards.
+### Three-Action Triad Kinematics
+1. **Vertical Wall Conveyance**: High-speed auger rotation lifts product upwards in a thin spiral layer along the heated vessel wall.
+2. **$360^\circ$ Orbital Precession**: The top orbit arm sweeps the auger along the conical periphery at 1.0–2.5 RPM, distributing material circumferentially.
+3. **Core Gravitational Cascade**: Lifted product discharges off the top flighting into the vessel center, cascading down the central void to the apex.
+
+### Agitator Comparison: Screw vs. Ribocone Ribbons
+- **Cantilevered Conical Screw (Nauta)**: Optimal for low-shear powder turnover and freeze drying. Operates with low Froude numbers ($Fr = \frac{\omega^2 r}{g} < 0.1$), preserving fragile crystals, living bacterial cultures, and delicate API matrices without attrition.
+- **Single Ribbon / Double Ribbon (Ribocone)**: Central spiral ribbon sweep suited for viscous pastes and high-solids damp cakes. Higher mechanical shear and larger radial drag force.
+
+### Sizing Kinematics: The 10:1 Power Ratio
+- **Work Distribution**: The screw auger performs **over 90% of the mechanical displacement work** inside the cone, while the orbit arm merely guides the auger trajectory.
+- **Motor Sizing Rule**: Maintain an approximate **10:1 auger-to-orbit power ratio**:
+  - Screw Drive Motor: 1.5–2.2 kW (at 60–120 RPM, high breakaway torque for frozen granules).
+  - Orbital Arm Motor: 0.25–0.37 kW (at 1.0–2.5 RPM).
+- **Wall Clearance**: Precision tolerance of **3.0 to 5.0 mm** between auger flighting edge and the inner cone wall. Prevents thermal crust buildup while guaranteeing zero metal-to-metal contact during thermal expansion.
+
+### Cantilevered Suspension vs. Bottom Bearing
+- **Pharmaceutical Prohibition**: Bottom pintle bearings are strictly unacceptable in active freeze dryers. Submerged bottom bearings trap product fines, harbor cleaning residues (failing CIP swab tests), and risk lubricant leaching into sterile batches.
+- **Cantilevered Top Suspension**: Agitator screw is suspended entirely from the orbital arm universal joint in the top dome. Eliminates 100% of submerged dynamic seals.
 
 ![Twin Screw Conical Blender Internal Cutaway & Dual Orbit Head Drive](/photos/twin_screw_conical_mixer_3d_cutaway.png)
 
