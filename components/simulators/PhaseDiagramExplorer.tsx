@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import {
   getWaterPhaseState,
   WATER_CONSTANTS,
@@ -163,6 +163,27 @@ export function PhaseDiagramExplorer() {
     phaseName: string;
   } | null>(null);
 
+  // Responsive container size (ResizeObserver)
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [containerW, setContainerW] = useState<number>(0);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => {
+      const w = entries[0]?.contentRect.width ?? 0;
+      setContainerW(Math.floor(w));
+    });
+    ro.observe(el);
+    setContainerW(Math.floor(el.getBoundingClientRect().width));
+    return () => ro.disconnect();
+  }, []);
+
+  // Mouse-wheel zoom: scale factor centered on cursor
+  const [zoomK, setZoomK] = useState<number>(1);
+  const [zoomTx, setZoomTx] = useState<number>(0); // translation in SVG coords
+  const [zoomTy, setZoomTy] = useState<number>(0);
+
   const phase = getWaterPhaseState(tempC, pressMbar);
 
   // Fullscreen escape key handler
@@ -189,10 +210,10 @@ export function PhaseDiagramExplorer() {
   const minLogP = isProcess ? -3.2 : -5.5; // 0.0006 mbar vs 0.000003 mbar (0.3 mPa)
   const maxLogP = isProcess ? 3.5 : 6.5;   // 3,162 mbar (3.16 bar) vs 3,162,277 mbar (3,162 bar / 316 MPa)
 
-  // SVG Geometry - 920 x 520 high resolution coordinate space with generous margins
-  const svgWidth = 920;
-  const svgHeight = 520;
-  const margin = { top: 55, right: 95, bottom: 70, left: 100 };
+  // SVG Geometry — Full Scale uses a larger internal canvas so the supercritical zone gets enough room
+  const svgWidth = isProcess ? 920 : 1100;
+  const svgHeight = isProcess ? 520 : 660;
+  const margin = { top: 60, right: 110, bottom: 75, left: 105 };
   const plotWidth = svgWidth - margin.left - margin.right;
   const plotHeight = svgHeight - margin.top - margin.bottom;
 
@@ -237,18 +258,50 @@ export function PhaseDiagramExplorer() {
 
   const svgRef = useRef<SVGSVGElement | null>(null);
 
-  // Background Pointer interaction
-  const handleCanvasPointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
-    setSelectedLandmark(null);
+  // Convert a raw client event position to SVG content space (accounting for zoom)
+  const clientToSvg = useCallback((clientX: number, clientY: number) => {
+    if (!svgRef.current) return { x: 0, y: 0 };
+    const rect = svgRef.current.getBoundingClientRect();
+    const scaleX = svgWidth / rect.width;
+    const scaleY = svgHeight / rect.height;
+    const rawX = (clientX - rect.left) * scaleX;
+    const rawY = (clientY - rect.top) * scaleY;
+    // Undo zoom transform: content = (raw - translate) / scale
+    const x = (rawX - zoomTx) / zoomK;
+    const y = (rawY - zoomTy) / zoomK;
+    return { x, y };
+  }, [svgWidth, svgHeight, zoomK, zoomTx, zoomTy]);
 
+  // Mouse-wheel zoom (centred on cursor)
+  const handleWheel = useCallback((e: React.WheelEvent<SVGSVGElement>) => {
+    e.preventDefault();
+    const factor = e.deltaY < 0 ? 1.12 : 1 / 1.12;
+    const newK = Math.max(1, Math.min(8, zoomK * factor));
     if (!svgRef.current) return;
     const rect = svgRef.current.getBoundingClientRect();
     const scaleX = svgWidth / rect.width;
     const scaleY = svgHeight / rect.height;
-    const x = Math.max(margin.left, Math.min(margin.left + plotWidth, (e.clientX - rect.left) * scaleX));
-    const y = Math.max(margin.top, Math.min(margin.top + plotHeight, (e.clientY - rect.top) * scaleY));
-    const newT = Math.round(xToT(x));
-    const newP = Number(yToP(y).toFixed(5));
+    const mx = (e.clientX - rect.left) * scaleX; // pivot in SVG space
+    const my = (e.clientY - rect.top) * scaleY;
+    // new translate so pivot stays fixed: tx_new = mx - newK*(mx - tx_old)/zoomK_old  =>  mx - newK*(mx-tx)/k
+    const newTx = mx - (newK / zoomK) * (mx - zoomTx);
+    const newTy = my - (newK / zoomK) * (my - zoomTy);
+    setZoomK(newK);
+    setZoomTx(newTx);
+    setZoomTy(newTy);
+  }, [zoomK, zoomTx, zoomTy, svgWidth, svgHeight]);
+
+  // Reset zoom on scale change
+  useEffect(() => { setZoomK(1); setZoomTx(0); setZoomTy(0); }, [viewScale]);
+
+  // Background Pointer interaction
+  const handleCanvasPointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
+    setSelectedLandmark(null);
+    const { x, y } = clientToSvg(e.clientX, e.clientY);
+    const cx = Math.max(margin.left, Math.min(margin.left + plotWidth, x));
+    const cy = Math.max(margin.top, Math.min(margin.top + plotHeight, y));
+    const newT = Math.round(xToT(cx));
+    const newP = Number(yToP(cy).toFixed(5));
     setTempC(newT);
     setPressMbar(newP);
     if (selectedProcess !== "FREE") {
@@ -257,30 +310,16 @@ export function PhaseDiagramExplorer() {
   };
 
   const handlePointerMove = (e: React.PointerEvent<SVGSVGElement>) => {
-    if (!svgRef.current) return;
-    const rect = svgRef.current.getBoundingClientRect();
-    const scaleX = svgWidth / rect.width;
-    const scaleY = svgHeight / rect.height;
-    const x = (e.clientX - rect.left) * scaleX;
-    const y = (e.clientY - rect.top) * scaleY;
-
+    const { x, y } = clientToSvg(e.clientX, e.clientY);
     if (x >= margin.left && x <= margin.left + plotWidth && y >= margin.top && y <= margin.top + plotHeight) {
       const curT = Math.round(xToT(x));
       const curP = Number(yToP(y).toFixed(5));
       const curPhase = getWaterPhaseState(curT, curP);
-      setHoverCoord({
-        t: curT,
-        p: curP,
-        x,
-        y,
-        phaseName: curPhase.state,
-      });
+      setHoverCoord({ t: curT, p: curP, x, y, phaseName: curPhase.state });
       if (e.buttons === 1) {
         setTempC(curT);
         setPressMbar(curP);
-        if (selectedProcess !== "FREE") {
-          setSelectedProcess("FREE");
-        }
+        if (selectedProcess !== "FREE") setSelectedProcess("FREE");
       }
     } else {
       setHoverCoord(null);
@@ -804,6 +843,7 @@ export function PhaseDiagramExplorer() {
 
       {/* --- MAIN INTERACTIVE SVG CANVAS (Maximized Vertical Height) --- */}
       <div
+        ref={containerRef}
         className={`relative rounded-xl border-2 border-hairline overflow-hidden select-none shadow-xl transition-all flex items-center justify-center ${
           isFullscreen ? "flex-1 w-full min-h-0 py-1" : "p-2 sm:p-3 my-1"
         }`}
@@ -812,12 +852,20 @@ export function PhaseDiagramExplorer() {
         <svg
           ref={svgRef}
           viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-          className={`w-full ${isFullscreen ? "h-full max-h-[84vh] object-contain" : "h-auto max-h-[560px]"} cursor-crosshair`}
+          className={`w-full ${isFullscreen ? "h-full max-h-[90vh] object-contain" : "h-auto max-h-[680px]"} cursor-crosshair`}
           onPointerDown={handleCanvasPointerDown}
           onPointerMove={handlePointerMove}
           onPointerLeave={handlePointerLeave}
+          onWheel={handleWheel}
+          style={{ touchAction: "none" }}
           suppressHydrationWarning
         >
+          {/* Clip to plot area for zoom */}
+          <defs>
+            <clipPath id="plotClip">
+              <rect x={margin.left} y={margin.top} width={plotWidth} height={plotHeight} />
+            </clipPath>
+          </defs>
           <defs>
             {/* Region Fills */}
             <linearGradient id="solidRegionGrad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -856,6 +904,11 @@ export function PhaseDiagramExplorer() {
             </marker>
           </defs>
 
+          {/* All zoomed plot content wrapped in a transform group */}
+          <g
+            transform={`translate(${zoomTx.toFixed(2)}, ${zoomTy.toFixed(2)}) scale(${zoomK.toFixed(4)})`}
+            style={{ transformOrigin: `${margin.left}px ${margin.top}px` }}
+          >
           {/* Background Graph Paper */}
           <rect x={margin.left} y={margin.top} width={plotWidth} height={plotHeight} fill="url(#fineGrid)" />
 
@@ -968,135 +1021,128 @@ export function PhaseDiagramExplorer() {
           <path d={meltPath} fill="none" stroke={isDark ? "#c084fc" : "#6b21a8"} strokeWidth="2.5" strokeDasharray="4 3" />
 
           {/* Supercritical Transition Boundary (Widom Isobar at 220.64 bar) */}
-          {!isProcess && maxT >= 373.95 && (
-            <g>
-              <line
-                x1={critX}
-                y1={critY}
-                x2={margin.left + plotWidth}
-                y2={critY}
-                stroke={isDark ? "#c084fc" : "#7e22ce"}
-                strokeWidth="2"
-                strokeDasharray="4 3"
-                pointerEvents="none"
-              />
-              <text
-                x={tToX(437)}
-                y={critY + 12}
-                fill={isDark ? "#c084fc" : "#7e22ce"}
-                fontSize="8.5"
-                fontFamily="monospace"
-                fontWeight="bold"
-                textAnchor="middle"
-                pointerEvents="none"
-              >
-                Supercritical Isobar (220.6 bar)
-              </text>
+          {!isProcess && maxT >= 373.95 && (() => {
+            // Supercritical zone geometry helpers — computed once for all labels
+            const scZoneLeft = critX;                       // left edge = critical point x
+            const scZoneRight = margin.left + plotWidth;   // right edge = plot right
+            const scZoneTop = margin.top;                   // top edge = plot top
+            const scZoneBot = critY;                        // bottom edge = isobar y
+            const scMidX = (scZoneLeft + scZoneRight) / 2; // horizontal centre
+            const scH = scZoneBot - scZoneTop;             // zone height in SVG px
+            const scW = scZoneRight - scZoneLeft;          // zone width in SVG px
 
-              {/* Critical Point Pin & Label (Positioned completely to the LEFT of critX so it never overlaps the purple zone) */}
-              <g
-                className="cursor-pointer"
-                onMouseEnter={() => {
-                  const cp = landmarks.find((l) => l.id === "critical_point");
-                  if (cp) setHoveredLandmark(cp);
-                }}
-                onMouseLeave={() => setHoveredLandmark(null)}
-                onPointerDown={(e) => {
-                  e.stopPropagation();
-                  const cp = landmarks.find((l) => l.id === "critical_point");
-                  if (cp) {
-                    setSelectedLandmark(cp);
-                    setTempC(cp.tempC);
-                    setPressMbar(cp.pressMbar);
-                  }
-                }}
-              >
-                <circle cx={critX} cy={critY} r="18" fill="transparent" />
-                <circle
-                  cx={critX}
-                  cy={critY}
-                  r="7.5"
-                  fill="#ec4899"
-                  stroke={badgeBg}
-                  strokeWidth="2"
-                  style={{ filter: "drop-shadow(0 0 6px #ec4899)" }}
+            // Row anchors — distribute 5 elements evenly over zone height
+            // Row 1 (top ≈ 17%): "SUPERCRITICAL FLUID" title
+            // Row 2 (top ≈ 33%): subtitle
+            // Row 3 (top ≈ 50%): scH₂O badge
+            // Row 4 (top ≈ 67%): Tc/Pc badge (above isobar)
+            // Row 5 (top ≈ 85%): isobar label (near the line)
+            const row = (frac: number) => scZoneTop + scH * frac;
+
+            return (
+              <g>
+                {/* Dashed isobar horizontal line */}
+                <line
+                  x1={critX}
+                  y1={critY}
+                  x2={margin.left + plotWidth}
+                  y2={critY}
+                  stroke={isDark ? "#c084fc" : "#7e22ce"}
+                  strokeWidth="1.5"
+                  strokeDasharray="4 3"
+                  pointerEvents="none"
                 />
-                <g transform={`translate(${critX - 10}, ${critY - 8})`}>
+
+                {/* Isobar label — placed INSIDE the zone, near the bottom-left edge above the line */}
+                <text
+                  x={scZoneLeft + 8}
+                  y={critY - 5}
+                  fill={isDark ? "#c084fc" : "#6b21a8"}
+                  fontSize="8"
+                  fontFamily="monospace"
+                  fontWeight="bold"
+                  textAnchor="start"
+                  pointerEvents="none"
+                >
+                  220.6 bar (Widom line)
+                </text>
+
+                {/* Critical Point dot */}
+                <g
+                  className="cursor-pointer"
+                  onMouseEnter={() => { const cp = landmarks.find((l) => l.id === "critical_point"); if (cp) setHoveredLandmark(cp); }}
+                  onMouseLeave={() => setHoveredLandmark(null)}
+                  onPointerDown={(e) => { e.stopPropagation(); const cp = landmarks.find((l) => l.id === "critical_point"); if (cp) { setSelectedLandmark(cp); setTempC(cp.tempC); setPressMbar(cp.pressMbar); } }}
+                >
+                  <circle cx={critX} cy={critY} r="20" fill="transparent" />
+                  <circle cx={critX} cy={critY} r="7" fill="#ec4899" stroke={badgeBg} strokeWidth="2" style={{ filter: "drop-shadow(0 0 6px #ec4899)" }} />
+                </g>
+
+                {/* Tc/Pc badge — row ~85% of zone height, centred in zone */}
+                <g>
                   <rect
-                    x="-182"
-                    y="-12"
-                    width="182"
-                    height="16"
-                    rx="3"
+                    x={scMidX - 76}
+                    y={row(0.80) - 9}
+                    width={152}
+                    height={16}
+                    rx={4}
                     fill={badgeBg}
                     stroke="#ec4899"
-                    strokeWidth="1"
-                    opacity="0.95"
+                    strokeWidth="1.2"
+                    opacity="0.96"
                   />
                   <text
-                    x="-91"
-                    y="0"
+                    x={scMidX}
+                    y={row(0.80) + 2}
                     fill="#ec4899"
                     fontSize="9"
                     fontFamily="monospace"
                     fontWeight="900"
                     textAnchor="middle"
                   >
-                    ★ Critical Point (374°C, 221 bar)
+                    ★ Tc = 374°C · Pc = 221 bar
                   </text>
                 </g>
-              </g>
 
-              {/* Interactive scH₂O Region Badge in the purple zone */}
-              <g
-                className="cursor-pointer"
-                onMouseEnter={() => {
-                  const sc = landmarks.find((l) => l.id === "supercritical_water");
-                  if (sc) setHoveredLandmark(sc);
-                }}
-                onMouseLeave={() => setHoveredLandmark(null)}
-                onPointerDown={(e) => {
-                  e.stopPropagation();
-                  const sc = landmarks.find((l) => l.id === "supercritical_water");
-                  if (sc) {
-                    setSelectedLandmark(sc);
-                    setTempC(sc.tempC);
-                    setPressMbar(sc.pressMbar);
-                  }
-                }}
-              >
-                <circle cx={tToX(437)} cy={pToY(400000)} r="24" fill="transparent" />
-                <g transform={`translate(${tToX(437)}, ${pToY(400000)})`}>
+                {/* scH₂O interactive badge — centred in zone, row ~52% */}
+                <g
+                  className="cursor-pointer"
+                  onMouseEnter={() => { const sc = landmarks.find((l) => l.id === "supercritical_water"); if (sc) setHoveredLandmark(sc); }}
+                  onMouseLeave={() => setHoveredLandmark(null)}
+                  onPointerDown={(e) => { e.stopPropagation(); const sc = landmarks.find((l) => l.id === "supercritical_water"); if (sc) { setSelectedLandmark(sc); setTempC(sc.tempC); setPressMbar(sc.pressMbar); } }}
+                >
                   <rect
-                    x="-68"
-                    y="-11"
-                    width="136"
-                    height="20"
-                    rx="5"
+                    x={scMidX - 68}
+                    y={row(0.50) - 10}
+                    width={136}
+                    height={18}
+                    rx={5}
                     fill={badgeBg}
                     stroke={isDark ? "#c084fc" : "#7e22ce"}
                     strokeWidth="1.5"
-                    style={{ filter: "drop-shadow(0 2px 8px rgba(126, 34, 206, 0.4))" }}
+                    style={{ filter: "drop-shadow(0 2px 8px rgba(126,34,206,0.3))" }}
                   />
                   <text
-                    x="0"
-                    y="3"
+                    x={scMidX}
+                    y={row(0.50) + 3}
                     fill={isDark ? "#c084fc" : "#7e22ce"}
                     fontSize="9"
                     fontFamily="monospace"
                     fontWeight="900"
                     textAnchor="middle"
                   >
-                    ⚡ scH₂O (Supercritical)
+                    ⚡ scH₂O — click to inspect
                   </text>
                 </g>
               </g>
-            </g>
-          )}
+            );
+          })()}
 
-          {/* Region Minimalist Watermarks (Carefully positioned to avoid all curves) */}
+
+          {/* Region Minimalist Watermarks — placed well inside each region's geometric interior */}
           {showRegions && (
-            <g pointerEvents="none" opacity="0.4">
+            <g pointerEvents="none" opacity="0.55">
+              {/* SOLID (ICE) — upper-left of solid zone */}
               <text
                 x={tToX(isProcess ? -60 : -180)}
                 y={pToY(isProcess ? 25 : 10000)}
@@ -1108,9 +1154,10 @@ export function PhaseDiagramExplorer() {
               >
                 SOLID (ICE)
               </text>
+              {/* LIQUID WATER — centre of liquid zone */}
               <text
-                x={tToX(isProcess ? 75 : 160)}
-                y={pToY(isProcess ? 2000 : 300000)}
+                x={tToX(isProcess ? 60 : 80)}
+                y={pToY(isProcess ? 2000 : 50000)}
                 fill={liquidWatermarkColor}
                 fontSize="14"
                 fontFamily="monospace"
@@ -1119,9 +1166,10 @@ export function PhaseDiagramExplorer() {
               >
                 LIQUID WATER
               </text>
+              {/* VAPOUR/GAS — centre-bottom of vapour zone, clearly below the boundary curves */}
               <text
-                x={tToX(isProcess ? 85 : 230)}
-                y={pToY(isProcess ? 0.03 : 0.005)}
+                x={tToX(isProcess ? 55 : 150)}
+                y={pToY(isProcess ? 0.01 : 0.0001)}
                 fill={vaporWatermarkColor}
                 fontSize="14"
                 fontFamily="monospace"
@@ -1130,45 +1178,58 @@ export function PhaseDiagramExplorer() {
               >
                 VAPOUR (GAS)
               </text>
-              {!isProcess && maxT >= 373.95 && (
-                <g>
-                  <text
-                    x={tToX(437)}
-                    y={margin.top + 28}
-                    fill={isDark ? "#d8b4fe" : "#581c87"}
-                    fontSize="11"
-                    fontFamily="monospace"
-                    fontWeight="900"
-                    textAnchor="middle"
-                    letterSpacing="1"
-                  >
-                    SUPERCRITICAL FLUID
-                  </text>
-                  <text
-                    x={tToX(437)}
-                    y={margin.top + 42}
-                    fill={isDark ? "#d8b4fe" : "#581c87"}
-                    fontSize="8.5"
-                    fontFamily="monospace"
-                    fontWeight="bold"
-                    textAnchor="middle"
-                  >
-                    (Zero Surface Tension)
-                  </text>
-                  <text
-                    x={tToX(437)}
-                    y={pToY(0.005)}
-                    fill={vaporWatermarkColor}
-                    fontSize="11"
-                    fontFamily="monospace"
-                    fontWeight="900"
-                    textAnchor="middle"
-                    letterSpacing="1"
-                  >
-                    SUPERHEATED STEAM
-                  </text>
-                </g>
-              )}
+              {/* SUPERCRITICAL zone watermarks — Row 1 (title) + Row 2 (subtitle), spread across zone */}
+              {!isProcess && maxT >= 373.95 && (() => {
+                const scZoneLeft = critX;
+                const scZoneRight = margin.left + plotWidth;
+                const scZoneTop = margin.top;
+                const scH = critY - margin.top;
+                const scMidX = (scZoneLeft + scZoneRight) / 2;
+                const row = (frac: number) => scZoneTop + scH * frac;
+                // Determine if zone is wide enough to show long text
+                const zoneW = scZoneRight - scZoneLeft;
+                const shortTitle = zoneW < 180;
+                return (
+                  <g>
+                    <text
+                      x={scMidX}
+                      y={row(0.18)}
+                      fill={isDark ? "#d8b4fe" : "#581c87"}
+                      fontSize={shortTitle ? "10" : "12"}
+                      fontFamily="monospace"
+                      fontWeight="900"
+                      textAnchor="middle"
+                      letterSpacing="1"
+                    >
+                      SUPERCRITICAL FLUID
+                    </text>
+                    <text
+                      x={scMidX}
+                      y={row(0.32)}
+                      fill={isDark ? "#c4b5fd" : "#6b21a8"}
+                      fontSize="8"
+                      fontFamily="monospace"
+                      fontWeight="bold"
+                      textAnchor="middle"
+                    >
+                      No phase boundary · ρ→gas, κ→liquid
+                    </text>
+                    {/* SUPERHEATED STEAM label — in the vapour zone to the LEFT of critical T */}
+                    <text
+                      x={tToX(isProcess ? 200 : 200)}
+                      y={pToY(isProcess ? 0.05 : 0.5)}
+                      fill={vaporWatermarkColor}
+                      fontSize="11"
+                      fontFamily="monospace"
+                      fontWeight="900"
+                      textAnchor="middle"
+                      letterSpacing="1"
+                    >
+                      SUPERHEATED STEAM
+                    </text>
+                  </g>
+                );
+              })()}
             </g>
           )}
 
@@ -1462,6 +1523,8 @@ export function PhaseDiagramExplorer() {
             strokeWidth="2"
             pointerEvents="none"
           />
+          {/* ─── END zoom transform group ─── */}
+          </g>
 
           {/* Top X-Axis Ticks & Labels: Kelvin (Reaches 0 Kelvin = Absolute Zero!) */}
           {(isProcess
