@@ -1,0 +1,299 @@
+[
+  {
+    "slide_number": 1,
+    "title": "Nauta® Mixing Deep Dive — Title & Webinar Overview",
+    "section": "Introduction",
+    "timestamp": "00:18",
+    "src": "/nauta_webinar/unique_slides/slide_01.png",
+    "description": "Introductory presentation slide by Chris Paulsworth, Hosokawa Micron Powder Systems, establishing the scope of vertical conical screw mixing and drying technology.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 2,
+    "title": "Presenter Background & Hosokawa Pedigree",
+    "section": "Introduction",
+    "timestamp": "01:19",
+    "src": "/nauta_webinar/unique_slides/slide_02.png",
+    "description": "Background on Hosokawa Micron's historical ownership and ongoing engineering development of the genuine Vrieco-Nauta conical mixer brand.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 3,
+    "title": "Educational Webinar Objectives",
+    "section": "Introduction",
+    "timestamp": "02:24",
+    "src": "/nauta_webinar/unique_slides/slide_03.png",
+    "description": "Core goals: understanding convective conical mixing mechanisms, equipment anatomy, and engineering adaptations required for vacuum drying and freeze drying.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 4,
+    "title": "Table of Contents (Webinar Agenda)",
+    "section": "Agenda",
+    "timestamp": "02:51",
+    "src": "/nauta_webinar/unique_slides/slide_04.png",
+    "description": "Six-part roadmap: 1. Introduction, 2. Mixing Mechanics, 3. Component Breakdown, 4. Converting to Dryer, 5. Applications, 6. Q&A and Drawings.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 5,
+    "title": "Section 1: Introduction to Nauta® Mixers",
+    "section": "Introduction",
+    "timestamp": "03:30",
+    "src": "/nauta_webinar/unique_slides/slide_05.png",
+    "description": "Section opener establishing the conical vertical screw mixer as an industry standard for powder blending across pharmaceuticals, food, and advanced materials.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 6,
+    "title": "Conical Geometry & Gravity Discharge Benefits",
+    "section": "Conical Mechanics",
+    "timestamp": "03:57",
+    "src": "/nauta_webinar/unique_slides/slide_06.png",
+    "description": "Why conical geometry excels: steep vessel angle aids complete gravity discharge, minimizes residual heel, and eliminates horizontal bearing seals.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 7,
+    "title": "Section 2: How Nauta® Mixers Mix",
+    "section": "Mixing Dynamics",
+    "timestamp": "04:48",
+    "src": "/nauta_webinar/unique_slides/slide_07.png",
+    "description": "Technical analysis of macro-convective transport, diffusive mixing, and velocity distribution inside an orbiting conical vessel.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 8,
+    "title": "Three-Action Conical Mixing Dynamics",
+    "section": "Mixing Dynamics",
+    "timestamp": "05:31",
+    "src": "/nauta_webinar/unique_slides/slide_08.png",
+    "description": "Core triad kinematics: 1) Upward screw conveyance along the heated wall, 2) 360° orbital sweep dispersing material, 3) Gravitational core downward cascade.",
+    "revisited_count": 2
+  },
+  {
+    "slide_number": 9,
+    "title": "Convective Circulation & Flow Patterns",
+    "section": "Mixing Dynamics",
+    "timestamp": "05:47",
+    "src": "/nauta_webinar/unique_slides/slide_09.png",
+    "description": "Detailed cross-sectional flow vectors demonstrating continuous powder turnover without localized shear hot spots or mechanical compaction.",
+    "revisited_count": 2
+  },
+  {
+    "slide_number": 10,
+    "title": "Low Shear Advantage for Fragile Powders",
+    "section": "Mixing Dynamics",
+    "timestamp": "06:31",
+    "src": "/nauta_webinar/unique_slides/slide_10.png",
+    "description": "Preserving delicate crystal structures, frozen granules, and API particles: low Froude number mixing prevents attrition and unwanted particle breakdown.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 11,
+    "title": "3D CFD Velocity Vectors across Conical Cross-Section",
+    "section": "Mixing Dynamics",
+    "timestamp": "08:11",
+    "src": "/nauta_webinar/unique_slides/slide_11.png",
+    "description": "Computational fluid dynamics simulation showing velocity gradients between the high-velocity wall boundary and the central gravitational return zone.",
+    "revisited_count": 2
+  },
+  {
+    "slide_number": 12,
+    "title": "Teamwork: Auger + Orbital Arm Dynamics",
+    "section": "Component Engineering",
+    "timestamp": "09:24",
+    "src": "/nauta_webinar/unique_slides/slide_12.png",
+    "description": "Key mechanical finding: the screw auger performs over 90% of the mechanical work, dictating a 10:1 motor power ratio relative to the orbital arm drive.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 13,
+    "title": "Motor Sizing, Torque Ratings & Start-up Loads",
+    "section": "Component Engineering",
+    "timestamp": "11:45",
+    "src": "/nauta_webinar/unique_slides/slide_13.png",
+    "description": "Engineering sizing rules for overcoming locked-bed starting torque, especially when dealing with damp, dense, or frozen granular cakes.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 14,
+    "title": "Filling the Mixer: 85% to 15% Batch Range",
+    "section": "Process Operations",
+    "timestamp": "13:35",
+    "src": "/nauta_webinar/unique_slides/slide_14.png",
+    "description": "Operational flexibility: conical screw blenders operate effectively from 85% down to 15% working volume, accommodating variable batch sizing.",
+    "revisited_count": 2
+  },
+  {
+    "slide_number": 15,
+    "title": "Section 3: Component Breakdown",
+    "section": "Component Engineering",
+    "timestamp": "13:53",
+    "src": "/nauta_webinar/unique_slides/slide_15.png",
+    "description": "Structural hardware teardown: agitator screws, universal joints, orbital arm drive assemblies, bottom seals, and discharge valves.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 16,
+    "title": "Mixing Screw (Auger) Flighting & Shaft Construction",
+    "section": "Component Engineering",
+    "timestamp": "15:24",
+    "src": "/nauta_webinar/unique_slides/slide_16.png",
+    "description": "Fabrication analysis of screw flighting: continuous helicoid versus sectional welded flights, shaft concentricity, and dynamic balancing.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 17,
+    "title": "Screw Metallurgy, Polishing & Surface Finishes",
+    "section": "Component Engineering",
+    "timestamp": "16:42",
+    "src": "/nauta_webinar/unique_slides/slide_17.png",
+    "description": "Hygienic 316L/Hastelloy specifications: electro-polishing down to Ra < 0.4 µm, crevice-free continuous seam welds, and sanitary cGMP passivations.",
+    "revisited_count": 2
+  },
+  {
+    "slide_number": 18,
+    "title": "Orbital Arm, Universal Joint & Bevel Gearbox",
+    "section": "Component Engineering",
+    "timestamp": "18:04",
+    "src": "/nauta_webinar/unique_slides/slide_18.png",
+    "description": "Epicyclic drive kinematics: top drive gearbox rotating the central orbit arm while simultaneously imparting high-speed spin to the universal joint.",
+    "revisited_count": 2
+  },
+  {
+    "slide_number": 19,
+    "title": "Bottom Bearing vs Cantilevered Design Comparison",
+    "section": "Component Engineering",
+    "timestamp": "18:57",
+    "src": "/nauta_webinar/unique_slides/slide_19.png",
+    "description": "Critical architectural decision: cantilevered screws eliminate bottom seal contamination in pharma AFD, while bottom pintle bearings support massive industrial screws.",
+    "revisited_count": 3
+  },
+  {
+    "slide_number": 20,
+    "title": "Discharge Valve Technology (Ball Segment Valves)",
+    "section": "Component Engineering",
+    "timestamp": "19:47",
+    "src": "/nauta_webinar/unique_slides/slide_20.png",
+    "description": "Spherical segment valve seated perfectly flush with the bottom cone, eliminating dead-zones and preventing powder hold-up during freeze-dry sublimation.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 21,
+    "title": "Top Cover, Sanitary Nozzles & Motor Mounts",
+    "section": "Component Engineering",
+    "timestamp": "21:41",
+    "src": "/nauta_webinar/unique_slides/slide_21.png",
+    "description": "ASME VIII top dished dome layout: product charge nozzles, sight glasses, illumination ports, instrument thermowells, and drive head mounting flange.",
+    "revisited_count": 2
+  },
+  {
+    "slide_number": 22,
+    "title": "Variable Speed Control & Drive Automation",
+    "section": "Component Engineering",
+    "timestamp": "23:45",
+    "src": "/nauta_webinar/unique_slides/slide_22.png",
+    "description": "Inverter/VFD modulation: slow agitation during initial freezing prevents cake cracking, while optimized speed during drying maximizes contact heat transfer.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 23,
+    "title": "Section 4: Using the Nauta Design for Vacuum Drying",
+    "section": "Vacuum Drying & AFD",
+    "timestamp": "24:42",
+    "src": "/nauta_webinar/unique_slides/slide_23.png",
+    "description": "The technological leap from blender to vacuum dryer: adding full vacuum containment, thermal jacketing, and vapor extraction infrastructure.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 24,
+    "title": "Mechanical Changes Required for Vacuum Duty",
+    "section": "Vacuum Drying & AFD",
+    "timestamp": "25:54",
+    "src": "/nauta_webinar/unique_slides/slide_24.png",
+    "description": "Full vacuum rating (-1.0 bar g), heavy vessel wall thickness, double mechanical shaft seals with sanitary nitrogen barriers, and heated vapor domes.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 25,
+    "title": "Heating Jacket Configurations: Half-Pipe vs Dimple",
+    "section": "Vacuum Drying & AFD",
+    "timestamp": "27:13",
+    "src": "/nauta_webinar/unique_slides/slide_25.png",
+    "description": "Comparing thermal jackets: external half-pipe coils provide superior structural rigidity and high thermal fluid velocity for rapid sublimation heat transfer.",
+    "revisited_count": 2
+  },
+  {
+    "slide_number": 26,
+    "title": "Internally Heated Screw Augers (Rotary Unions)",
+    "section": "Vacuum Drying & AFD",
+    "timestamp": "27:56",
+    "src": "/nauta_webinar/unique_slides/slide_26.png",
+    "description": "Supplying thermal fluid directly through rotary joints into the screw flights, boosting effective heat transfer surface area by up to 40%.",
+    "revisited_count": 2
+  },
+  {
+    "slide_number": 27,
+    "title": "Top-Mounted Vapor Filter Dome & Pulsejet Blowback",
+    "section": "Vacuum Drying & AFD",
+    "timestamp": "28:10",
+    "src": "/nauta_webinar/unique_slides/slide_27.png",
+    "description": "Heated filter housing located directly on the vessel head to prevent powder carryover into the condenser while eliminating cold-spot condensation.",
+    "revisited_count": 3
+  },
+  {
+    "slide_number": 28,
+    "title": "Direct Comparison: Atmospheric Mixer vs Vacuum Dryer",
+    "section": "Vacuum Drying & AFD",
+    "timestamp": "33:03",
+    "src": "/nauta_webinar/unique_slides/slide_28.png",
+    "description": "Direct visual comparison of standard conical atmospheric mixer versus the jacketed vacuum dryer with filter column and workshop lifting rig.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 29,
+    "title": "Complete Turn-Key Vacuum Drying Process Skid",
+    "section": "Vacuum Drying & AFD",
+    "timestamp": "33:56",
+    "src": "/nauta_webinar/unique_slides/slide_29.png",
+    "description": "Complete process schematic: dryer vessel, vapor filter, primary condenser, condensate receiver tank, dry vacuum pump, and heating/cooling skid.",
+    "revisited_count": 2
+  },
+  {
+    "slide_number": 30,
+    "title": "Solvent Condensation & Vacuum Pumping Train",
+    "section": "Vacuum Drying & AFD",
+    "timestamp": "41:08",
+    "src": "/nauta_webinar/unique_slides/slide_30.png",
+    "description": "Sublimation vapor path: vertical shell-and-tube surface condenser recovering solvent vapors ahead of a two-stage dry screw vacuum pump skid.",
+    "revisited_count": 2
+  },
+  {
+    "slide_number": 31,
+    "title": "Heavy Powder Applications: Nuclear UO2 & Metal Powders",
+    "section": "Case Studies",
+    "timestamp": "34:23",
+    "src": "/nauta_webinar/unique_slides/slide_31.png",
+    "description": "Case study on ultra-dense materials: uranium dioxide and iron powders with bulk density > 2.5 g/mL, highlighting high-torque drive reinforcement.",
+    "revisited_count": 1
+  },
+  {
+    "slide_number": 32,
+    "title": "CAD Engineering Drawing: Top-Cover CIP Spray Nozzles",
+    "section": "CAD Drawings",
+    "timestamp": "40:31",
+    "src": "/nauta_webinar/unique_slides/slide_32.png",
+    "description": "Authentic CAD cross-section (Scale 1:2) showing 5 sanitary CIP spray nozzles in the mixer cover, 115 mm pitch, providing 360° impingement over the orbital head.",
+    "revisited_count": 4
+  },
+  {
+    "slide_number": 33,
+    "title": "CAD Engineering Drawing: Orbital Arm Positioner",
+    "section": "CAD Drawings",
+    "timestamp": "47:33",
+    "src": "/nauta_webinar/unique_slides/slide_33.png",
+    "description": "Detailed engineering drawing of the top drive head with optional orbital arm positioner, central rotary union, and effective spray impingement envelope.",
+    "revisited_count": 1
+  }
+]

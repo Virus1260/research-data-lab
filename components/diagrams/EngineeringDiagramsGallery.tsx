@@ -157,6 +157,69 @@ const DIAGRAMS: DiagramCard[] = [
       "Procedure, unit procedure, operation, and phase lifecycle state machine with automated Primary-to-Secondary drying transitions.",
     tags: ["ISA-88", "S88", "Batch States"],
   },
+  {
+    id: "nauta-three-action",
+    title: "Hosokawa Nauta Three-Action Conical Mixing Dynamics",
+    category: "Nauta & Drying Skids",
+    src: "/diagrams/nauta_three_action_mixing_dynamics.png",
+    description:
+      "Core triad kinematics: 1) Upward screw convective transport along the vessel wall, 2) 360° orbital revolution dispersing material, 3) Gravitational core downward cascade.",
+    tags: ["Three-Action Mixing", "Kinematics", "Auger Dynamics"],
+  },
+  {
+    id: "vrieco-nauta-5vdc",
+    title: "Hosokawa Vrieco-Nauta 5-VDC Complete Pilot Vacuum Dryer Skid",
+    category: "Nauta & Drying Skids",
+    src: "/photos/hosokawa_vrieco_nauta_5vdc_complete_pilot_skid.webp",
+    description:
+      "Complete pharmaceutical-grade 5-liter pilot vacuum drying plant showing conical jacketed vessel, orbital head drive, condenser, and integrated mobile frame.",
+    tags: ["5-VDC Skid", "Pilot Plant", "Hosokawa Vrieco-Nauta"],
+  },
+  {
+    id: "nauta-pid-flowsheet",
+    title: "Vrieco-Nauta Vacuum Dryer Process Flowsheet & Utilities P&ID",
+    category: "Nauta & Drying Skids",
+    src: "/diagrams/vrieco_nauta_vacuum_dryer_pid_flowsheet.jpg",
+    description:
+      "Authentic manufacturer process flowsheet detailing jacket thermal fluid circuit, vapor filter column with blowback, primary solvent condenser, vacuum pump set, and sampling port.",
+    tags: ["Process Flowsheet", "Vapor Condenser", "Thermal Circuit"],
+  },
+  {
+    id: "nauta-mezzanine-plant",
+    title: "Production Conical Vacuum Mixer Mezzanine Platform Installation",
+    category: "Nauta & Drying Skids",
+    src: "/photos/conical_mixer_mezzanine_platform_system.png",
+    description:
+      "Full multi-story cleanroom mezzanine installation showing top-loading hopper, motor drive shroud, and gravity bottom discharge interface.",
+    tags: ["Cleanroom", "Mezzanine", "Production Scale"],
+  },
+  {
+    id: "nauta-auger-clearance",
+    title: "Nauta Agitator Screw, Flush Ball Valve & Wall Clearance Anatomy",
+    category: "Mechanical CAD",
+    src: "/photos/nauta_internal_components_auger_valves_clearance.png",
+    description:
+      "Mechanical anatomy showing screw flighting geometry, tight 3-5mm vessel wall clearance, and zero-dead-leg spherical segment discharge valve.",
+    tags: ["Auger Clearance", "Ball Segment Valve", "Mechanical Anatomy"],
+  },
+  {
+    id: "nauta-thermal-jacket-circuit",
+    title: "Conical Vacuum Dryer Thermal Fluid Distribution Circuit",
+    category: "Thermal / Fluid",
+    src: "/diagrams/conical_dryer_jacket_thermal_fluid_circuit.jpg",
+    description:
+      "Half-pipe spiral coil fluid velocity and temperature zoning schematic across lower cone, upper cone, and top vessel head.",
+    tags: ["Half-Pipe Coil", "Thermal Fluid", "Heat Transfer"],
+  },
+  {
+    id: "nauta-twin-screw",
+    title: "Twin Screw Conical Mixer Cutaway & Dual Orbit Head Drive",
+    category: "Nauta & Drying Skids",
+    src: "/photos/twin_screw_conical_mixer_3d_cutaway.png",
+    description:
+      "High-capacity twin screw vertical conical blender configuration for rapid bulk powder homogenization.",
+    tags: ["Twin Screw", "Cutaway", "Homogenization"],
+  },
 ];
 
 export function EngineeringDiagramsGallery() {
@@ -164,6 +227,7 @@ export function EngineeringDiagramsGallery() {
 
   const categories = [
     "All",
+    "Nauta & Drying Skids",
     "Architecture",
     "Equipment Photos",
     "P&ID / Controls",

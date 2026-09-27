@@ -8,6 +8,7 @@ import {
   Compass,
   Table,
   Library,
+  Presentation,
   Atom,
   Sun,
   Moon,
@@ -33,6 +34,7 @@ export function Header({ projectSlug = "hosokawa-afd-freeze-dryer" }: { projectS
   const navLinks = [
     { href: "/", label: "Archive", icon: Atom },
     { href: `/${projectSlug}`, label: "The Lab", icon: Compass },
+    { href: `/${projectSlug}/webinar`, label: "Nauta Deck", icon: Presentation },
     { href: `/${projectSlug}/bom`, label: "The Bench", icon: Table },
     { href: `/${projectSlug}/references`, label: "The Shelf", icon: Library },
   ];

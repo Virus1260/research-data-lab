@@ -16,6 +16,7 @@ import {
   Layers,
   CheckCircle2,
   Download,
+  Presentation,
 } from "lucide-react";
 
 export const dynamic = 'force-dynamic';
@@ -75,6 +76,14 @@ export default async function LabPage({ params }: { params: Promise<{ project: s
               projectSlug={project.slug}
               variant="hero"
             />
+
+            <Link
+              href={`/${project.slug}/webinar`}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber/15 border border-amber/40 text-amber hover:bg-amber/25 font-mono text-xs transition shadow-sm"
+            >
+              <Presentation className="w-3.5 h-3.5 text-amber" />
+              <span>Nauta Webinar &amp; PPT Deck (33 Slides)</span>
+            </Link>
 
             <Link
               href={`/${project.slug}/bom`}
