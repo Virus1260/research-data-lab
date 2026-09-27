@@ -33,46 +33,52 @@ async function synthesizeText(voiceName: string, text: string, rateStr: string, 
   const chunks: Buffer[] = [];
   let isDone = false;
 
-  await new Promise<void>((resolve, reject) => {
-    const timer = setTimeout(() => {
-      if (!isDone) {
-        isDone = true;
-        if (chunks.length > 0) {
-          resolve();
-        } else {
-          reject(new Error("Edge TTS timeout after 18000ms"));
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        if (!isDone) {
+          isDone = true;
+          if (chunks.length > 0) {
+            resolve();
+          } else {
+            reject(new Error("Edge TTS timeout after 25000ms"));
+          }
         }
-      }
-    }, 18000);
+      }, 25000);
 
-    const finish = () => {
-      if (!isDone) {
-        isDone = true;
-        clearTimeout(timer);
-        resolve();
-      }
-    };
-
-    readable.audioStream.on("data", (chunk: Buffer) => {
-      chunks.push(chunk);
-    });
-
-    readable.audioStream.on("end", finish);
-    readable.audioStream.on("close", finish);
-
-    readable.audioStream.on("error", (err: Error) => {
-      if (!isDone) {
-        isDone = true;
-        clearTimeout(timer);
-        // If we already received audio chunks before stream closed, treat as success
-        if (chunks.length > 0) {
+      const finish = () => {
+        if (!isDone) {
+          isDone = true;
+          clearTimeout(timer);
           resolve();
-        } else {
-          reject(err);
         }
-      }
+      };
+
+      readable.audioStream.on("data", (chunk: Buffer) => {
+        chunks.push(chunk);
+      });
+
+      readable.audioStream.on("end", finish);
+      readable.audioStream.on("close", finish);
+
+      readable.audioStream.on("error", (err: Error) => {
+        if (!isDone) {
+          isDone = true;
+          clearTimeout(timer);
+          // If we already received audio chunks before stream closed, treat as success
+          if (chunks.length > 0) {
+            resolve();
+          } else {
+            reject(err);
+          }
+        }
+      });
     });
-  });
+  } finally {
+    try {
+      tts.close();
+    } catch {}
+  }
 
   return Buffer.concat(chunks);
 }

@@ -624,15 +624,23 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
           }
         };
 
-        // Adaptive safety timeout based on chunk text length (minimum 12s, up to 25s for long complex engineering sentences)
+        // Adaptive safety timeout based on chunk text length (minimum 30s, up to 60s for slow network connections)
         // Prevents premature fallback to WebSpeech while Edge Neural synthesizes high-fidelity audio over the network
-        const timeoutMs = Math.max(12000, Math.min(25000, chunk.text.length * 75));
+        const timeoutMs = Math.max(30000, Math.min(60000, chunk.text.length * 120));
         const loadTimeout = setTimeout(() => {
           if (audio.readyState < 2 && !hasFallenBack) {
             audio.pause();
             fallbackToWeb(`Stream timeout >${timeoutMs}ms`);
           }
         }, timeoutMs);
+
+        audio.onloadeddata = () => {
+          clearTimeout(loadTimeout);
+        };
+
+        audio.oncanplay = () => {
+          clearTimeout(loadTimeout);
+        };
 
         audio.onplaying = () => {
           isSpeakingSoundRef.current = true;

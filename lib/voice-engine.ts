@@ -479,6 +479,9 @@ export function splitParagraphIntoSentences(text: string): string[] {
   if (!text) return [];
 
   let s = text;
+  // 0. Protect numbered lists / patent claim numbering: e.g. "27. The method", "1. A freeze dryer", "26. Werkwijze"
+  s = s.replace(/(^|[\s*`_#])(\d+)\.(?=\s+[A-Za-z])/g, "$1$2\u200B");
+
   // 1. Protect decimal points: e.g. 0.05, 12.5, 1.6
   s = s.replace(/(?<=\d)\.(?=\d)/g, "\u200B");
 
@@ -506,13 +509,31 @@ export function splitParagraphIntoSentences(text: string): string[] {
   // 8. Protect periods directly followed by whitespace and a lowercase word (never a sentence end in formal English)
   s = s.replace(/\.(?=\s+[a-z])/g, "\u200B");
 
-  const matches: string[] = [];
+  const rawMatches: string[] = [];
   const sentenceTerminatorRegex = /([^.!?]+[.!?]+[*_~`'"\u2019\u201d)\]]*(?:\s+|$)|[^.!?]+$)/g;
   let m;
   while ((m = sentenceTerminatorRegex.exec(s)) !== null) {
     const segment = m[0].replace(/\u200B/g, ".").trim();
     if (segment) {
-      matches.push(segment);
+      rawMatches.push(segment);
+    }
+  }
+
+  // Decompose long compound clauses (> 180 chars) with semicolons into human breathing cadence
+  const matches: string[] = [];
+  for (const seg of rawMatches) {
+    if (seg.length > 180 && seg.includes(";")) {
+      const clauses = seg.split(/;\s+/);
+      clauses.forEach((c, idx) => {
+        let clean = c.trim();
+        if (!clean) return;
+        if (idx < clauses.length - 1 && !/[.!?]$/.test(clean)) {
+          clean += ";";
+        }
+        matches.push(clean);
+      });
+    } else {
+      matches.push(seg);
     }
   }
 
@@ -730,13 +751,25 @@ export function chunkTextForHumanSpeech(
     // Bullet points
     if (line.startsWith("- ") || line.startsWith("* ")) {
       const rawText = cleanMarkdownForChunking(line.replace(/^[-*]\s+/, "").trim());
-      const text = humanizeEngineeringText(rawText);
-      chunks.push({
-        rawText,
-        text,
-        pauseAfterMs: Math.round(750 * pauseScale),
-        type: "bullet",
-      });
+      // Split bullet into sentences so long multi-sentence patent translations don't become massive 1,300-char blocks
+      const bulletSentences = splitParagraphIntoSentences(rawText);
+      for (let sIdx = 0; sIdx < bulletSentences.length; sIdx++) {
+        const rawS = bulletSentences[sIdx];
+        if (!rawS || rawS.length < 3) continue;
+
+        const spokenText = humanizeEngineeringText(rawS);
+        const isLastSentence = sIdx === bulletSentences.length - 1;
+        const pause = isLastSentence
+          ? Math.round(850 * pauseScale)
+          : Math.round(550 * pauseScale);
+
+        chunks.push({
+          rawText: rawS,
+          text: spokenText,
+          pauseAfterMs: pause,
+          type: "bullet",
+        });
+      }
       i++;
       continue;
     }
