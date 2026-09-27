@@ -868,23 +868,31 @@ export function PhaseDiagramExplorer() {
                 height={fdBoxY2 - fdBoxY1}
                 fill="url(#fdHatch)"
                 stroke={isDark ? "#fbbf24" : "#b45309"}
-                strokeWidth="2.2"
+                strokeWidth="1.8"
                 strokeDasharray="4 2"
                 className="animate-pulse"
               />
-              <g transform={`translate(${fdBoxX1 + 8}, ${fdBoxY1 + 18})`}>
+              {/* Sleek Header Pinned Directly Above the Box (Zero Interior Overlap) */}
+              <g transform={`translate(${fdBoxX1}, ${fdBoxY1 - 7})`}>
                 <rect
-                  x="-3"
-                  y="-12"
-                  width="134"
-                  height="18"
-                  rx="4"
+                  x="-2"
+                  y="-10"
+                  width={isProcess ? "142" : "78"}
+                  height="13"
+                  rx="3"
                   fill={badgeBg}
                   stroke={isDark ? "#fbbf24" : "#b45309"}
-                  strokeWidth="1.4"
+                  strokeWidth="1"
                 />
-                <text x="3" y="1" fill={isDark ? "#fbbf24" : "#78350f"} fontSize="9.5" fontFamily="monospace" fontWeight="900">
-                  ★ AFD OPERATING ZONE
+                <text
+                  x="3"
+                  y="0"
+                  fill={isDark ? "#fbbf24" : "#92400e"}
+                  fontSize="8.5"
+                  fontFamily="monospace"
+                  fontWeight="900"
+                >
+                  {isProcess ? "★ AFD OPERATING ZONE" : "★ AFD ZONE"}
                 </text>
               </g>
             </g>
@@ -895,39 +903,39 @@ export function PhaseDiagramExplorer() {
           <path d={vapCurvePath} fill="none" stroke={isDark ? "#4ade80" : "#15803d"} strokeWidth="3" />
           <path d={meltPath} fill="none" stroke={isDark ? "#c084fc" : "#6b21a8"} strokeWidth="2.5" strokeDasharray="4 3" />
 
-          {/* Region High-Contrast Watermarks */}
+          {/* Region Minimalist Watermarks (Carefully positioned to avoid all curves) */}
           {showRegions && (
-            <g pointerEvents="none">
+            <g pointerEvents="none" opacity="0.4">
               <text
-                x={tToX(isProcess ? -50 : -160)}
-                y={pToY(isProcess ? 20 : 500)}
+                x={tToX(isProcess ? -60 : -180)}
+                y={pToY(isProcess ? 25 : 10000)}
                 fill={solidWatermarkColor}
-                fontSize="15"
+                fontSize="14"
                 fontFamily="monospace"
                 fontWeight="900"
-                letterSpacing="1.2"
+                letterSpacing="1.5"
               >
                 SOLID (ICE)
               </text>
               <text
-                x={tToX(isProcess ? 65 : 120)}
-                y={pToY(isProcess ? 300 : 5000)}
+                x={tToX(isProcess ? 75 : 160)}
+                y={pToY(isProcess ? 2000 : 300000)}
                 fill={liquidWatermarkColor}
-                fontSize="15"
+                fontSize="14"
                 fontFamily="monospace"
                 fontWeight="900"
-                letterSpacing="1.2"
+                letterSpacing="1.5"
               >
                 LIQUID WATER
               </text>
               <text
-                x={tToX(isProcess ? 75 : 170)}
-                y={pToY(isProcess ? 0.05 : 0.005)}
+                x={tToX(isProcess ? 85 : 230)}
+                y={pToY(isProcess ? 0.03 : 0.005)}
                 fill={vaporWatermarkColor}
-                fontSize="15"
+                fontSize="14"
                 fontFamily="monospace"
                 fontWeight="900"
-                letterSpacing="1.2"
+                letterSpacing="1.5"
               >
                 VAPOUR (GAS)
               </text>
@@ -976,7 +984,7 @@ export function PhaseDiagramExplorer() {
                         setPressMbar(lm.pressMbar);
                       }}
                     >
-                      {/* Generous, Stable Invisible Hit Circle */}
+                      {/* Invisible Hit Circle */}
                       <circle cx={px} cy={py} r="18" fill="transparent" />
 
                       {/* Drop-line to axes for 1 atm landmarks */}
@@ -994,7 +1002,7 @@ export function PhaseDiagramExplorer() {
                         />
                       )}
 
-                      {/* Stable Glow Halo on Hover */}
+                      {/* Stable Glow Halo */}
                       {isActive && (
                         <circle
                           cx={px}
@@ -1027,177 +1035,130 @@ export function PhaseDiagramExplorer() {
             </g>
           )}
 
-          {/* --- PROCESS PATHWAYS (Rendered in BOTH Process View and Full Scale!) --- */}
-          {/* Mode 02: Atmospheric Evaporation via Heating (Webinar Slide 12 / Screenshot 232233) */}
+          {/* --- SLEEK, MINIMAL, DYNAMIC PROCESS PATHWAYS (ZERO CLUTTER, ZERO OVERLAPS) --- */}
+
+          {/* Mode 02: Atmospheric Evaporation */}
           {selectedProcess === "EVAP_HEAT" && (
             <g className="transition-all">
               <line
                 x1={stdCondX}
                 y1={stdCondY}
-                x2={tToX(112)}
-                y2={stdCondY}
-                stroke={axisTextPrimary}
-                strokeWidth={isProcess ? "4.5" : "3.5"}
-                strokeDasharray="6 3"
+                x2={normalBoilX}
+                y2={normalBoilY}
+                stroke={isDark ? "#f87171" : "#dc2626"}
+                strokeWidth={isProcess ? "3.5" : "2.8"}
+                strokeDasharray="5 3"
                 markerEnd="url(#arrowHeadPrimary)"
               />
-              <circle cx={stdCondX} cy={stdCondY} r="7" fill={axisTextPrimary} stroke={badgeBg} strokeWidth="2" />
-              <circle cx={normalBoilX} cy={normalBoilY} r="7" fill="#dc2626" stroke={badgeBg} strokeWidth="2" />
-
-              <g transform={`translate(${tToX(isProcess ? 42 : 50)}, ${stdCondY - 28})`}>
-                <rect
-                  x="-6"
-                  y="-14"
-                  width="115"
-                  height="26"
-                  rx="6"
-                  fill={badgeBg}
-                  stroke={axisTextPrimary}
-                  strokeWidth="1.8"
-                  filter="drop-shadow(0 3px 6px rgba(0,0,0,0.25))"
-                />
-                <text x="10" y="4" fill={axisTextPrimary} fontSize="13" fontFamily="Arial, sans-serif" fontWeight="900">
-                  Heating →
-                </text>
-              </g>
+              {/* Waypoint 1: Charge */}
+              <circle cx={stdCondX} cy={stdCondY} r="6" fill={axisTextPrimary} stroke={badgeBg} strokeWidth="2" />
+              <text x={stdCondX} y={stdCondY - 10} fill={axisTextPrimary} fontSize="10" fontFamily="monospace" fontWeight="900" textAnchor="middle">
+                ① 25°C
+              </text>
+              {/* Waypoint 2: Boiling */}
+              <circle cx={normalBoilX} cy={normalBoilY} r="6" fill="#dc2626" stroke={badgeBg} strokeWidth="2" />
+              <text x={normalBoilX} y={normalBoilY - 10} fill="#dc2626" fontSize="10" fontFamily="monospace" fontWeight="900" textAnchor="middle">
+                ② 100°C Boiling
+              </text>
             </g>
           )}
 
-          {/* Mode 03: Vacuum Evaporation via Pressure Decrease (Webinar Slide 13 / Screenshot 232233) */}
+          {/* Mode 03: Vacuum Evaporation */}
           {selectedProcess === "EVAP_VAC" && (
             <g className="transition-all">
               <line
                 x1={tToX(40)}
                 y1={pToY(1013.25)}
                 x2={tToX(40)}
-                y2={pToY(20)}
-                stroke={axisTextPrimary}
-                strokeWidth={isProcess ? "4.5" : "3.5"}
-                strokeDasharray="6 3"
+                y2={pToY(73.8)}
+                stroke={isDark ? "#38bdf8" : "#0284c7"}
+                strokeWidth={isProcess ? "3.5" : "2.8"}
+                strokeDasharray="5 3"
                 markerEnd="url(#arrowHeadPrimary)"
               />
-              <circle cx={tToX(40)} cy={pToY(1013.25)} r="7" fill="#0369a1" stroke={badgeBg} strokeWidth="2" />
-              <circle cx={tToX(40)} cy={pToY(73.8)} r="7" fill="#15803d" stroke={badgeBg} strokeWidth="2" />
-
-              <g transform={`translate(${tToX(40) + 12}, ${pToY(300)})`}>
-                <rect
-                  x="-4"
-                  y="-14"
-                  width="140"
-                  height="42"
-                  rx="6"
-                  fill={badgeBg}
-                  stroke={axisTextPrimary}
-                  strokeWidth="1.8"
-                  filter="drop-shadow(0 3px 6px rgba(0,0,0,0.25))"
-                />
-                <text x="8" y="2" fill={axisTextPrimary} fontSize="12.5" fontFamily="Arial, sans-serif" fontWeight="900">
-                  Decrease
-                </text>
-                <text x="8" y="20" fill={axisTextPrimary} fontSize="12.5" fontFamily="Arial, sans-serif" fontWeight="900">
-                  Pressure ↓
-                </text>
-              </g>
+              {/* Waypoint 1: 40°C Solution */}
+              <circle cx={tToX(40)} cy={pToY(1013.25)} r="6" fill="#0369a1" stroke={badgeBg} strokeWidth="2" />
+              <text x={tToX(40) + 10} y={pToY(1013.25) + 3} fill={axisTextPrimary} fontSize="10" fontFamily="monospace" fontWeight="900">
+                ① 40°C (1 atm)
+              </text>
+              {/* Waypoint 2: Vacuum Boiling */}
+              <circle cx={tToX(40)} cy={pToY(73.8)} r="6" fill="#15803d" stroke={badgeBg} strokeWidth="2" />
+              <text x={tToX(40) + 10} y={pToY(73.8) + 3} fill="#15803d" fontSize="10" fontFamily="monospace" fontWeight="900">
+                ② 74 mbar (Boiling)
+              </text>
             </g>
           )}
 
-          {/* Mode 04: Active Freeze Drying (AFD) Sublimation Pathway (Webinar Slide 14 / Screenshot 232329) */}
+          {/* Mode 04: Active Freeze Drying Sublimation Pathway (Clean Vector Lines + Waypoint Pins) */}
           {selectedProcess === "SUBLIMATION" && (
             <g className="transition-all">
-              {/* Path 1: Freezing & Agitated Granulation (Sensible cooling + latent freeze) */}
+              {/* Path 1: Freezing (Cooling along 1 atm isobar) */}
               <line
                 x1={stdCondX}
                 y1={stdCondY}
                 x2={tToX(-40)}
                 y2={stdCondY}
-                stroke={axisTextPrimary}
-                strokeWidth={isProcess ? "4" : "3"}
-                strokeDasharray="6 3"
-                markerEnd="url(#arrowHeadPrimary)"
+                stroke={isDark ? "#38bdf8" : "#0284c7"}
+                strokeWidth={isProcess ? "3.5" : "2.8"}
+                strokeDasharray="5 3"
               />
-              {/* Path 2: Deep Vacuum Depressurization */}
+              {/* Path 2: Depressurization (Vacuum pull along -40°C isotherm) */}
               <line
                 x1={tToX(-40)}
                 y1={stdCondY}
                 x2={tToX(-40)}
                 y2={pToY(0.1)}
-                stroke={axisTextPrimary}
-                strokeWidth={isProcess ? "4" : "3"}
-                strokeDasharray="6 3"
-                markerEnd="url(#arrowHeadPrimary)"
+                stroke={isDark ? "#fbbf24" : "#b45309"}
+                strokeWidth={isProcess ? "3.5" : "2.8"}
+                strokeDasharray="5 3"
               />
-              {/* Path 3: Sublimation Dynamic Heating */}
+              {/* Path 3: Sublimation Heating (Heating along 0.1 mbar isobar) */}
               <line
                 x1={tToX(-40)}
                 y1={pToY(0.1)}
                 x2={tToX(25)}
                 y2={pToY(0.1)}
-                stroke={axisTextPrimary}
-                strokeWidth={isProcess ? "4" : "3"}
-                strokeDasharray="6 3"
+                stroke={isDark ? "#4ade80" : "#15803d"}
+                strokeWidth={isProcess ? "3.5" : "2.8"}
+                strokeDasharray="5 3"
                 markerEnd="url(#arrowHeadPrimary)"
               />
 
-              {/* Landmark points along the freeze-drying trajectory */}
-              <circle cx={stdCondX} cy={stdCondY} r="6.5" fill={axisTextPrimary} stroke={badgeBg} strokeWidth="2" />
-              <circle cx={tToX(-40)} cy={stdCondY} r="6.5" fill="#0369a1" stroke={badgeBg} strokeWidth="2" />
-              <circle cx={tToX(-40)} cy={pToY(0.1)} r="6.5" fill={isDark ? "#fbbf24" : "#b45309"} stroke={badgeBg} strokeWidth="2" />
-              <circle cx={tToX(25)} cy={pToY(0.1)} r="6.5" fill="#15803d" stroke={badgeBg} strokeWidth="2" />
+              {/* Waypoint ①: Charge Slurry (25°C, 1013 mbar) */}
+              <circle cx={stdCondX} cy={stdCondY} r="7" fill={badgeBg} stroke={axisTextPrimary} strokeWidth="2" />
+              <text x={stdCondX} y={stdCondY + 3.5} fill={axisTextPrimary} fontSize="9" fontFamily="monospace" fontWeight="900" textAnchor="middle">
+                1
+              </text>
+              <text x={stdCondX + 10} y={stdCondY - 8} fill={axisTextPrimary} fontSize="9" fontFamily="monospace" fontWeight="bold">
+                Charge (25°C)
+              </text>
 
-              {/* Annotation Badges */}
-              <g transform={`translate(${isProcess ? tToX(-22) : tToX(-18)}, ${stdCondY - 28})`}>
-                <rect
-                  x="-6"
-                  y="-14"
-                  width="105"
-                  height="26"
-                  rx="6"
-                  fill={badgeBg}
-                  stroke={axisTextPrimary}
-                  strokeWidth="1.8"
-                  filter="drop-shadow(0 3px 6px rgba(0,0,0,0.25))"
-                />
-                <text x="6" y="4" fill={axisTextPrimary} fontSize="12.5" fontFamily="Arial, sans-serif" fontWeight="900">
-                  ← Cooling
-                </text>
-              </g>
+              {/* Waypoint ②: Frozen Granules (-40°C, 1013 mbar) */}
+              <circle cx={tToX(-40)} cy={stdCondY} r="7" fill={badgeBg} stroke="#0284c7" strokeWidth="2" />
+              <text x={tToX(-40)} y={stdCondY + 3.5} fill="#0284c7" fontSize="9" fontFamily="monospace" fontWeight="900" textAnchor="middle">
+                2
+              </text>
+              <text x={tToX(-40) - 10} y={stdCondY - 8} fill="#0284c7" fontSize="9" fontFamily="monospace" fontWeight="bold" textAnchor="end">
+                Freeze (-40°C)
+              </text>
 
-              <g transform={`translate(${isProcess ? tToX(-40) - 150 : tToX(-40) - 130}, ${pToY(20)})`}>
-                <rect
-                  x="-4"
-                  y="-14"
-                  width="125"
-                  height="42"
-                  rx="6"
-                  fill={badgeBg}
-                  stroke={axisTextPrimary}
-                  strokeWidth="1.8"
-                  filter="drop-shadow(0 3px 6px rgba(0,0,0,0.25))"
-                />
-                <text x="6" y="2" fill={axisTextPrimary} fontSize="12" fontFamily="Arial, sans-serif" fontWeight="900">
-                  Decrease
-                </text>
-                <text x="6" y="20" fill={axisTextPrimary} fontSize="12" fontFamily="Arial, sans-serif" fontWeight="900">
-                  Pressure ↓
-                </text>
-              </g>
+              {/* Waypoint ③: Deep Vacuum Ignition (-40°C, 0.1 mbar) */}
+              <circle cx={tToX(-40)} cy={pToY(0.1)} r="7" fill={badgeBg} stroke={isDark ? "#fbbf24" : "#b45309"} strokeWidth="2" />
+              <text x={tToX(-40)} y={pToY(0.1) + 3.5} fill={isDark ? "#fbbf24" : "#b45309"} fontSize="9" fontFamily="monospace" fontWeight="900" textAnchor="middle">
+                3
+              </text>
+              <text x={tToX(-40) - 10} y={pToY(0.1) + 3.5} fill={isDark ? "#fbbf24" : "#b45309"} fontSize="9" fontFamily="monospace" fontWeight="bold" textAnchor="end">
+                0.1 mbar
+              </text>
 
-              <g transform={`translate(${isProcess ? tToX(-15) : tToX(-10)}, ${pToY(0.1) + 20})`}>
-                <rect
-                  x="-6"
-                  y="-14"
-                  width="110"
-                  height="26"
-                  rx="6"
-                  fill={badgeBg}
-                  stroke={axisTextPrimary}
-                  strokeWidth="1.8"
-                  filter="drop-shadow(0 3px 6px rgba(0,0,0,0.25))"
-                />
-                <text x="8" y="4" fill={axisTextPrimary} fontSize="12.5" fontFamily="Arial, sans-serif" fontWeight="900">
-                  Heating →
-                </text>
-              </g>
+              {/* Waypoint ④: Final Sublimation Bulk Powder (25°C, 0.1 mbar) */}
+              <circle cx={tToX(25)} cy={pToY(0.1)} r="7" fill={badgeBg} stroke="#15803d" strokeWidth="2" />
+              <text x={tToX(25)} y={pToY(0.1) + 3.5} fill="#15803d" fontSize="9" fontFamily="monospace" fontWeight="900" textAnchor="middle">
+                4
+              </text>
+              <text x={tToX(25) + 10} y={pToY(0.1) + 3.5} fill="#15803d" fontSize="9" fontFamily="monospace" fontWeight="bold">
+                Dry Powder (+25°C)
+              </text>
             </g>
           )}
 
@@ -1444,7 +1405,7 @@ export function PhaseDiagramExplorer() {
           </text>
         </svg>
 
-        {/* Dynamic Coordinate Probe Card (Dynamic Multi-Scale Unit Resolution) */}
+        {/* Dynamic Coordinate Probe Card (Dynamic Multi-Scale Unit Resolution - Bottom Left) */}
         {hoverCoord && !activeLandmark && (
           <div
             className="absolute bottom-3 left-4 px-3.5 py-1.5 rounded-xl border border-hairline shadow-xl text-xs font-mono flex flex-wrap items-center gap-2.5 backdrop-blur-md pointer-events-none z-20"
@@ -1476,56 +1437,103 @@ export function PhaseDiagramExplorer() {
             </div>
           </div>
         )}
-      </div>
 
-      {/* --- DEDICATED ACTIVE LANDMARK INSPECTOR CARD --- */}
-      {activeLandmark && (
-        <div className="mt-2 p-3 rounded-xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-[#14171f] shadow-2xl transition-all animate-in fade-in slide-in-from-top-2 duration-200 shrink-0">
-          <div className="flex items-start justify-between gap-3 pb-2 border-b border-slate-200 dark:border-slate-800">
-            <div className="flex items-center gap-2.5">
-              <span
-                className="w-3.5 h-3.5 rounded-full shrink-0 shadow-sm"
-                style={{ backgroundColor: isDark ? activeLandmark.colorDark : activeLandmark.colorLight }}
-              />
-              <div>
-                <div className="flex items-center gap-2">
-                  <h4 className="text-sm font-black text-slate-950 dark:text-slate-50">
-                    {activeLandmark.name}
-                  </h4>
-                  <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 uppercase font-black">
-                    {activeLandmark.category}
-                  </span>
-                </div>
-                <div className="text-xs font-mono font-bold text-sky-800 dark:text-sky-300 mt-0.5">
-                  {activeLandmark.physics}
+        {/* Sleek Interactive Process Trajectory HUD (Rendered when a process mode is selected) */}
+        {selectedProcess !== "FREE" && (
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-xl border border-hairline bg-white/95 dark:bg-[#14171f]/95 backdrop-blur-md shadow-xl text-xs font-mono flex items-center gap-2 z-20 transition-all max-w-[95%] overflow-x-auto">
+            {/* Play/Pause Button */}
+            <button
+              onClick={() => setIsPlaying(!isPlaying)}
+              className="p-1 rounded-lg bg-sky-100 hover:bg-sky-200 dark:bg-sky-950 dark:hover:bg-sky-900 text-sky-800 dark:text-sky-200 transition shrink-0"
+              title={isPlaying ? "Pause auto-playback" : "Play process trajectory"}
+            >
+              {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+            </button>
+
+            {/* Step Segments */}
+            <div className="flex items-center gap-1.5 shrink-0">
+              {processStepsData[selectedProcess]?.map((st, idx) => (
+                <button
+                  key={st.step}
+                  onClick={() => {
+                    setIsPlaying(false);
+                    setProcessStep(idx);
+                    applyProcessStep(selectedProcess, idx);
+                  }}
+                  className={`px-2.5 py-1 rounded-lg text-[10.5px] font-black transition ${
+                    processStep === idx
+                      ? "bg-amber-500 text-slate-950 shadow-sm"
+                      : "bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
+                  }`}
+                >
+                  {st.step}. {st.title.replace(/^Stage \d+:\s*/, "")}
+                </button>
+              ))}
+            </div>
+
+            {/* Current Step Description Pill */}
+            <div className="hidden md:block max-w-sm truncate text-[10.5px] text-slate-600 dark:text-slate-400 pl-2 border-l border-slate-300 dark:border-slate-700">
+              {processStepsData[selectedProcess]?.[processStep]?.desc}
+            </div>
+          </div>
+        )}
+
+        {/* --- DEDICATED ACTIVE LANDMARK INSPECTOR CARD (Rock-Solid Absolute HUD Overlay: Zero Layout Shifts / Zero Flickering!) --- */}
+        {activeLandmark && (
+          <div
+            className={`absolute bottom-3 right-4 max-w-sm sm:max-w-md p-3.5 rounded-xl border-2 border-slate-300 dark:border-slate-700 bg-white/95 dark:bg-[#14171f]/95 backdrop-blur-md shadow-2xl transition-all z-30 ${
+              selectedLandmark ? "pointer-events-auto" : "pointer-events-none"
+            }`}
+          >
+            <div className="flex items-start justify-between gap-3 pb-2 border-b border-slate-200 dark:border-slate-800">
+              <div className="flex items-center gap-2.5">
+                <span
+                  className="w-3.5 h-3.5 rounded-full shrink-0 shadow-sm"
+                  style={{ backgroundColor: isDark ? activeLandmark.colorDark : activeLandmark.colorLight }}
+                />
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h4 className="text-sm font-black text-slate-950 dark:text-slate-50">
+                      {activeLandmark.name}
+                    </h4>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 uppercase font-black">
+                      {activeLandmark.category}
+                    </span>
+                  </div>
+                  <div className="text-xs font-mono font-bold text-sky-800 dark:text-sky-300 mt-0.5">
+                    {activeLandmark.physics}
+                  </div>
                 </div>
               </div>
+
+              {/* Click-to-Close Button (Active when locked via click) */}
+              {selectedLandmark && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedLandmark(null);
+                    setHoveredLandmark(null);
+                  }}
+                  className="p-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition border border-slate-300 dark:border-slate-600 pointer-events-auto"
+                  title="Close Inspection Card"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
             </div>
 
-            {/* Click-to-Close Button */}
-            <button
-              onClick={() => {
-                setSelectedLandmark(null);
-                setHoveredLandmark(null);
-              }}
-              className="p-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition border border-slate-300 dark:border-slate-600"
-              title="Close Inspection Card"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-
-          <div className="mt-2 text-xs text-slate-800 dark:text-slate-200 space-y-1.5">
-            <p className="leading-relaxed font-medium">
-              {activeLandmark.desc}
-            </p>
-            <div className="p-2 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700 text-amber-950 dark:text-amber-200 text-[11px] font-semibold flex items-start gap-2">
-              <span className="text-sm shrink-0">💡</span>
-              <span className="leading-snug">{activeLandmark.relevanceToAFD}</span>
+            <div className="mt-2 text-xs text-slate-800 dark:text-slate-200 space-y-1.5">
+              <p className="leading-relaxed font-medium">
+                {activeLandmark.desc}
+              </p>
+              <div className="p-2 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700 text-amber-950 dark:text-amber-200 text-[11px] font-semibold flex items-start gap-2">
+                <span className="text-sm shrink-0">💡</span>
+                <span className="leading-snug">{activeLandmark.relevanceToAFD}</span>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* --- COLLAPSIBLE PRECISION SLIDERS DRAWER (Hidden by Default in Full Screen) --- */}
       {(showSlidersDrawer || !isFullscreen) && (
