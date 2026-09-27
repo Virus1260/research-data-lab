@@ -552,16 +552,29 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
           }
         };
 
-        // Safety timeout: if streaming takes >4000ms, fallback to instant WebSpeech
+        // Adaptive safety timeout based on chunk text length (minimum 12s, up to 25s for long complex engineering sentences)
+        // Prevents premature fallback to WebSpeech while Edge Neural synthesizes high-fidelity audio over the network
+        const timeoutMs = Math.max(12000, Math.min(25000, chunk.text.length * 75));
         const loadTimeout = setTimeout(() => {
           if (audio.readyState < 2 && !hasFallenBack) {
             audio.pause();
-            fallbackToWeb("Stream timeout >4000ms");
+            fallbackToWeb(`Stream timeout >${timeoutMs}ms`);
           }
-        }, 4000);
+        }, timeoutMs);
 
         audio.onplaying = () => {
           clearTimeout(loadTimeout);
+
+          // Intelligent Lookahead Prefetch: warm up Edge Neural cache for the upcoming chunk while the current chunk is speaking
+          const nextIdx = index + 1;
+          if (nextIdx < chunksRef.current.length && speechEngineRef.current === "neural") {
+            const nextChunk = chunksRef.current[nextIdx];
+            if (nextChunk && nextChunk.text) {
+              const nextEncodedText = encodeURIComponent(nextChunk.text);
+              const nextTtsUrl = `/api/tts?text=${nextEncodedText}&persona=${personaId}&rate=${effectiveRate}&pitch=${selectedPersonaRef.current.pitch}`;
+              fetch(nextTtsUrl, { priority: "low" } as any).catch(() => {});
+            }
+          }
         };
 
         audio.onended = () => {
@@ -710,6 +723,20 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
 
     // Start speaking with human cadence from specified start index
     speakChunk(startIndex);
+
+    // Eagerly prefetch chunk startIndex + 1 into server cache in background
+    if (startIndex + 1 < chunks.length && speechEngineRef.current === "neural") {
+      const nextChunk = chunks[startIndex + 1];
+      if (nextChunk && nextChunk.text) {
+        const nextEncodedText = encodeURIComponent(nextChunk.text);
+        const personaId = selectedPersonaRef.current.id;
+        const pacing = pacingModeRef.current;
+        const pacingScale = pacing === "academic" ? 0.92 : pacing === "conversational" ? 0.96 : 1.1;
+        const effectiveRate = playbackRateRef.current * pacingScale;
+        const nextTtsUrl = `/api/tts?text=${nextEncodedText}&persona=${personaId}&rate=${effectiveRate}&pitch=${selectedPersonaRef.current.pitch}`;
+        fetch(nextTtsUrl, { priority: "low" } as any).catch(() => {});
+      }
+    }
   };
 
   const togglePlay = () => {

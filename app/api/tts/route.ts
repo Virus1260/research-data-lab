@@ -40,10 +40,10 @@ async function synthesizeText(voiceName: string, text: string, rateStr: string, 
         if (chunks.length > 0) {
           resolve();
         } else {
-          reject(new Error("Edge TTS timeout after 12000ms"));
+          reject(new Error("Edge TTS timeout after 18000ms"));
         }
       }
-    }, 12000);
+    }, 18000);
 
     const finish = () => {
       if (!isDone) {
