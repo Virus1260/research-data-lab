@@ -19,6 +19,46 @@ import {
   ChevronUp,
 } from "lucide-react";
 
+/**
+ * Renders chunk text cleanly without raw markdown symbols (**bold**, *italic*, `code`),
+ * rendering proper bold strong tags and formatted spans.
+ */
+export function renderCleanChunkText(raw: string): React.ReactNode {
+  if (!raw) return "";
+
+  // Strip leading list bullet markers (* , - , • )
+  const text = raw.replace(/^[*\-•]\s+/, "");
+
+  // Match markdown tokens: **bold**, *italic*, `code`
+  const regex = /(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g;
+  const parts = text.split(regex);
+
+  return parts.map((part, idx) => {
+    if (part.startsWith("**") && part.endsWith("**") && part.length >= 4) {
+      return (
+        <strong key={idx} className="font-bold text-ink-primary">
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+    if (part.startsWith("*") && part.endsWith("*") && part.length >= 2) {
+      return (
+        <em key={idx} className="italic text-ink-secondary">
+          {part.slice(1, -1)}
+        </em>
+      );
+    }
+    if (part.startsWith("`") && part.endsWith("`") && part.length >= 2) {
+      return (
+        <code key={idx} className="px-1 py-0.5 rounded bg-bg-panel text-cryo font-mono text-[9px]">
+          {part.slice(1, -1)}
+        </code>
+      );
+    }
+    return <span key={idx}>{part}</span>;
+  });
+}
+
 interface ReaderTeleprompterPanelProps {
   chapterTitle?: string;
   chapterSlug?: string;
@@ -190,14 +230,15 @@ export function ReaderTeleprompterPanel({
             {/* Mini equaliser */}
             <div className="flex items-end gap-0.5 h-3">
               {[0.4, 0.9, 0.6, 1.0, 0.7].map((scale, i) => {
-                const h = isPlaying
-                  ? Math.min(100, Math.max(20, Math.round(audioLevel * scale + Math.random() * 20)))
-                  : 20;
+                const isEmittingAudio = isPlaying && audioLevel > 3;
+                const h = isEmittingAudio
+                  ? Math.min(100, Math.max(15, Math.round(audioLevel * scale + Math.random() * 12)))
+                  : 15;
                 return (
                   <div
                     key={i}
                     className={`w-0.5 rounded-sm transition-all duration-100 ${
-                      isPlaying ? "bg-amber" : "bg-ink-dim/40"
+                      isEmittingAudio ? "bg-amber" : "bg-ink-dim/30"
                     }`}
                     style={{ height: `${h}%` }}
                   />
@@ -247,7 +288,7 @@ export function ReaderTeleprompterPanel({
 
                   <div className="pt-1.5 border-t border-hairline/60">
                     <p className="text-[10px] leading-relaxed text-ink-secondary italic select-text line-clamp-2">
-                      "{activeChunkData.text}"
+                      "{renderCleanChunkText(activeChunkData.text)}"
                     </p>
                   </div>
 
@@ -260,7 +301,7 @@ export function ReaderTeleprompterPanel({
               ) : (
                 <div className="space-y-1">
                   <p className="text-[11px] leading-relaxed text-ink-primary font-medium select-text line-clamp-3">
-                    {activeChunkData.rawText || activeChunkData.text}
+                    {renderCleanChunkText(activeChunkData.rawText || activeChunkData.text)}
                   </p>
                   <div className="flex items-center justify-between text-[9px] font-mono text-ink-dim pt-1 border-t border-hairline/60">
                     <span>{activeChunkData.pauseAfterMs}ms pause</span>
@@ -412,7 +453,7 @@ export function ReaderTeleprompterPanel({
                   </div>
                 ) : (
                   <p className="text-[10px] leading-snug text-ink-secondary group-hover:text-ink-primary transition line-clamp-2">
-                    {chunk.rawText || chunk.text}
+                    {renderCleanChunkText(chunk.rawText || chunk.text)}
                   </p>
                 )}
               </div>

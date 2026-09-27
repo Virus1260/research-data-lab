@@ -275,18 +275,19 @@ export function RealtimeVoiceGraph({
       wasPlayingRef.current = true;
       lastFreezeTimeRef.current = now;
 
-      // Smooth audio level
-      const targetLevel = Math.max(12, lvl);
-      smoothedLevelRef.current += (targetLevel - smoothedLevelRef.current) * Math.min(1, dt * 10);
+      // Smooth audio level: drop cleanly to 0.0 dB in pause or silence gap
+      const isSilentPause = lvl <= 2;
+      const targetLevel = isSilentPause ? 0 : lvl;
+      smoothedLevelRef.current += (targetLevel - smoothedLevelRef.current) * Math.min(1, dt * (isSilentPause ? 14 : 10));
       const currentLevel = smoothedLevelRef.current;
 
-      // Smooth frequency bands
+      // Smooth frequency bands (decays quickly to 0 in silent pause)
       const bandCount = 16;
       for (let i = 0; i < bandCount; i++) {
-        const inputVal = bands[i] !== undefined ? bands[i] : 28;
+        const inputVal = isSilentPause ? 0 : (bands[i] !== undefined ? bands[i] : 0);
         smoothedBandsRef.current[i] =
           (smoothedBandsRef.current[i] || 0) +
-          (inputVal - (smoothedBandsRef.current[i] || 0)) * Math.min(1, dt * 15);
+          (inputVal - (smoothedBandsRef.current[i] || 0)) * Math.min(1, dt * (isSilentPause ? 18 : 15));
       }
 
       // Physics-based F0 glottal cycle modulation
@@ -297,11 +298,11 @@ export function RealtimeVoiceGraph({
 
       const currentF0 = Math.round(baseF0 + intonationCycle * 16 + microStress * 10 + amplitudePitchCoupling + jitter);
 
-      // ONLY record pitch history during active live speech playback
+      // ONLY record real pitch history during active live speech playback, 0 in pause
       pitchHistoryRef.current.push({
         time: now,
-        hz: currentF0,
-        level: currentLevel,
+        hz: currentLevel > 1.5 ? currentF0 : 0,
+        level: currentLevel > 1.5 ? currentLevel : 0,
       });
 
       // Prune points older than 5200ms
@@ -310,63 +311,84 @@ export function RealtimeVoiceGraph({
         pitchHistoryRef.current.shift();
       }
 
-      const angularSpeed = (currentF0 / 38) * rate;
-      phaseRef.current += angularSpeed * dt;
+      if (currentLevel > 1.5) {
+        const angularSpeed = (currentF0 / 38) * rate;
+        phaseRef.current += angularSpeed * dt;
+      }
 
-      // Draw active spectral energy bars (Right)
+      // Draw spectral energy bars (Right)
       for (let i = 0; i < 10; i++) {
         const val = smoothedBandsRef.current[i] || 0;
-        const normalized = val / 100;
-        const barHeight = Math.max(3, normalized * (height - 6));
         const x = barStartX + i * (singleBarWidth + barGap);
-        const y = height / 2 - barHeight / 2;
 
-        const grad = safeLinearGradient(ctx, 0, y, 0, y + barHeight);
-        if (grad) {
-          grad.addColorStop(0, dark ? "#06b6d4" : "#0a7eb8"); // Cyan
-          grad.addColorStop(0.5, dark ? "#f59e0b" : "#c68410"); // Amber
-          grad.addColorStop(1, dark ? "#d97706" : "#b45309"); // Gold
-          ctx.fillStyle = grad;
+        if (currentLevel < 1.0 || val < 1.5) {
+          // Subtle 0.0 dB resting graticule baseline dot
+          ctx.fillStyle = dark ? "rgba(255, 255, 255, 0.10)" : "rgba(68, 45, 25, 0.12)";
+          ctx.beginPath();
+          ctx.roundRect(x, height / 2 - 1, singleBarWidth, 2, 1);
+          ctx.fill();
         } else {
-          ctx.fillStyle = dark ? "#f59e0b" : "#c68410";
+          const normalized = Math.min(1, val / 100);
+          const barHeight = Math.max(3, normalized * (height - 6));
+          const y = height / 2 - barHeight / 2;
+
+          const grad = safeLinearGradient(ctx, 0, y, 0, y + barHeight);
+          if (grad) {
+            grad.addColorStop(0, dark ? "#06b6d4" : "#0a7eb8"); // Cyan
+            grad.addColorStop(0.5, dark ? "#f59e0b" : "#c68410"); // Amber
+            grad.addColorStop(1, dark ? "#d97706" : "#b45309"); // Gold
+            ctx.fillStyle = grad;
+          } else {
+            ctx.fillStyle = dark ? "#f59e0b" : "#c68410";
+          }
+          ctx.beginPath();
+          ctx.roundRect(x, y, singleBarWidth, barHeight, 1.2);
+          ctx.fill();
         }
+      }
+
+      // Draw fluid fundamental F0 wave (Left)
+      if (currentLevel < 1.0) {
+        // True studio resting baseline: flat calm center line at midY
         ctx.beginPath();
-        ctx.roundRect(x, y, singleBarWidth, barHeight, 1.2);
-        ctx.fill();
-      }
-
-      // Draw active fluid fundamental F0 wave (Left)
-      const waveAmp = Math.max(4, (currentLevel / 100) * 12);
-      ctx.beginPath();
-      for (let x = 0; x <= waveWidth; x += 1.5) {
-        const progress = x / waveWidth;
-        const p = phaseRef.current + progress * Math.PI * 3.8;
-        const env = Math.sin(progress * Math.PI); // Window tapering
-
-        // Vocal tract harmonics
-        const f0Wave = Math.sin(p);
-        const f1Harmonic = Math.sin(p * 2.2) * 0.35;
-        const f2Harmonic = Math.sin(p * 3.5) * 0.15;
-        const combined = (f0Wave + f1Harmonic + f2Harmonic) * env;
-
-        const y = midY - combined * waveAmp;
-        if (x === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      }
-
-      const waveGrad = safeLinearGradient(ctx, 0, 0, waveWidth, 0);
-      if (waveGrad) {
-        waveGrad.addColorStop(0, dark ? "rgba(6, 182, 212, 0.4)" : "rgba(10, 126, 184, 0.5)");
-        waveGrad.addColorStop(0.6, dark ? "#06b6d4" : "#0a7eb8");
-        waveGrad.addColorStop(1, dark ? "#f59e0b" : "#c68410");
-        ctx.strokeStyle = waveGrad;
+        ctx.moveTo(0, midY);
+        ctx.lineTo(waveWidth, midY);
+        ctx.strokeStyle = dark ? "rgba(255, 255, 255, 0.22)" : "rgba(68, 45, 25, 0.24)";
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
       } else {
-        ctx.strokeStyle = dark ? "#f59e0b" : "#c68410";
-      }
+        const waveAmp = (currentLevel / 100) * 12;
+        ctx.beginPath();
+        for (let x = 0; x <= waveWidth; x += 1.5) {
+          const progress = x / waveWidth;
+          const p = phaseRef.current + progress * Math.PI * 3.8;
+          const env = Math.sin(progress * Math.PI); // Window tapering
 
-      ctx.lineWidth = 2.0;
-      ctx.lineCap = "round";
-      ctx.stroke();
+          // Vocal tract harmonics
+          const f0Wave = Math.sin(p);
+          const f1Harmonic = Math.sin(p * 2.2) * 0.35;
+          const f2Harmonic = Math.sin(p * 3.5) * 0.15;
+          const combined = (f0Wave + f1Harmonic + f2Harmonic) * env;
+
+          const y = midY - combined * waveAmp;
+          if (x === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+
+        const waveGrad = safeLinearGradient(ctx, 0, 0, waveWidth, 0);
+        if (waveGrad) {
+          waveGrad.addColorStop(0, dark ? "rgba(6, 182, 212, 0.4)" : "rgba(10, 126, 184, 0.5)");
+          waveGrad.addColorStop(0.6, dark ? "#06b6d4" : "#0a7eb8");
+          waveGrad.addColorStop(1, dark ? "#f59e0b" : "#c68410");
+          ctx.strokeStyle = waveGrad;
+        } else {
+          ctx.strokeStyle = dark ? "#06b6d4" : "#0a7eb8";
+        }
+
+        ctx.lineWidth = 2.0;
+        ctx.lineCap = "round";
+        ctx.stroke();
+      }
 
       miniAnimRef.current = requestAnimationFrame(render);
     };
@@ -503,22 +525,23 @@ export function RealtimeVoiceGraph({
             const frac = s / steps;
             const px = padLeft + frac * chartW;
 
-            // Organic soft wave for upper limit excursion (strictly zero when stopped)
-            const upperWave = playing
+            const isSpeakingActive = playing && smoothedLevelRef.current > 1.5;
+            // Organic soft wave for upper limit excursion (strictly zero when stopped or in pause)
+            const upperWave = isSpeakingActive
               ? Math.sin(tSec * 1.4 + frac * 4.2) * 5.0 + Math.cos(tSec * 0.7 + frac * 2.1) * 3.0
               : 0;
             const pyUpper = yUpperBase + upperWave;
             upperCurvePoints.push({ x: px, y: pyUpper });
 
-            // Organic soft wave for lower limit boundary (strictly zero when stopped)
-            const lowerWave = playing
+            // Organic soft wave for lower limit boundary (strictly zero when stopped or in pause)
+            const lowerWave = isSpeakingActive
               ? Math.sin(tSec * 1.2 + frac * 3.5 + 1.2) * 4.5 + Math.cos(tSec * 0.5 + frac * 1.8) * 2.5
               : 0;
             const pyLower = yLowerBase + lowerWave;
             lowerCurvePoints.push({ x: px, y: pyLower });
 
-            // Nominal resting pitch trajectory guide (strictly zero when stopped)
-            const nominalWave = playing ? Math.sin(tSec * 1.8 + frac * 4.8) * 2.2 : 0;
+            // Nominal resting pitch trajectory guide (strictly zero when stopped or in pause)
+            const nominalWave = isSpeakingActive ? Math.sin(tSec * 1.8 + frac * 4.8) * 2.2 : 0;
             nominalGuidePoints.push({ x: px, y: yNominalBase + nominalWave });
           }
 

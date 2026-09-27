@@ -12,6 +12,16 @@ import {
 } from "@/lib/voice-engine";
 import { getPersonaPitchHz } from "./RealtimeVoiceGraph";
 
+export function cleanSpokenPhrase(raw: string): string {
+  if (!raw) return "";
+  return raw
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/\*([^*]+)\*/g, "$1")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/^[*\-•]\s+/, "")
+    .trim();
+}
+
 export type PacingMode = "academic" | "conversational" | "brisk";
 export type SpeechEngine = "neural" | "webspeech";
 
@@ -131,6 +141,7 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
   const visualizerRafRef = useRef<number | null>(null);
   const lastSelectedTextRef = useRef<string>("");
   const fallbackFullTextRef = useRef<string>("");
+  const isSpeakingSoundRef = useRef<boolean>(false);
 
   // Sync refs with latest state
   useEffect(() => {
@@ -282,7 +293,7 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
         const found = manifest.cues.find((c) => time >= c.start && time <= c.end);
         if (found) {
           setActiveCue(found);
-          setActiveSpokenPhrase(found.text);
+          setActiveSpokenPhrase(cleanSpokenPhrase(found.text));
           if (syncScroll) {
             const el = document.getElementById(`narrator-cue-${found.id}`);
             if (el) {
@@ -293,20 +304,44 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
+    const onPlay = () => {
+      isSpeakingSoundRef.current = true;
+    };
+    const onPlaying = () => {
+      isSpeakingSoundRef.current = true;
+    };
+    const onPause = () => {
+      isSpeakingSoundRef.current = false;
+      setAudioLevel(0);
+      setFrequencyBands(new Array(16).fill(0));
+    };
+    const onWaiting = () => {
+      isSpeakingSoundRef.current = false;
+    };
     const onDurationChange = () => setDuration(audio.duration || 0);
     const onEnded = () => {
+      isSpeakingSoundRef.current = false;
       setIsPlaying(false);
       isPlayingRef.current = false;
       setAudioLevel(0);
+      setFrequencyBands(new Array(16).fill(0));
     };
 
     audio.addEventListener("timeupdate", onTimeUpdate);
+    audio.addEventListener("play", onPlay);
+    audio.addEventListener("playing", onPlaying);
+    audio.addEventListener("pause", onPause);
+    audio.addEventListener("waiting", onWaiting);
     audio.addEventListener("durationchange", onDurationChange);
     audio.addEventListener("ended", onEnded);
 
     return () => {
       audio.pause();
       audio.removeEventListener("timeupdate", onTimeUpdate);
+      audio.removeEventListener("play", onPlay);
+      audio.removeEventListener("playing", onPlaying);
+      audio.removeEventListener("pause", onPause);
+      audio.removeEventListener("waiting", onWaiting);
       audio.removeEventListener("durationchange", onDurationChange);
       audio.removeEventListener("ended", onEnded);
       if (typeof window !== "undefined" && window.speechSynthesis) {
@@ -316,7 +351,7 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
     };
   }, [manifest, syncScroll]);
 
-  // Real-time Multilayer Acoustic Spectrum Analyzer (Combines Web Audio FFT + Glottal Simulator)
+  // Real-time Multilayer Acoustic Spectrum Analyzer (Combines Web Audio FFT + Studio Quiescent Baseline)
   useEffect(() => {
     let lastTime = performance.now();
 
@@ -324,35 +359,50 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
       const dt = (now - lastTime) / 1000;
       lastTime = now;
 
-      if (isPlayingRef.current && !isPausedRef.current) {
-        // If real AnalyserNode is connected and active, use 100% REAL acoustic FFT data
-        if (analyserRef.current) {
-          const bufferLength = analyserRef.current.frequencyBinCount;
-          const dataArray = new Uint8Array(bufferLength);
-          analyserRef.current.getByteFrequencyData(dataArray);
+      // Are we actively playing and NOT paused or waiting inside a natural speech pause?
+      const isActivelyPlaying = isPlayingRef.current && !isPausedRef.current && pauseTimeoutRef.current === null;
 
-          const bands: number[] = [];
-          const step = Math.max(1, Math.floor(bufferLength / 16));
-          for (let i = 0; i < 16; i++) {
-            let sum = 0;
-            for (let j = 0; j < step; j++) {
-              sum += dataArray[i * step + j] || 0;
-            }
-            const normalized = Math.round((sum / step) * (100 / 255));
-            bands.push(normalized);
-          }
+      if (!isActivelyPlaying) {
+        // True studio resting baseline: strictly 0.0 dB (flat calm)
+        setAudioLevel((prev) => (prev !== 0 ? 0 : prev));
+        setFrequencyBands((prev) => (prev.some((v) => v !== 0) ? new Array(16).fill(0) : prev));
+        visualizerRafRef.current = requestAnimationFrame(updateVisualizer);
+        return;
+      }
 
-          const overallLevel = Math.round(bands.reduce((acc, v) => acc + v, 0) / bands.length);
-          // If analyser is receiving signal
-          if (overallLevel > 3) {
-            setAudioLevel(overallLevel);
-            setFrequencyBands(bands);
-            visualizerRafRef.current = requestAnimationFrame(updateVisualizer);
-            return;
+      // Check if real AnalyserNode is connected and active (Edge Neural or Studio Master audio)
+      if (analyserRef.current && isSpeakingSoundRef.current) {
+        const bufferLength = analyserRef.current.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+        analyserRef.current.getByteFrequencyData(dataArray);
+
+        const bands: number[] = [];
+        const step = Math.max(1, Math.floor(bufferLength / 16));
+        for (let i = 0; i < 16; i++) {
+          let sum = 0;
+          for (let j = 0; j < step; j++) {
+            sum += dataArray[i * step + j] || 0;
           }
+          const normalized = Math.round((sum / step) * (100 / 255));
+          bands.push(normalized);
         }
 
-        // High-fidelity speech physics model fallback (for WebSpeech or silence gaps)
+        const overallLevel = Math.round(bands.reduce((acc, v) => acc + v, 0) / bands.length);
+
+        if (overallLevel > 2) {
+          setAudioLevel(overallLevel);
+          setFrequencyBands(bands);
+        } else {
+          // In-audio breathing pause or brief silent consonant closure:
+          setAudioLevel(0);
+          setFrequencyBands(new Array(16).fill(0));
+        }
+        visualizerRafRef.current = requestAnimationFrame(updateVisualizer);
+        return;
+      }
+
+      // If WebSpeech is actively speaking (no Web Audio analyser available)
+      if (speechEngineRef.current === "webspeech" && isSpeakingSoundRef.current) {
         const persona = selectedPersonaRef.current;
         const pitch = getPersonaPitchHz(persona);
         const pitchFactor = pitch / 180;
@@ -368,11 +418,13 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
         const overallLevel = Math.round(bands.reduce((acc, v) => acc + v, 0) / bands.length);
         setAudioLevel(overallLevel);
         setFrequencyBands(bands);
-      } else {
-        setAudioLevel((prev) => (prev !== 0 ? 0 : prev));
-        setFrequencyBands((prev) => (prev.some((v) => v !== 0) ? new Array(16).fill(0) : prev));
+        visualizerRafRef.current = requestAnimationFrame(updateVisualizer);
+        return;
       }
 
+      // Default state while waiting for network audio chunk to buffer: 0 dB resting
+      setAudioLevel((prev) => (prev !== 0 ? 0 : prev));
+      setFrequencyBands((prev) => (prev.some((v) => v !== 0) ? new Array(16).fill(0) : prev));
       visualizerRafRef.current = requestAnimationFrame(updateVisualizer);
     };
 
@@ -417,11 +469,30 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
       utterance.rate = Math.max(0.5, Math.min(2.0, effectiveRate));
       utterance.pitch = selectedPersonaRef.current.pitch;
 
+      utterance.onstart = () => {
+        isSpeakingSoundRef.current = true;
+      };
+
+      utterance.onpause = () => {
+        isSpeakingSoundRef.current = false;
+        setAudioLevel(0);
+        setFrequencyBands(new Array(16).fill(0));
+      };
+
+      utterance.onresume = () => {
+        isSpeakingSoundRef.current = true;
+      };
+
       utterance.onboundary = () => {
-        setAudioLevel(Math.min(95, Math.floor(Math.random() * 30) + 65));
+        if (isSpeakingSoundRef.current) {
+          setAudioLevel(Math.min(95, Math.floor(Math.random() * 30) + 65));
+        }
       };
 
       utterance.onend = () => {
+        isSpeakingSoundRef.current = false;
+        setAudioLevel(0);
+        setFrequencyBands(new Array(16).fill(0));
         if (!isPlayingRef.current || isPausedRef.current) return;
         const nextIndex = index + 1;
         currentChunkIndexRef.current = nextIndex;
@@ -430,6 +501,7 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
         const pauseMs = (chunk.pauseAfterMs * pauseScale) / playbackRateRef.current;
 
         pauseTimeoutRef.current = setTimeout(() => {
+          pauseTimeoutRef.current = null;
           if (isPlayingRef.current && !isPausedRef.current) {
             speakChunk(nextIndex);
           }
@@ -437,6 +509,9 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
       };
 
       utterance.onerror = (e) => {
+        isSpeakingSoundRef.current = false;
+        setAudioLevel(0);
+        setFrequencyBands(new Array(16).fill(0));
         if (e.error === "interrupted" || e.error === "canceled") return;
         console.warn("Local SpeechSynthesis error, advancing chunk:", e.error);
         if (isPlayingRef.current && !isPausedRef.current) {
@@ -506,12 +581,7 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
       const chunk = chunks[index];
       currentChunkIndexRef.current = index;
       setCurrentChunkIndex(index);
-      const cleanPhrase = (chunk.text || chunk.rawText)
-        .replace(/\*\*([^*]+)\*\*/g, "$1")
-        .replace(/\*([^*]+)\*/g, "$1")
-        .replace(/`([^`]+)`/g, "$1")
-        .replace(/^[*\-•]\s+/, "")
-        .trim();
+      const cleanPhrase = cleanSpokenPhrase(chunk.text || chunk.rawText);
       setActiveSpokenPhrase(cleanPhrase);
 
       // Approximate time based on chunks count
@@ -539,12 +609,14 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
         const encodedText = encodeURIComponent(chunk.text);
         const ttsUrl = `/api/tts?text=${encodedText}&persona=${personaId}&rate=${effectiveRate}&pitch=${selectedPersonaRef.current.pitch}`;
 
+        isSpeakingSoundRef.current = false;
         audio.src = ttsUrl;
         audio.playbackRate = playbackRateRef.current;
         audio.load();
 
         let hasFallenBack = false;
         const fallbackToWeb = (reason: string) => {
+          isSpeakingSoundRef.current = false;
           if (!hasFallenBack && isPlayingRef.current && !isPausedRef.current) {
             hasFallenBack = true;
             console.warn(`Falling back to WebSpeech (${reason})`);
@@ -563,6 +635,7 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
         }, timeoutMs);
 
         audio.onplaying = () => {
+          isSpeakingSoundRef.current = true;
           clearTimeout(loadTimeout);
 
           // Intelligent Lookahead Prefetch: warm up Edge Neural cache for the upcoming chunk while the current chunk is speaking
@@ -577,7 +650,18 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
           }
         };
 
+        audio.onpause = () => {
+          isSpeakingSoundRef.current = false;
+        };
+
+        audio.onwaiting = () => {
+          isSpeakingSoundRef.current = false;
+        };
+
         audio.onended = () => {
+          isSpeakingSoundRef.current = false;
+          setAudioLevel(0);
+          setFrequencyBands(new Array(16).fill(0));
           clearTimeout(loadTimeout);
           if (!isPlayingRef.current || isPausedRef.current) return;
           const nextIndex = index + 1;
@@ -587,6 +671,7 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
           const pauseMs = (chunk.pauseAfterMs * pauseScale) / playbackRateRef.current;
 
           pauseTimeoutRef.current = setTimeout(() => {
+            pauseTimeoutRef.current = null;
             if (isPlayingRef.current && !isPausedRef.current) {
               speakChunk(nextIndex);
             }
@@ -594,6 +679,9 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
         };
 
         audio.onerror = () => {
+          isSpeakingSoundRef.current = false;
+          setAudioLevel(0);
+          setFrequencyBands(new Array(16).fill(0));
           clearTimeout(loadTimeout);
           fallbackToWeb("Audio element error");
         };
@@ -760,6 +848,9 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
     if (currentTrack.isTTS) {
       if (isPlaying) {
         // Clean Pause
+        isSpeakingSoundRef.current = false;
+        setAudioLevel(0);
+        setFrequencyBands(new Array(16).fill(0));
         if (pauseTimeoutRef.current) {
           clearTimeout(pauseTimeoutRef.current);
           pauseTimeoutRef.current = null;
@@ -792,6 +883,9 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
     // HTML5 studio audio
     if (!audioRef.current) return;
     if (isPlaying) {
+      isSpeakingSoundRef.current = false;
+      setAudioLevel(0);
+      setFrequencyBands(new Array(16).fill(0));
       audioRef.current.pause();
       setIsPlaying(false);
       isPlayingRef.current = false;
@@ -829,7 +923,7 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
       if (isPlayingRef.current && !isPausedRef.current) {
         speakChunk(targetIdx);
       } else {
-        setActiveSpokenPhrase(chunks[targetIdx]?.rawText || chunks[targetIdx]?.text || "");
+        setActiveSpokenPhrase(cleanSpokenPhrase(chunks[targetIdx]?.rawText || chunks[targetIdx]?.text || ""));
       }
       return;
     }
@@ -854,7 +948,7 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
       if (isPlayingRef.current && !isPausedRef.current) {
         speakChunk(targetIdx);
       } else {
-        setActiveSpokenPhrase(chunks[targetIdx]?.rawText || chunks[targetIdx]?.text || "");
+        setActiveSpokenPhrase(cleanSpokenPhrase(chunks[targetIdx]?.rawText || chunks[targetIdx]?.text || ""));
         const approxChunkDuration = Math.max(2, (chunks[targetIdx]?.text.length || 20) * 0.065);
         setCurrentTime(+(targetIdx * approxChunkDuration).toFixed(1));
       }
