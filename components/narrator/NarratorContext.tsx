@@ -89,12 +89,12 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
   const [duration, setDuration] = useState(0);
   const [playbackRate, setPlaybackRate] = useState(0.92); // Default to human pacing (0.92x)
   const [syncScroll, setSyncScroll] = useState(true);
-  const [isMinimized, setIsMinimized] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(true);
   const [activeCue, setActiveCue] = useState<AudioCue | null>(null);
   const [manifest, setManifest] = useState<AudioManifest | null>(null);
   const [transcriptOpen, setTranscriptOpen] = useState(false);
   const [voiceStudioOpen, setVoiceStudioOpen] = useState(false);
-  const [readerPanelOpen, setReaderPanelOpen] = useState<boolean>(true);
+  const [readerPanelOpen, setReaderPanelOpen] = useState<boolean>(false);
   const [selectedPersona, setSelectedPersona] = useState<VoicePersona>(VOICE_PERSONAS[0]); // Default to Dr. Ananya Sharma
   const [pacingMode, setPacingMode] = useState<PacingMode>("academic");
   const [speechEngine, setSpeechEngineState] = useState<SpeechEngine>("neural"); // Default to Ultra HD Edge Neural
@@ -446,14 +446,29 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
         }
       };
 
-      window.speechSynthesis.speak(utterance);
-
-      // Chrome SpeechSynthesis unpause watchdog
+      // Chrome requires a brief tick between cancel() and speak() or it silently drops the utterance
       setTimeout(() => {
-        if (typeof window !== "undefined" && window.speechSynthesis.speaking && window.speechSynthesis.paused) {
+        if (!isPlayingRef.current || isPausedRef.current || typeof window === "undefined") return;
+        window.speechSynthesis.speak(utterance);
+      }, 35);
+
+      // Chrome SpeechSynthesis stuck-silent watchdog:
+      // Chrome freezes speechSynthesis after ~15s of speaking. Poll every 300ms
+      // and forcibly resume if it reports 'speaking' but is paused/silent.
+      const watchdogStart = Date.now();
+      const watchdog = setInterval(() => {
+        if (!isPlayingRef.current || isPausedRef.current) {
+          clearInterval(watchdog);
+          return;
+        }
+        if (Date.now() - watchdogStart > 30000) {
+          clearInterval(watchdog);
+          return;
+        }
+        if (typeof window !== "undefined" && window.speechSynthesis.paused) {
           window.speechSynthesis.resume();
         }
-      }, 50);
+      }, 300);
     },
     [availableVoices]
   );
@@ -491,7 +506,7 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
       const chunk = chunks[index];
       currentChunkIndexRef.current = index;
       setCurrentChunkIndex(index);
-      const cleanPhrase = (chunk.rawText || chunk.text)
+      const cleanPhrase = (chunk.text || chunk.rawText)
         .replace(/\*\*([^*]+)\*\*/g, "$1")
         .replace(/\*([^*]+)\*/g, "$1")
         .replace(/`([^`]+)`/g, "$1")
@@ -517,6 +532,7 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
 
         const audio = neuralAudioRef.current || new Audio();
         neuralAudioRef.current = audio;
+        audio.volume = 1.0;
         initWebAudioPipeline(audio);
 
         const personaId = selectedPersonaRef.current.id;
@@ -525,6 +541,7 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
 
         audio.src = ttsUrl;
         audio.playbackRate = playbackRateRef.current;
+        audio.load();
 
         let hasFallenBack = false;
         const fallbackToWeb = (reason: string) => {
@@ -535,13 +552,13 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
           }
         };
 
-        // Safety timeout: if streaming takes >5000ms, fallback to instant WebSpeech
+        // Safety timeout: if streaming takes >4000ms, fallback to instant WebSpeech
         const loadTimeout = setTimeout(() => {
           if (audio.readyState < 2 && !hasFallenBack) {
             audio.pause();
-            fallbackToWeb("Stream timeout >5000ms");
+            fallbackToWeb("Stream timeout >4000ms");
           }
-        }, 5000);
+        }, 4000);
 
         audio.onplaying = () => {
           clearTimeout(loadTimeout);
@@ -573,7 +590,7 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
           playPromise.catch((err) => {
             clearTimeout(loadTimeout);
             if (err.name === "AbortError") return;
-            fallbackToWeb("play() promise rejected");
+            fallbackToWeb("play() promise rejected: " + err.message);
           });
         }
         return;

@@ -49,12 +49,12 @@ export function Header({ projectSlug = "hosokawa-afd-freeze-dryer" }: { projectS
         borderBottom: '1px solid var(--border)',
       }}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-        {/* Left: Brand */}
-        <div className="flex items-center gap-5">
-          <Link href="/" className="flex items-center gap-2.5 group">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 h-14 flex items-center justify-between gap-2 sm:gap-4">
+        {/* Left: Brand & Primary Navigation */}
+        <div className="flex items-center gap-3 lg:gap-5 min-w-0 shrink-0">
+          <Link href="/" className="flex items-center gap-2 group shrink-0">
             <div
-              className="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-200 group-hover:scale-110"
+              className="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-200 group-hover:scale-110 shrink-0"
               style={{ background: 'var(--amber-subtle)', border: '1px solid var(--border)' }}
             >
               <div
@@ -62,12 +62,12 @@ export function Header({ projectSlug = "hosokawa-afd-freeze-dryer" }: { projectS
                 style={{ background: 'var(--amber)', boxShadow: '0 0 10px var(--amber-glow)' }}
               />
             </div>
-            <div>
-              <span className="font-bold text-sm tracking-tight transition" style={{ color: 'var(--ink-primary)' }}>
+            <div className="flex items-center">
+              <span className="font-bold text-sm tracking-tight transition shrink-0" style={{ color: 'var(--ink-primary)' }}>
                 RESEARCH DATA
               </span>
               <span
-                className="hidden sm:inline-block ml-2 text-[10px] font-mono uppercase tracking-widest pl-2"
+                className="hidden sm:inline-block ml-1.5 text-[9px] font-mono uppercase tracking-widest pl-1.5 shrink-0"
                 style={{ color: 'var(--ink-dim)', borderLeft: '1px solid var(--border)' }}
               >
                 LAB V1
@@ -76,7 +76,7 @@ export function Header({ projectSlug = "hosokawa-afd-freeze-dryer" }: { projectS
           </Link>
 
           {/* Navigation */}
-          <nav className="hidden md:flex items-center gap-0.5">
+          <nav className="hidden md:flex items-center gap-1 shrink-0">
             {navLinks.map((link) => {
               const isActive =
                 pathname === link.href ||
@@ -86,7 +86,7 @@ export function Header({ projectSlug = "hosokawa-afd-freeze-dryer" }: { projectS
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5"
+                  className="px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 shrink-0"
                   style={{
                     backgroundColor: isActive ? 'var(--amber-subtle)' : 'transparent',
                     color: isActive ? 'var(--amber)' : 'var(--ink-muted)',
@@ -94,7 +94,7 @@ export function Header({ projectSlug = "hosokawa-afd-freeze-dryer" }: { projectS
                     fontWeight: isActive ? '600' : '500',
                   }}
                 >
-                  <Icon className="w-3.5 h-3.5" />
+                  <Icon className="w-3.5 h-3.5 shrink-0" />
                   <span>{link.label}</span>
                 </Link>
               );
@@ -102,13 +102,13 @@ export function Header({ projectSlug = "hosokawa-afd-freeze-dryer" }: { projectS
           </nav>
         </div>
 
-        {/* Right: Controls */}
-        <div className="flex items-center gap-1 sm:gap-2">
-          {/* Audio mini status */}
+        {/* Right: Controls & Utility Actions */}
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          {/* Audio mini status - only on extra wide screens where there's plenty of space */}
           {currentTrack && (
             <button
               onClick={togglePlay}
-              className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-mono transition-all"
+              className="hidden 2xl:flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-mono transition-all shrink-0"
               style={{
                 backgroundColor: isPlaying ? 'var(--amber-subtle)' : 'var(--bg-surface)',
                 border: `1px solid ${isPlaying ? 'color-mix(in srgb, var(--amber) 50%, transparent)' : 'var(--border)'}`,
@@ -129,7 +129,7 @@ export function Header({ projectSlug = "hosokawa-afd-freeze-dryer" }: { projectS
           {/* Voice Persona & Acoustics Studio */}
           <button
             onClick={() => setVoiceStudioOpen(!voiceStudioOpen)}
-            className="inline-flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg text-xs font-mono transition-all hover:scale-105 active:scale-95"
+            className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-lg text-xs font-mono transition-all hover:scale-105 active:scale-95 shrink-0"
             style={{
               backgroundColor: voiceStudioOpen ? 'var(--amber-subtle)' : 'var(--bg-surface)',
               border: `1px solid ${voiceStudioOpen ? 'color-mix(in srgb, var(--amber) 45%, transparent)' : 'var(--border)'}`,
@@ -139,14 +139,14 @@ export function Header({ projectSlug = "hosokawa-afd-freeze-dryer" }: { projectS
             aria-label="Acoustic Voice Studio"
           >
             <span className="text-base leading-none">{selectedPersona.avatar}</span>
-            <span className="hidden lg:inline font-semibold">{selectedPersona.name.split(" ")[0]}</span>
-            <Headphones className="w-3 h-3 text-amber opacity-80" />
+            <span className="hidden xl:inline font-semibold">{selectedPersona.name.split(" ")[0]}</span>
+            <Headphones className="w-3.5 h-3.5 text-amber opacity-80 shrink-0" />
           </button>
 
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
-            className="inline-flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg text-xs font-mono transition-all hover:scale-105 active:scale-95"
+            className="inline-flex items-center justify-center w-8 h-8 sm:w-auto sm:px-2.5 py-1.5 rounded-lg text-xs font-mono transition-all hover:scale-105 active:scale-95 shrink-0"
             style={{
               color: 'var(--ink-secondary)',
               border: '1px solid var(--border)',
@@ -160,14 +160,14 @@ export function Header({ projectSlug = "hosokawa-afd-freeze-dryer" }: { projectS
             ) : (
               <Moon className="w-3.5 h-3.5 text-ink-muted transition-transform hover:-rotate-12" />
             )}
-            <span className="hidden xl:inline font-semibold">Theme</span>
-            <kbd className="hidden xl:inline text-[9px] px-1 py-0.5 rounded bg-bg border border-border">T</kbd>
+            <span className="hidden 2xl:inline font-semibold">Theme</span>
+            <kbd className="hidden 2xl:inline text-[9px] px-1 py-0.5 rounded bg-bg border border-border">T</kbd>
           </button>
 
           {/* Master Topic Index / Bookmark Drawer */}
           <button
             onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "b" }))}
-            className="hidden sm:inline-flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg text-xs font-mono transition-all hover:scale-105 active:scale-95"
+            className="hidden sm:inline-flex items-center justify-center w-8 h-8 sm:w-auto sm:px-2.5 py-1.5 rounded-lg text-xs font-mono transition-all hover:scale-105 active:scale-95 shrink-0"
             style={{
               backgroundColor: 'var(--bg-surface)',
               border: '1px solid var(--border)',
@@ -177,14 +177,14 @@ export function Header({ projectSlug = "hosokawa-afd-freeze-dryer" }: { projectS
             aria-label="Topic Index"
           >
             <Bookmark className="w-3.5 h-3.5 text-amber" />
-            <span className="hidden xl:inline font-semibold">Index</span>
-            <kbd className="hidden xl:inline text-[9px] px-1 py-0.5 rounded bg-bg border border-border">B</kbd>
+            <span className="hidden 2xl:inline font-semibold">Index</span>
+            <kbd className="hidden 2xl:inline text-[9px] px-1 py-0.5 rounded bg-bg border border-border">B</kbd>
           </button>
 
-          {/* Ctrl+K Palette */}
+          {/* Ctrl+K Search Palette */}
           <button
             onClick={triggerPalette}
-            className="inline-flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg text-xs font-mono transition-colors"
+            className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-lg text-xs font-mono transition-colors shrink-0"
             style={{
               backgroundColor: 'var(--bg-surface)',
               border: '1px solid var(--border)',
@@ -193,19 +193,19 @@ export function Header({ projectSlug = "hosokawa-afd-freeze-dryer" }: { projectS
             title="Open command palette (Ctrl+K or /)"
           >
             <Search className="w-3.5 h-3.5" />
-            <span className="hidden md:inline">Search Lab</span>
+            <span className="hidden lg:inline">Search</span>
             <kbd
-              className="hidden md:inline text-[10px] px-1.5 py-0.5 rounded"
+              className="hidden sm:inline text-[9px] px-1.5 py-0.5 rounded font-mono"
               style={{ backgroundColor: 'var(--bg)', border: '1px solid var(--border)' }}
             >
-              Ctrl+K
+              ⌘K
             </kbd>
           </button>
 
           {/* Mobile Menu Hamburger Toggle */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden h-11 w-11 inline-flex items-center justify-center rounded-lg text-xs font-mono transition-all hover:scale-105 active:scale-95"
+            className="md:hidden h-8 w-8 sm:h-9 sm:w-9 inline-flex items-center justify-center rounded-lg text-xs font-mono transition-all hover:scale-105 active:scale-95 shrink-0"
             style={{
               backgroundColor: mobileMenuOpen ? 'var(--amber-subtle)' : 'var(--bg-surface)',
               border: `1px solid ${mobileMenuOpen ? 'color-mix(in srgb, var(--amber) 45%, transparent)' : 'var(--border)'}`,
@@ -213,7 +213,7 @@ export function Header({ projectSlug = "hosokawa-afd-freeze-dryer" }: { projectS
             }}
             aria-label="Toggle mobile menu"
           >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
           </button>
         </div>
       </div>

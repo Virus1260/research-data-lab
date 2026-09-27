@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useNarrator, type PacingMode } from "./NarratorContext";
 import { VOICE_PERSONAS, GEMINI_VOICES, type VoicePersona } from "@/lib/voice-engine";
 import { RealtimeVoiceGraph } from "./RealtimeVoiceGraph";
+import { ReaderTeleprompterPanel } from "./ReaderTeleprompterPanel";
 import {
   Play,
   Pause,
@@ -139,7 +140,7 @@ export function NarratorDeck() {
     >
       <div className="max-w-5xl mx-auto pointer-events-auto">
         {/* Voice Persona & Pacing Studio Popover */}
-        {voiceStudioOpen && (
+        {voiceStudioOpen && !isMinimized && (
           <div className="mb-3 bg-bg-panel border border-hairline rounded-2xl p-5 shadow-2xl backdrop-blur-xl animate-fade-in">
             <div className="flex items-center justify-between pb-3 mb-4 border-b border-hairline">
               <div className="flex items-center gap-2.5">
@@ -454,6 +455,13 @@ export function NarratorDeck() {
                 );
               })}
             </div>
+          </div>
+        )}
+
+        {/* Integrated Reader Monitor Teleprompter Panel */}
+        {readerPanelOpen && !isMinimized && (
+          <div className="mb-3">
+            <ReaderTeleprompterPanel chapterTitle={currentTrack?.title} chapterSlug={currentTrack?.slug} />
           </div>
         )}
 

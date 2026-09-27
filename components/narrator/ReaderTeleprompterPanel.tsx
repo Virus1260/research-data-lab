@@ -84,28 +84,10 @@ export function ReaderTeleprompterPanel({
   const isTableActive = activeChunkData?.type === "table";
 
   return (
-    /**
-     * Fixed floating drawer anchored at the bottom of the viewport, just
-     * above the NarratorDeck (which is ~80px tall + pb-4 = ~96px from bottom).
-     * On mobile: full-width. On sm+: max-w-lg centered.
-     * Max height ~55vh so it never covers the whole page.
-     */
     <div
-      role="dialog"
+      role="region"
       aria-label="Reader Monitor Panel"
-      className={[
-        "fixed z-[45] bottom-[96px] left-0 right-0",
-        "sm:left-auto sm:right-4 sm:w-[420px]",
-        "flex flex-col",
-        "max-h-[55vh]",
-        "bg-bg-panel/98 backdrop-blur-xl border border-hairline rounded-2xl shadow-2xl",
-        "animate-slide-up",
-        "overflow-hidden",
-      ].join(" ")}
-      style={{
-        // Ensure it sits right above the NarratorDeck regardless of viewport
-        bottom: "calc(env(safe-area-inset-bottom, 0px) + 96px)",
-      }}
+      className="w-full flex flex-col max-h-[50vh] sm:max-h-[420px] bg-bg-panel/98 backdrop-blur-xl border border-hairline rounded-3xl shadow-2xl overflow-hidden animate-slide-up"
     >
       {/* ── Header ── */}
       <div className="flex items-center justify-between px-3.5 py-2.5 border-b border-hairline bg-bg-surface/80 shrink-0">

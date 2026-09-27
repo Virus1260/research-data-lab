@@ -31,7 +31,7 @@ import { Isa88HierarchyChart } from "@/components/diagrams/Isa88HierarchyChart";
 import { EngineeringDiagramsGallery } from "@/components/diagrams/EngineeringDiagramsGallery";
 import { PatentParadigmComparisonChart } from "@/components/diagrams/PatentParadigmComparisonChart";
 import { StickyMarkdownTable } from "@/components/tables/StickyMarkdownTable";
-import { ReaderTeleprompterPanel } from "@/components/narrator/ReaderTeleprompterPanel";
+
 import {
   SublimationHeatDutyWorkbench,
   JacketSurfaceAreaWorkbench,
@@ -1748,8 +1748,6 @@ export function ExhibitReader({
 
     </div>
 
-    {/* Reader Monitor Teleprompter Panel — fixed overlay, positions itself above NarratorDeck */}
-    <ReaderTeleprompterPanel chapterTitle={chapter.title} chapterSlug={chapter.slug} />
     </>
   );
 }

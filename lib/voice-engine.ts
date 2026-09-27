@@ -457,6 +457,27 @@ export function preProcessTablesToConversationalText(markdownText: string): stri
 }
 
 /**
+ * Accurately segments a paragraph into sentences without mid-digit or abbreviation truncation.
+ * Shields periods in common abbreviations (e.g., i.e., vs., approx., dr., fig., no., al.) and decimals.
+ */
+export function splitParagraphIntoSentences(text: string): string[] {
+  if (!text) return [];
+
+  // Protect abbreviations: replace periods with a non-breaking zero-width marker
+  const protectedText = text
+    .replace(/\b(e\.g|i\.e|approx|vs|vol|no|ref|fig|dr|prof|al|et al)\./gi, "$1\u200B")
+    .replace(/(?<=\d)\.(?=\d)/g, "\u200B");
+
+  // Regex to split on sentence boundaries (. ! ?) followed by whitespace or quote/bracket
+  const matches = protectedText.match(/(?:[^.!?]|\.{2,})+(?:[.!?]+["'”’)]*(?:\s+|$)|$)/g);
+  if (!matches) return [text.trim()];
+
+  return matches
+    .map((m) => m.replace(/\u200B/g, ".").trim())
+    .filter((m) => m.length > 0);
+}
+
+/**
  * Splits text into human cadence chunks with breathing pauses,
  * utilizing lookahead regex to preserve decimal numbers without mid-digit truncation.
  */
@@ -466,7 +487,6 @@ export function chunkTextForHumanSpeech(
 ): SpeechChunk[] {
   const rawLines = markdownText.split("\n");
   const chunks: SpeechChunk[] = [];
-  const sentenceRegex = /(?:[^.!?]|\((?:[^)]*)\)|\.(?=\d)|\.{2,})+(?:[.!?]+[)\]'"\u2019\u201d]*(?:\s+|$)|$)/g;
 
   let i = 0;
   while (i < rawLines.length) {
@@ -516,7 +536,7 @@ export function chunkTextForHumanSpeech(
         }.`;
 
         chunks.push({
-          rawText: headers.join(" | "),
+          rawText: `${paramColumnName}: ${dataColumns.join(", ")}`,
           text: introText,
           pauseAfterMs: Math.round(1100 * pauseScale),
           type: "table",
@@ -553,8 +573,10 @@ export function chunkTextForHumanSpeech(
             spokenRow += `${details.slice(0, -1).join("; ")}; and ${details[details.length - 1]}.`;
           }
 
+          const rawSummary = `${parameter}: ${dataColumns.map((col, vIdx) => `${col} = ${values[vIdx] || "-"}`).join(", ")}`;
+
           chunks.push({
-            rawText: rawRow.join(" | "),
+            rawText: rawSummary,
             text: humanizeEngineeringText(spokenRow),
             pauseAfterMs: Math.round(1000 * pauseScale),
             type: "table",
@@ -630,16 +652,14 @@ export function chunkTextForHumanSpeech(
       continue;
     }
 
-    // Regular paragraphs -> split into individual sentences using decimal-safe lookahead
-    const rawSentences = line.match(sentenceRegex) || [line];
-    const cleanedParagraph = humanizeEngineeringText(line);
-    const sentences = cleanedParagraph.match(sentenceRegex) || [cleanedParagraph];
+    // Regular paragraphs -> split into individual sentences using decimal & abbreviation safe segmentation
+    const sentences = splitParagraphIntoSentences(line);
 
     for (let sIdx = 0; sIdx < sentences.length; sIdx++) {
-      const s = sentences[sIdx].trim();
-      if (!s || s.length < 8) continue;
+      const rawS = sentences[sIdx];
+      if (!rawS || rawS.length < 3) continue;
 
-      const rawS = rawSentences[sIdx]?.trim() || s;
+      const spokenText = humanizeEngineeringText(rawS);
       const isLastSentence = sIdx === sentences.length - 1;
       const pause = isLastSentence
         ? Math.round(950 * pauseScale)
@@ -647,7 +667,7 @@ export function chunkTextForHumanSpeech(
 
       chunks.push({
         rawText: rawS,
-        text: s,
+        text: spokenText,
         pauseAfterMs: pause,
         type: "paragraph",
       });
