@@ -1477,6 +1477,7 @@ export function ExhibitReader({
   }
 
   return (
+    <>
     <div className="flex gap-0 relative">
       {/* Left TOC */}
       <aside className="hidden xl:flex flex-col sticky top-16 h-[calc(100vh-4rem)] w-60 shrink-0 pt-8 pr-4 overflow-y-auto border-r border-hairline">
@@ -1749,5 +1750,6 @@ export function ExhibitReader({
 
     {/* Reader Monitor Teleprompter Panel — fixed overlay, positions itself above NarratorDeck */}
     <ReaderTeleprompterPanel chapterTitle={chapter.title} chapterSlug={chapter.slug} />
+    </>
   );
 }

@@ -466,7 +466,7 @@ export function chunkTextForHumanSpeech(
 ): SpeechChunk[] {
   const rawLines = markdownText.split("\n");
   const chunks: SpeechChunk[] = [];
-  const sentenceRegex = /(?:[^.!?]|\.(?=\d)|\.{2,})+(?:[.!?]+(?:\s+|$)|$)/g;
+  const sentenceRegex = /(?:[^.!?]|\((?:[^)]*)\)|\.(?=\d)|\.{2,})+(?:[.!?]+[)\]'"\u2019\u201d]*(?:\s+|$)|$)/g;
 
   let i = 0;
   while (i < rawLines.length) {
@@ -637,7 +637,7 @@ export function chunkTextForHumanSpeech(
 
     for (let sIdx = 0; sIdx < sentences.length; sIdx++) {
       const s = sentences[sIdx].trim();
-      if (!s || s.length < 3) continue;
+      if (!s || s.length < 8) continue;
 
       const rawS = rawSentences[sIdx]?.trim() || s;
       const isLastSentence = sIdx === sentences.length - 1;

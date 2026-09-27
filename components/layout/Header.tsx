@@ -103,7 +103,7 @@ export function Header({ projectSlug = "hosokawa-afd-freeze-dryer" }: { projectS
         </div>
 
         {/* Right: Controls */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
           {/* Audio mini status */}
           {currentTrack && (
             <button
@@ -129,7 +129,7 @@ export function Header({ projectSlug = "hosokawa-afd-freeze-dryer" }: { projectS
           {/* Voice Persona & Acoustics Studio */}
           <button
             onClick={() => setVoiceStudioOpen(!voiceStudioOpen)}
-            className="h-11 inline-flex items-center gap-1.5 px-3 rounded-lg text-xs font-mono transition-all hover:scale-105 active:scale-95"
+            className="inline-flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg text-xs font-mono transition-all hover:scale-105 active:scale-95"
             style={{
               backgroundColor: voiceStudioOpen ? 'var(--amber-subtle)' : 'var(--bg-surface)',
               border: `1px solid ${voiceStudioOpen ? 'color-mix(in srgb, var(--amber) 45%, transparent)' : 'var(--border)'}`,
@@ -138,15 +138,15 @@ export function Header({ projectSlug = "hosokawa-afd-freeze-dryer" }: { projectS
             title={`Narrator: ${selectedPersona.name} (${selectedPersona.accent}) - Click to adjust voice or human pacing rules`}
             aria-label="Acoustic Voice Studio"
           >
-            <span className="text-base">{selectedPersona.avatar}</span>
-            <span className="hidden sm:inline font-semibold">{selectedPersona.name.split(" ")[0]}</span>
-            <Headphones className="w-3.5 h-3.5 text-amber opacity-80 ml-0.5" />
+            <span className="text-base leading-none">{selectedPersona.avatar}</span>
+            <span className="hidden lg:inline font-semibold">{selectedPersona.name.split(" ")[0]}</span>
+            <Headphones className="w-3 h-3 text-amber opacity-80" />
           </button>
 
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
-            className="h-11 inline-flex items-center gap-1.5 px-3 rounded-lg text-xs font-mono transition-all hover:scale-105 active:scale-95"
+            className="inline-flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg text-xs font-mono transition-all hover:scale-105 active:scale-95"
             style={{
               color: 'var(--ink-secondary)',
               border: '1px solid var(--border)',
@@ -160,14 +160,14 @@ export function Header({ projectSlug = "hosokawa-afd-freeze-dryer" }: { projectS
             ) : (
               <Moon className="w-3.5 h-3.5 text-ink-muted transition-transform hover:-rotate-12" />
             )}
-            <span className="hidden sm:inline font-semibold">Theme</span>
-            <kbd className="hidden sm:inline text-[9px] px-1 py-0.5 rounded bg-bg border border-border">T</kbd>
+            <span className="hidden xl:inline font-semibold">Theme</span>
+            <kbd className="hidden xl:inline text-[9px] px-1 py-0.5 rounded bg-bg border border-border">T</kbd>
           </button>
 
           {/* Master Topic Index / Bookmark Drawer */}
           <button
             onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "b" }))}
-            className="h-11 inline-flex items-center gap-1.5 px-3 rounded-lg text-xs font-mono transition-all hover:scale-105 active:scale-95"
+            className="hidden sm:inline-flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg text-xs font-mono transition-all hover:scale-105 active:scale-95"
             style={{
               backgroundColor: 'var(--bg-surface)',
               border: '1px solid var(--border)',
@@ -177,14 +177,14 @@ export function Header({ projectSlug = "hosokawa-afd-freeze-dryer" }: { projectS
             aria-label="Topic Index"
           >
             <Bookmark className="w-3.5 h-3.5 text-amber" />
-            <span className="hidden lg:inline font-semibold">Index</span>
-            <kbd className="hidden lg:inline text-[9px] px-1 py-0.5 rounded bg-bg border border-border">B</kbd>
+            <span className="hidden xl:inline font-semibold">Index</span>
+            <kbd className="hidden xl:inline text-[9px] px-1 py-0.5 rounded bg-bg border border-border">B</kbd>
           </button>
 
           {/* Ctrl+K Palette */}
           <button
             onClick={triggerPalette}
-            className="h-11 inline-flex items-center gap-2 px-3 rounded-lg text-xs font-mono transition-colors"
+            className="inline-flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg text-xs font-mono transition-colors"
             style={{
               backgroundColor: 'var(--bg-surface)',
               border: '1px solid var(--border)',
@@ -193,9 +193,9 @@ export function Header({ projectSlug = "hosokawa-afd-freeze-dryer" }: { projectS
             title="Open command palette (Ctrl+K or /)"
           >
             <Search className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Search Lab</span>
+            <span className="hidden md:inline">Search Lab</span>
             <kbd
-              className="hidden sm:inline text-[10px] px-1.5 py-0.5 rounded"
+              className="hidden md:inline text-[10px] px-1.5 py-0.5 rounded"
               style={{ backgroundColor: 'var(--bg)', border: '1px solid var(--border)' }}
             >
               Ctrl+K
