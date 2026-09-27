@@ -1354,15 +1354,20 @@ export function ExhibitReader({
   function renderInline(text: string): React.ReactNode {
     if (!text) return null;
 
-    // Matches: KaTeX $...$, Markdown images ![alt](url), Markdown links [text](url), Raw URLs (https?:// or www.), **bold**, *italic*, `code`
+    // Matches: KaTeX $...$, Markdown images ![alt](url), Markdown links [text](url), Raw URLs (https?:// or www.), **bold**, *italic*, `code`, <br> / <br/>
     const TOKEN_REGEX =
-      /(\$[^$]+\$|!\[[^\]]*\]\([^\s)]+\)|\[[^\]]+\]\([^\s)]+\)|(?:https?:\/\/|www\.)[^\s<>)"]+|\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g;
+      /(\$[^$]+\$|!\[[^\]]*\]\([^\s)]+\)|\[[^\]]+\]\([^\s)]+\)|(?:https?:\/\/|www\.)[^\s<>)"]+|\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`|<br\s*\/?>)/gi;
     const tokens = text.split(TOKEN_REGEX);
 
     return (
       <>
         {tokens.map((token, idx) => {
           if (!token) return null;
+
+          // HTML Line Break: <br> or <br/> or <br />
+          if (/^<br\s*\/?>$/i.test(token)) {
+            return <br key={idx} />;
+          }
 
           // Inline KaTeX Math: $...$
           if (token.startsWith("$") && token.endsWith("$") && token.length > 2) {

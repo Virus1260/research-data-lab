@@ -122,7 +122,7 @@ export function NarratorDeck() {
     return null;
   }
 
-  const rates = [0.8, 0.9, 1.0, 1.15, 1.25];
+  const rates = [0.8, 0.9, 0.975, 1.0, 1.15, 1.25];
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   const handleSyncClick = () => {

@@ -87,7 +87,7 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
   } | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [playbackRate, setPlaybackRate] = useState(0.92); // Default to human pacing (0.92x)
+  const [playbackRate, setPlaybackRate] = useState(0.975); // Default to human pacing (0.975x)
   const [syncScroll, setSyncScroll] = useState(true);
   const [isMinimized, setIsMinimized] = useState(true);
   const [activeCue, setActiveCue] = useState<AudioCue | null>(null);
@@ -121,7 +121,7 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
   const currentChunkIndexRef = useRef<number>(0);
   const isPlayingRef = useRef<boolean>(false);
   const isPausedRef = useRef<boolean>(false);
-  const playbackRateRef = useRef<number>(0.92);
+  const playbackRateRef = useRef<number>(0.975);
   const pacingModeRef = useRef<PacingMode>("academic");
   const selectedPersonaRef = useRef<VoicePersona>(selectedPersona);
   const speechEngineRef = useRef<SpeechEngine>("neural");

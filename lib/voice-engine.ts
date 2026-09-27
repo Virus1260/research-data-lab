@@ -457,58 +457,147 @@ export function preProcessTablesToConversationalText(markdownText: string): stri
 }
 
 /**
- * Accurately segments a paragraph into sentences without mid-digit or abbreviation truncation.
- * Shields periods in common abbreviations (e.g., i.e., vs., approx., dr., fig., no., al.) and decimals.
+ * Strips raw markdown artifacts (images, link syntax, raw HTML breaks) for speech chunking
+ */
+export function cleanMarkdownForChunking(text: string): string {
+  let t = text;
+  // Remove markdown images: ![alt](url)
+  t = t.replace(/!\[([^\]]*)\]\([^)]+\)/g, "");
+  // Replace markdown links with their visible label: [label](url)
+  t = t.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1");
+  // Replace HTML breaks with a natural comma pause
+  t = t.replace(/<br\s*\/?>/gi, ", ");
+  return t;
+}
+
+/**
+ * Accurately segments a paragraph into sentences without mid-digit, abbreviation, or citation truncation.
+ * Shields periods in common abbreviations (e.g., i.e., vs., approx., dr., fig., no., al., B.V.),
+ * personal initials (Peter G. J. van der Wel), decimals, and URLs.
  */
 export function splitParagraphIntoSentences(text: string): string[] {
   if (!text) return [];
 
-  // Protect abbreviations: replace periods with a non-breaking zero-width marker
-  const protectedText = text
-    .replace(/\b(e\.g|i\.e|approx|vs|vol|no|ref|fig|dr|prof|al|et al)\./gi, "$1\u200B")
-    .replace(/(?<=\d)\.(?=\d)/g, "\u200B");
+  let s = text;
+  // 1. Protect decimal points: e.g. 0.05, 12.5, 1.6
+  s = s.replace(/(?<=\d)\.(?=\d)/g, "\u200B");
 
-  // Regex to split on sentence boundaries (. ! ?) followed by whitespace or quote/bracket
-  const matches = protectedText.match(/(?:[^.!?]|\.{2,})+(?:[.!?]+["'”’)]*(?:\s+|$)|$)/g);
-  if (!matches) return [text.trim()];
+  // 2. Protect file paths and URLs: e.g. file.pdf, site.com/page
+  s = s.replace(/(?<=[/\w])\.(?=[/\w])/g, "\u200B");
 
-  return matches
-    .map((m) => m.replace(/\u200B/g, ".").trim())
-    .filter((m) => m.length > 0);
+  // 3. Protect multi-period acronyms and company suffixes (B.V., e.g., i.e., U.S.)
+  s = s.replace(/\bB\.V\./gi, "B\u200BV\u200B");
+  s = s.replace(/\be\.g\./gi, "e\u200Bg\u200B");
+  s = s.replace(/\bi\.e\./gi, "i\u200Be\u200B");
+  s = s.replace(/\bU\.S\./gi, "U\u200BS\u200B");
+
+  // 4. Protect common abbreviations: approx., vs., vol., no., ref., fig., dr., prof., al., etc.
+  s = s.replace(/\b(approx|vs|vol|no|ref|fig|dr|prof|al|et al|inc|corp|ltd|co|dept|ch)\./gi, "$1\u200B");
+
+  // 5. Protect single-letter person initials (e.g. Peter G. J. van der Wel, Olukayode I. Imole)
+  s = s.replace(/(^|[\s(])([A-Z])\./g, "$1$2\u200B");
+
+  // 6. Protect ellipses (...)
+  s = s.replace(/\.{2,}/g, (m) => "\u200B".repeat(m.length));
+
+  // 7. Protect periods followed by closing markdown syntax and a lowercase word (e.g., "B.V.** on June")
+  s = s.replace(/\.(?=[*_~`'"\u2019\u201d)\]]*\s+[a-z])/g, "\u200B");
+
+  // 8. Protect periods directly followed by whitespace and a lowercase word (never a sentence end in formal English)
+  s = s.replace(/\.(?=\s+[a-z])/g, "\u200B");
+
+  const matches: string[] = [];
+  const sentenceTerminatorRegex = /([^.!?]+[.!?]+[*_~`'"\u2019\u201d)\]]*(?:\s+|$)|[^.!?]+$)/g;
+  let m;
+  while ((m = sentenceTerminatorRegex.exec(s)) !== null) {
+    const segment = m[0].replace(/\u200B/g, ".").trim();
+    if (segment) {
+      matches.push(segment);
+    }
+  }
+
+  return matches.length > 0 ? matches : [text.trim()];
 }
 
 /**
  * Splits text into human cadence chunks with breathing pauses,
- * utilizing lookahead regex to preserve decimal numbers without mid-digit truncation.
+ * utilizing lookahead regex to preserve decimal numbers and abbreviations without mid-digit truncation.
  */
 export function chunkTextForHumanSpeech(
   markdownText: string,
   pauseScale: number = 1.0
 ): SpeechChunk[] {
-  const rawLines = markdownText.split("\n");
+  // 1. Strip YAML frontmatter if present so it is never read aloud
+  let textToProcess = markdownText;
+  if (textToProcess.startsWith("---")) {
+    const endFm = textToProcess.indexOf("\n---", 3);
+    if (endFm !== -1) {
+      textToProcess = textToProcess.slice(endFm + 4).trimStart();
+    }
+  }
+
+  const rawLines = textToProcess.split("\n");
   const chunks: SpeechChunk[] = [];
 
   let i = 0;
   while (i < rawLines.length) {
     const rawLine = rawLines[i];
-    const line = rawLine.trim();
+    const line = rawLine.replace(/\r$/, "").trim();
 
     if (!line) {
       i++;
       continue;
     }
 
-    // Skip code blocks, raw image tags, and JSX components
-    if (line.startsWith("```") || line.startsWith("![") || line.startsWith("<")) {
+    // Skip horizontal rules
+    if (line.match(/^---+$/) || line.match(/^\*\*\*+$/)) {
       i++;
+      continue;
+    }
+
+    // Skip code blocks, raw image tags, and JSX components
+    if (line.startsWith("```") || line.startsWith("![") || line.startsWith("<") || line.startsWith("::")) {
+      i++;
+      continue;
+    }
+
+    // Blockquote handling (> [!NOTE] or > text)
+    if (line.startsWith(">")) {
+      const bqLines: string[] = [];
+      while (i < rawLines.length && rawLines[i].replace(/\r$/, "").trim().startsWith(">")) {
+        const cleaned = cleanMarkdownForChunking(
+          rawLines[i]
+            .replace(/\r$/, "")
+            .trim()
+            .replace(/^>\s*/, "")
+            .replace(/^\[!(?:NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*/i, "")
+            .trim()
+        );
+        if (cleaned) bqLines.push(cleaned);
+        i++;
+      }
+      if (bqLines.length > 0) {
+        const bqText = bqLines.join(" ");
+        const sentences = splitParagraphIntoSentences(bqText);
+        for (const rawS of sentences) {
+          if (!rawS || rawS.length < 3) continue;
+          chunks.push({
+            rawText: rawS,
+            text: humanizeEngineeringText(rawS),
+            pauseAfterMs: Math.round(800 * pauseScale),
+            type: "paragraph",
+            emphasis: true,
+          });
+        }
+      }
       continue;
     }
 
     // Check if line is start of markdown table
     if (line.startsWith("|")) {
       const tableRows: string[][] = [];
-      while (i < rawLines.length && rawLines[i].trim().startsWith("|")) {
-        const tLine = rawLines[i].trim();
+      while (i < rawLines.length && rawLines[i].replace(/\r$/, "").trim().startsWith("|")) {
+        const tLine = rawLines[i].replace(/\r$/, "").trim();
         const cells = tLine
           .split("|")
           .map((c) => c.trim())
@@ -596,7 +685,7 @@ export function chunkTextForHumanSpeech(
 
     // Heading 1
     if (line.startsWith("# ")) {
-      const rawText = line.replace("# ", "").trim();
+      const rawText = cleanMarkdownForChunking(line.replace("# ", "").trim());
       const text = humanizeEngineeringText(rawText);
       chunks.push({
         rawText,
@@ -611,7 +700,7 @@ export function chunkTextForHumanSpeech(
 
     // Heading 2
     if (line.startsWith("## ")) {
-      const rawText = line.replace("## ", "").trim();
+      const rawText = cleanMarkdownForChunking(line.replace("## ", "").trim());
       const text = humanizeEngineeringText(rawText);
       chunks.push({
         rawText,
@@ -626,7 +715,7 @@ export function chunkTextForHumanSpeech(
 
     // Heading 3
     if (line.startsWith("### ")) {
-      const rawText = line.replace("### ", "").trim();
+      const rawText = cleanMarkdownForChunking(line.replace("### ", "").trim());
       const text = humanizeEngineeringText(rawText);
       chunks.push({
         rawText,
@@ -640,7 +729,7 @@ export function chunkTextForHumanSpeech(
 
     // Bullet points
     if (line.startsWith("- ") || line.startsWith("* ")) {
-      const rawText = line.replace(/^[-*]\s+/, "").trim();
+      const rawText = cleanMarkdownForChunking(line.replace(/^[-*]\s+/, "").trim());
       const text = humanizeEngineeringText(rawText);
       chunks.push({
         rawText,
@@ -652,8 +741,9 @@ export function chunkTextForHumanSpeech(
       continue;
     }
 
-    // Regular paragraphs -> split into individual sentences using decimal & abbreviation safe segmentation
-    const sentences = splitParagraphIntoSentences(line);
+    // Regular paragraphs -> clean markdown links/images, then split into individual sentences
+    const cleanedLine = cleanMarkdownForChunking(line);
+    const sentences = splitParagraphIntoSentences(cleanedLine);
 
     for (let sIdx = 0; sIdx < sentences.length; sIdx++) {
       const rawS = sentences[sIdx];
