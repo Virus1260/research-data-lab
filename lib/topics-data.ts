@@ -1140,5 +1140,81 @@ export const STATIC_CHAPTER_TOPICS: ChapterTopic[] = [
         "id": "valve-schedule-fail-positions"
       }
     ]
+  },
+  {
+    "slug": "25-vessel-sizing-suite-tool-spec-and-prompt",
+    "chapterNumber": "25",
+    "title": "Vessel Sizing Suite: Tool Specification & Parametric Engineering Architecture",
+    "act": "Automation, P&ID & CAD",
+    "actId": "act-5",
+    "readTime": "12 min read",
+    "headings": [
+      {
+        "level": 1,
+        "text": "25: Vessel Sizing Suite: Tool Specification & Parametric Engineering Architecture",
+        "id": "25-vessel-sizing-suite-tool-specification-parametric-engineering-architecture"
+      },
+      {
+        "level": 2,
+        "text": "1. What this tool is and what it is not",
+        "id": "1-what-this-tool-is-and-what-it-is-not"
+      },
+      {
+        "level": 2,
+        "text": "2. Interactive Core Calculation Workbenches",
+        "id": "2-interactive-core-calculation-workbenches"
+      }
+    ]
+  },
+  {
+    "slug": "26-hosokawa-afd-patent-nl2026893b1-translation-and-engineering-analysis",
+    "chapterNumber": "26",
+    "title": "Hosokawa AFD Patent NL 2026893 B1: Translation, Claims Analysis & Engineering Evaluation",
+    "act": "Automation, P&ID & CAD",
+    "actId": "act-5",
+    "readTime": "25 min read",
+    "headings": [
+      {
+        "level": 1,
+        "text": "26: Hosokawa AFD Patent NL 2026893 B1: Translation, Claims Analysis & Engineering Evaluation",
+        "id": "26-hosokawa-afd-patent-nl2026893b1-translation-and-engineering-analysis"
+      },
+      {
+        "level": 2,
+        "text": "Executive Summary & Patent Dossier",
+        "id": "executive-summary-patent-dossier"
+      },
+      {
+        "level": 2,
+        "text": "1. Paradigm Shift: EP 1 601 919 B1 vs. NL 2026893 B1",
+        "id": "1-paradigm-shift-ep-1-601-919-b1-vs-nl-2026893-b1"
+      },
+      {
+        "level": 2,
+        "text": "2. Statement-by-Statement Dutch to English Translation of Claims",
+        "id": "2-statement-by-statement-dutch-to-english-translation-of-claims-conclusies-1-to-27"
+      },
+      {
+        "level": 2,
+        "text": "3. Engineering Numerals & Physical Subsystems Key",
+        "id": "3-engineering-numerals-physical-subsystems-key"
+      },
+      {
+        "level": 2,
+        "text": "4. Operational Cycle & SCADA State Machine Integration",
+        "id": "4-operational-cycle-scada-state-machine-integration"
+      },
+      {
+        "level": 2,
+        "text": "5. CAD Integration: Vectorized Drawings & SolidWorks Modeling Guide",
+        "id": "5-cad-integration-vectorized-drawings-solidworks-modeling-guide"
+      },
+      {
+        "level": 2,
+        "text": "6. Synthesis: Why NL 2026893 B1 Must Govern Future AFD Workshop Builds",
+        "id": "6-synthesis-why-nl-2026893-b1-must-govern-future-afd-workshop-builds"
+      }
+    ]
   }
 ];
+
