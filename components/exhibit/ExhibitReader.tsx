@@ -29,6 +29,7 @@ import { IsaTagAnatomyChart } from "@/components/diagrams/IsaTagAnatomyChart";
 import { FullBatchProcedureChart } from "@/components/diagrams/FullBatchProcedureChart";
 import { Isa88HierarchyChart } from "@/components/diagrams/Isa88HierarchyChart";
 import { EngineeringDiagramsGallery } from "@/components/diagrams/EngineeringDiagramsGallery";
+import { PatentParadigmComparisonChart } from "@/components/diagrams/PatentParadigmComparisonChart";
 import { StickyMarkdownTable } from "@/components/tables/StickyMarkdownTable";
 import {
   SublimationHeatDutyWorkbench,
@@ -495,6 +496,20 @@ export function ExhibitReader({
       }
 
       if (
+        line.trim() === "<PatentParadigmComparisonChart />" ||
+        line.trim() === "<PatentParadigmComparisonChart/>" ||
+        line.trim() === "::PatentParadigmComparisonChart"
+      ) {
+        elements.push(
+          <div key={key++} className="my-6">
+            <PatentParadigmComparisonChart />
+          </div>
+        );
+        i++;
+        continue;
+      }
+
+      if (
         line.trim() === "<IdealGasVacuumVolumeWorkbench />" ||
         line.trim() === "<IdealGasVacuumVolumeWorkbench/>" ||
         line.trim() === "::IdealGasVacuumVolumeWorkbench"
@@ -882,6 +897,19 @@ export function ExhibitReader({
           continue;
         }
 
+        // Check if it is the Classic AFD vs Dynamic Elutriation Collector comparison
+        if (
+          (fullBlock.includes("CLASSIC ACTIVE FREEZE DRYER") || fullBlock.includes("EP 1 601 919 B1")) &&
+          (fullBlock.includes("DYNAMIC ELUTRIATION COLLECTOR") || fullBlock.includes("NL 2026893 B1"))
+        ) {
+          elements.push(
+            <div key={key++} className="my-6">
+              <PatentParadigmComparisonChart />
+            </div>
+          );
+          continue;
+        }
+
         // Check if it's a multi-step engineering calculation (e.g. Q1, Q2, dm/dt steps)
         const isCalc =
           fullBlock.includes("Q1") ||
@@ -1092,10 +1120,10 @@ export function ExhibitReader({
       }
 
       // Blockquote
-      if (line.startsWith("> ")) {
+      if (line.trim().startsWith("> ")) {
         const quoteLines: string[] = [];
-        while (i < lines.length && lines[i].startsWith("> ")) {
-          quoteLines.push(lines[i].slice(2));
+        while (i < lines.length && lines[i].trim().startsWith("> ")) {
+          quoteLines.push(lines[i].trim().slice(2).trim());
           i++;
         }
         elements.push(
@@ -1103,7 +1131,7 @@ export function ExhibitReader({
             key={key++}
             className="my-5 pl-4 py-3 pr-4 rounded-r-xl bg-bg-surface border-l-4 border-amber text-sm sm:text-base italic text-ink-secondary"
           >
-            {quoteLines.join(" ")}
+            {renderInline(quoteLines.join(" "))}
           </blockquote>
         );
         continue;
