@@ -31,6 +31,7 @@ import { Isa88HierarchyChart } from "@/components/diagrams/Isa88HierarchyChart";
 import { EngineeringDiagramsGallery } from "@/components/diagrams/EngineeringDiagramsGallery";
 import { PatentParadigmComparisonChart } from "@/components/diagrams/PatentParadigmComparisonChart";
 import { StickyMarkdownTable } from "@/components/tables/StickyMarkdownTable";
+import { ReaderTeleprompterPanel } from "@/components/narrator/ReaderTeleprompterPanel";
 import {
   SublimationHeatDutyWorkbench,
   JacketSurfaceAreaWorkbench,
@@ -244,6 +245,13 @@ export function ExhibitReader({
     activeCue,
     syncScroll,
     syncToSelection,
+    speechChunks,
+    currentChunkIndex,
+    currentChunk,
+    seekToChunk,
+    readerPanelOpen,
+    setReaderPanelOpen,
+    prepareChapterText,
   } = useNarrator();
   const [tocOpen, setTocOpen] = useState(true);
   const [activeSection, setActiveSection] = useState("");
@@ -253,6 +261,13 @@ export function ExhibitReader({
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Pre-populate speech chunks for the reader teleprompter panel as soon as chapter is loaded
+  useEffect(() => {
+    if (chapter.content) {
+      prepareChapterText(chapter.content, chapter.slug, chapter.title);
+    }
+  }, [chapter.content, chapter.slug, chapter.title, prepareChapterText]);
 
   // Floating selection boundary sync popover listener
   useEffect(() => {
@@ -329,29 +344,92 @@ export function ExhibitReader({
 
     if (!isThisPlaying) return;
 
+    const mainContainer = document.getElementById("monograph-reader-main");
+    if (!mainContainer) return;
+
     // Target cue or phrase
     const rawTarget = (activeCue?.text || activeSpokenPhrase || "").trim();
     if (!rawTarget || rawTarget.length < 4) return;
     const targetText = rawTarget.toLowerCase();
 
-    const mainContainer = document.getElementById("monograph-reader-main");
-    if (!mainContainer) return;
-
-    // Detect if this phrase is a table cell announcement
+    // Check if the current speech chunk is a table chunk
+    const activeChunk = currentChunk || (speechChunks && speechChunks[currentChunkIndex]);
     const isTableSpeech =
-      targetText.includes("looking at") ||
-      targetText.includes("reviewing the comparative data") ||
-      targetText.includes("finally, for") ||
-      (targetText.includes("for ") && targetText.includes("is "));
+      activeChunk?.type === "table" ||
+      (!activeChunk &&
+        (targetText.includes("looking at") ||
+          targetText.includes("reviewing the comparative data") ||
+          targetText.includes("finally, for")));
 
-    // Extract potential table parameter from speech
-    let tableParam = "";
-    const paramMatch = rawTarget.match(/(?:looking at|for|finally, for)\s+([A-Za-z0-9\s/()._-]+?)(?::|\s+is\s+)/i);
-    if (paramMatch) {
-      tableParam = paramMatch[1].trim().toLowerCase();
+    if (isTableSpeech) {
+      // ─── 1. TABLE SPEECH: SEARCH ONLY TBODY TR ───
+      // Strictly excludes paragraphs, headings, blockquotes so table speech NEVER highlights or jumps to text!
+      const tableRows = mainContainer.querySelectorAll("tbody tr");
+      if (tableRows.length === 0) return;
+
+      let tableParam = "";
+      if (activeChunk?.tableData?.parameter) {
+        tableParam = activeChunk.tableData.parameter.toLowerCase().trim();
+      } else {
+        const paramMatch = rawTarget.match(
+          /(?:looking at|for|finally, for)\s+([A-Za-z0-9\s/()._-]+?)(?::|\s+is\s+)/i
+        );
+        if (paramMatch) {
+          tableParam = paramMatch[1].trim().toLowerCase();
+        }
+      }
+
+      const searchWords = (tableParam || targetText)
+        .replace(/[^\w\s]/g, " ")
+        .split(/\s+/)
+        .map((w) => w.trim())
+        .filter((w) => w.length > 2);
+
+      let bestMatch: Element | null = null;
+      let highestScore = 0;
+
+      for (const row of Array.from(tableRows)) {
+        const rowText = (row.textContent || "").toLowerCase().trim();
+        if (!rowText) continue;
+
+        let score = 0;
+        if (tableParam && rowText.includes(tableParam)) {
+          score += 150;
+        }
+
+        if (activeChunk?.tableData?.values) {
+          for (const val of activeChunk.tableData.values) {
+            const vClean = val.value.toLowerCase().trim();
+            if (vClean.length > 2 && rowText.includes(vClean)) {
+              score += 25;
+            }
+          }
+        }
+
+        for (const word of searchWords) {
+          if (rowText.includes(word)) score += 8;
+        }
+
+        if (score > highestScore) {
+          highestScore = score;
+          bestMatch = row;
+        }
+      }
+
+      if (bestMatch && highestScore > 0) {
+        bestMatch.classList.add("narrator-active-highlight");
+        if (syncScroll) {
+          bestMatch.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }
+      return;
     }
 
-    // Ubiquitous domain stopwords to exclude from fuzzy token matching
+    // ─── 2. PARAGRAPH / NON-TABLE SPEECH: SEARCH ONLY P, LI, H1, H2, H3, BLOCKQUOTE ───
+    // Strictly excludes tbody tr so regular reading NEVER jumps into the middle of any table!
+    const textCandidates = mainContainer.querySelectorAll("p, li, h1, h2, h3, blockquote");
+    if (textCandidates.length === 0) return;
+
     const STOPWORDS = new Set([
       "next", "looking", "finally", "reviewing", "comparative", "data", "across",
       "official", "record", "specification", "parameter", "is", "are", "was", "were",
@@ -361,49 +439,30 @@ export function ExhibitReader({
       "comprising", "according", "wherein", "configured", "method", "steps"
     ]);
 
-    // Include tbody tr so table rows can be accurately matched and highlighted
-    const candidates = mainContainer.querySelectorAll("tbody tr, p, li, h1, h2, h3, blockquote");
-
-    let bestMatch: Element | null = null;
-    let highestScore = 0;
-
-    // Distinctive search tokens
     const searchWords = targetText
       .replace(/[^\w\s]/g, " ")
       .split(/\s+/)
       .map((w) => w.trim())
       .filter((w) => w.length > 2 && !STOPWORDS.has(w));
 
-    for (const el of Array.from(candidates)) {
+    let bestMatch: Element | null = null;
+    let highestScore = 0;
+
+    for (const el of Array.from(textCandidates)) {
       const elText = (el.textContent || "").toLowerCase().trim();
       if (!elText) continue;
 
       let score = 0;
 
-      // 1. Direct TR table row matching
-      if (el.tagName === "TR") {
-        if (tableParam && elText.includes(tableParam)) {
-          score += 150; // Decisive match for parameter row
-        }
-        for (const word of searchWords) {
-          if (elText.includes(word)) score += 8;
-        }
-      } else {
-        // If it is table speech and this is not a table row, penalize to avoid jumping to paragraphs
-        if (isTableSpeech && tableParam) {
-          score -= 50;
-        }
+      // Direct full phrase or long substring match
+      if (targetText.length > 15 && elText.includes(targetText.slice(0, 40))) {
+        score += 100;
+      }
 
-        // Direct full phrase or long substring match
-        if (targetText.length > 15 && elText.includes(targetText.slice(0, 40))) {
-          score += 100;
-        }
-
-        // Token match with length weighting
-        for (const word of searchWords) {
-          if (elText.includes(word)) {
-            score += word.length > 5 ? 3 : 1;
-          }
+      // Token match with length weighting
+      for (const word of searchWords) {
+        if (elText.includes(word)) {
+          score += word.length > 5 ? 3 : 1;
         }
       }
 
@@ -419,7 +478,16 @@ export function ExhibitReader({
         bestMatch.scrollIntoView({ behavior: "smooth", block: "center" });
       }
     }
-  }, [activeSpokenPhrase, activeCue, isThisPlaying, syncScroll, mounted]);
+  }, [
+    activeSpokenPhrase,
+    activeCue,
+    isThisPlaying,
+    syncScroll,
+    mounted,
+    currentChunk,
+    currentChunkIndex,
+    speechChunks,
+  ]);
 
   // Removed if (!mounted) return null; to enable full SSR rendering and eliminate layout shift
 
@@ -1676,6 +1744,10 @@ export function ExhibitReader({
           )}
         </button>
       </main>
+
     </div>
+
+    {/* Reader Monitor Teleprompter Panel — fixed overlay, positions itself above NarratorDeck */}
+    <ReaderTeleprompterPanel chapterTitle={chapter.title} chapterSlug={chapter.slug} />
   );
 }
