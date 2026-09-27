@@ -220,6 +220,11 @@ export function humanizeEngineeringText(raw: string): string {
   t = t.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1");
   t = t.replace(/```[\s\S]*?```/g, "");
 
+  // Convert XML / SSML reserved characters to natural English words
+  t = t.replace(/&/g, " and ");
+  t = t.replace(/</g, " less than ");
+  t = t.replace(/>/g, " greater than ");
+
   // Phonetic expansions
   const substitutions: [RegExp, string][] = [
     // Chapter numbers to clear English words

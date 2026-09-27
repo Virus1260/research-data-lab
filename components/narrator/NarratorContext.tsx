@@ -476,7 +476,13 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
 
       const chunk = chunks[index];
       currentChunkIndexRef.current = index;
-      setActiveSpokenPhrase(chunk.rawText || chunk.text);
+      const cleanPhrase = (chunk.rawText || chunk.text)
+        .replace(/\*\*([^*]+)\*\*/g, "$1")
+        .replace(/\*([^*]+)\*/g, "$1")
+        .replace(/`([^`]+)`/g, "$1")
+        .replace(/^[*\-•]\s+/, "")
+        .trim();
+      setActiveSpokenPhrase(cleanPhrase);
 
       // Approximate time based on chunks count
       const approxChunkDuration = Math.max(2, chunk.text.length * 0.065);
@@ -514,13 +520,13 @@ export function NarratorProvider({ children }: { children: React.ReactNode }) {
           }
         };
 
-        // Safety timeout: if streaming takes >1800ms, fallback to instant WebSpeech
+        // Safety timeout: if streaming takes >5000ms, fallback to instant WebSpeech
         const loadTimeout = setTimeout(() => {
           if (audio.readyState < 2 && !hasFallenBack) {
             audio.pause();
-            fallbackToWeb("Stream timeout >1800ms");
+            fallbackToWeb("Stream timeout >5000ms");
           }
-        }, 1800);
+        }, 5000);
 
         audio.onplaying = () => {
           clearTimeout(loadTimeout);

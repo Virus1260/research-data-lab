@@ -669,6 +669,21 @@ input[type="range"]::-moz-range-thumb:hover {
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
+tr.narrator-active-highlight {
+  background: color-mix(in srgb, var(--amber-subtle) 95%, transparent) !important;
+  border-left: none !important;
+  padding-left: 0 !important;
+  outline: 2px solid var(--amber) !important;
+  outline-offset: -2px !important;
+  box-shadow: 0 0 16px rgba(198, 132, 16, 0.35) !important;
+}
+
+tr.narrator-active-highlight td {
+  background: transparent !important;
+  color: var(--ink-primary) !important;
+  font-weight: 600 !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html, body, .instrument-card {
     transition: none !important;

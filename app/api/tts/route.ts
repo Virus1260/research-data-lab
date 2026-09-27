@@ -5,12 +5,11 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 // Persona to Microsoft Edge Neural Voice mapping
-// Google Gemini voice counterparts use top-tier Multilingual Neural voices
 const PERSONA_VOICE_MAP: Record<string, string> = {
-  // ─ Google Gemini AI Narrators (Featured) ─────────────────────────────────────
-  umbriel: "en-US-AndrewMultilingualNeural", // Warm, deep baritone — mirrors Google Umbriel
-  gacrux: "en-US-AvaMultilingualNeural",     // Crisp, mature alto — mirrors Google Gacrux
-  // ─ Research Lab Personas ───────────────────────────────────────────────────
+  // Google Gemini AI Narrators (Featured)
+  umbriel: "en-US-AndrewMultilingualNeural", // Warm, deep baritone: mirrors Google Umbriel
+  gacrux: "en-US-AvaMultilingualNeural",     // Crisp, mature alto: mirrors Google Gacrux
+  // Research Lab Personas
   ananya: "en-IN-NeerjaNeural",
   rajesh: "en-IN-PrabhatNeural",
   elena: "en-GB-SoniaNeural",
@@ -22,17 +21,81 @@ const PERSONA_VOICE_MAP: Record<string, string> = {
 const audioCache = new Map<string, Buffer>();
 const MAX_CACHE_ITEMS = 300;
 
+async function synthesizeText(voiceName: string, text: string, rateStr: string, pitchStr: string): Promise<Buffer> {
+  const tts = new MsEdgeTTS();
+  await tts.setMetadata(voiceName, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
+
+  const readable = tts.toStream(text, {
+    rate: rateStr,
+    pitch: pitchStr,
+  });
+
+  const chunks: Buffer[] = [];
+  let isDone = false;
+
+  await new Promise<void>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      if (!isDone) {
+        isDone = true;
+        if (chunks.length > 0) {
+          resolve();
+        } else {
+          reject(new Error("Edge TTS timeout after 12000ms"));
+        }
+      }
+    }, 12000);
+
+    const finish = () => {
+      if (!isDone) {
+        isDone = true;
+        clearTimeout(timer);
+        resolve();
+      }
+    };
+
+    readable.audioStream.on("data", (chunk: Buffer) => {
+      chunks.push(chunk);
+    });
+
+    readable.audioStream.on("end", finish);
+    readable.audioStream.on("close", finish);
+
+    readable.audioStream.on("error", (err: Error) => {
+      if (!isDone) {
+        isDone = true;
+        clearTimeout(timer);
+        // If we already received audio chunks before stream closed, treat as success
+        if (chunks.length > 0) {
+          resolve();
+        } else {
+          reject(err);
+        }
+      }
+    });
+  });
+
+  return Buffer.concat(chunks);
+}
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const text = searchParams.get("text")?.trim();
+    const rawText = searchParams.get("text")?.trim();
     const persona = searchParams.get("persona") || "ananya";
     const rateParam = parseFloat(searchParams.get("rate") || "1.0");
     const pitchParam = parseFloat(searchParams.get("pitch") || "1.0");
 
-    if (!text) {
+    if (!rawText) {
       return NextResponse.json({ error: "Text parameter is required" }, { status: 400 });
     }
+
+    // Sanitize XML/SSML reserved characters so Edge TTS never encounters an invalid entity
+    const text = rawText
+      .replace(/&/g, " and ")
+      .replace(/</g, " less than ")
+      .replace(/>/g, " greater than ")
+      .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, "")
+      .trim();
 
     // Determine target voice
     const voiceName = PERSONA_VOICE_MAP[persona.toLowerCase()] || "en-US-AndrewMultilingualNeural";
@@ -59,50 +122,18 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // Initialize Edge TTS
-    const tts = new MsEdgeTTS();
-    await tts.setMetadata(voiceName, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
+    // Synthesize audio with single retry on cold start
+    let fullBuffer: Buffer;
+    try {
+      fullBuffer = await synthesizeText(voiceName, text, rateStr, pitchStr);
+    } catch (initialErr) {
+      console.warn("First TTS attempt encountered error, retrying once:", initialErr);
+      fullBuffer = await synthesizeText(voiceName, text, rateStr, pitchStr);
+    }
 
-    // Synthesize audio
-    const readable = tts.toStream(text, {
-      rate: rateStr,
-      pitch: pitchStr,
-    });
-
-    const chunks: Buffer[] = [];
-    let isDone = false;
-    await new Promise<void>((resolve, reject) => {
-      const timer = setTimeout(() => {
-        if (!isDone) {
-          isDone = true;
-          if (chunks.length > 0) resolve();
-          else reject(new Error("Edge TTS timeout after 6000ms"));
-        }
-      }, 6000);
-
-      const finish = () => {
-        if (!isDone) {
-          isDone = true;
-          clearTimeout(timer);
-          resolve();
-        }
-      };
-
-      readable.audioStream.on("data", (chunk: Buffer) => {
-        chunks.push(chunk);
-      });
-      readable.audioStream.on("end", finish);
-      readable.audioStream.on("close", finish);
-      readable.audioStream.on("error", (err: Error) => {
-        if (!isDone) {
-          isDone = true;
-          clearTimeout(timer);
-          reject(err);
-        }
-      });
-    });
-
-    const fullBuffer = Buffer.concat(chunks);
+    if (!fullBuffer || fullBuffer.length === 0) {
+      throw new Error("Zero audio bytes synthesized");
+    }
 
     // Save to cache with LRU eviction
     if (audioCache.size >= MAX_CACHE_ITEMS) {

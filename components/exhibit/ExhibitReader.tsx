@@ -330,36 +330,90 @@ export function ExhibitReader({
     if (!isThisPlaying) return;
 
     // Target cue or phrase
-    const targetText = (activeCue?.text || activeSpokenPhrase || "").trim().toLowerCase();
-    if (!targetText || targetText.length < 4) return;
+    const rawTarget = (activeCue?.text || activeSpokenPhrase || "").trim();
+    if (!rawTarget || rawTarget.length < 4) return;
+    const targetText = rawTarget.toLowerCase();
 
     const mainContainer = document.getElementById("monograph-reader-main");
     if (!mainContainer) return;
 
-    // Find the paragraph, list item, or heading containing words from the spoken phrase
-    const candidates = mainContainer.querySelectorAll("p, li, h1, h2, h3, blockquote");
-    const searchWords = targetText
-      .replace(/[^\w\s]/g, "")
-      .split(/\s+/)
-      .filter((w) => w.length > 3);
-    if (searchWords.length === 0) return;
+    // Detect if this phrase is a table cell announcement
+    const isTableSpeech =
+      targetText.includes("looking at") ||
+      targetText.includes("reviewing the comparative data") ||
+      targetText.includes("finally, for") ||
+      (targetText.includes("for ") && targetText.includes("is "));
+
+    // Extract potential table parameter from speech
+    let tableParam = "";
+    const paramMatch = rawTarget.match(/(?:looking at|for|finally, for)\s+([A-Za-z0-9\s/()._-]+?)(?::|\s+is\s+)/i);
+    if (paramMatch) {
+      tableParam = paramMatch[1].trim().toLowerCase();
+    }
+
+    // Ubiquitous domain stopwords to exclude from fuzzy token matching
+    const STOPWORDS = new Set([
+      "next", "looking", "finally", "reviewing", "comparative", "data", "across",
+      "official", "record", "specification", "parameter", "is", "are", "was", "were",
+      "the", "and", "that", "this", "with", "from", "for", "have", "been", "has",
+      "which", "also", "more", "into", "within", "such", "where", "when", "than",
+      "freeze", "dryer", "drying", "chamber", "patent", "material", "process",
+      "comprising", "according", "wherein", "configured", "method", "steps"
+    ]);
+
+    // Include tbody tr so table rows can be accurately matched and highlighted
+    const candidates = mainContainer.querySelectorAll("tbody tr, p, li, h1, h2, h3, blockquote");
 
     let bestMatch: Element | null = null;
     let highestScore = 0;
 
+    // Distinctive search tokens
+    const searchWords = targetText
+      .replace(/[^\w\s]/g, " ")
+      .split(/\s+/)
+      .map((w) => w.trim())
+      .filter((w) => w.length > 2 && !STOPWORDS.has(w));
+
     for (const el of Array.from(candidates)) {
-      const elText = (el.textContent || "").toLowerCase();
+      const elText = (el.textContent || "").toLowerCase().trim();
+      if (!elText) continue;
+
       let score = 0;
-      for (const word of searchWords) {
-        if (elText.includes(word)) score++;
+
+      // 1. Direct TR table row matching
+      if (el.tagName === "TR") {
+        if (tableParam && elText.includes(tableParam)) {
+          score += 150; // Decisive match for parameter row
+        }
+        for (const word of searchWords) {
+          if (elText.includes(word)) score += 8;
+        }
+      } else {
+        // If it is table speech and this is not a table row, penalize to avoid jumping to paragraphs
+        if (isTableSpeech && tableParam) {
+          score -= 50;
+        }
+
+        // Direct full phrase or long substring match
+        if (targetText.length > 15 && elText.includes(targetText.slice(0, 40))) {
+          score += 100;
+        }
+
+        // Token match with length weighting
+        for (const word of searchWords) {
+          if (elText.includes(word)) {
+            score += word.length > 5 ? 3 : 1;
+          }
+        }
       }
+
       if (score > highestScore) {
         highestScore = score;
         bestMatch = el;
       }
     }
 
-    if (bestMatch && highestScore >= Math.min(2, searchWords.length)) {
+    if (bestMatch && highestScore > 0) {
       bestMatch.classList.add("narrator-active-highlight");
       if (syncScroll) {
         bestMatch.scrollIntoView({ behavior: "smooth", block: "center" });

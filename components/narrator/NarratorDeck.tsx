@@ -32,6 +32,49 @@ function formatTime(seconds: number): string {
   return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
 }
 
+function formatActivePhrase(rawPhrase: string) {
+  if (!rawPhrase) return null;
+
+  // Clean raw markdown characters
+  const clean = rawPhrase
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/\*([^*]+)\*/g, "$1")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/^[*\-•\s"']+|[*\s"']+$/g, "")
+    .trim();
+
+  // Detect context category
+  let badge = "ACTIVE NARRATION";
+  let badgeColor = "text-amber bg-amber/10 border-amber/30";
+  let highlightParam = "";
+
+  if (
+    clean.includes("looking at") ||
+    clean.includes("Reviewing the comparative data") ||
+    clean.includes("Official Record Specification") ||
+    (clean.includes("is") && clean.includes("while"))
+  ) {
+    badge = "TABLE DATA";
+    badgeColor = "text-cryo bg-cryo/10 border-cryo/30";
+
+    const paramMatch = clean.match(/(?:looking at|for|finally, for)\s+([A-Za-z0-9\s/()._-]+?)(?::|\s+is\s+)/i);
+    if (paramMatch) {
+      highlightParam = paramMatch[1].trim();
+    }
+  } else if (/^Claim\s+\d+/i.test(clean) || /\bConclusie\b/i.test(clean) || /^\d+\.\s+The\s+freeze\s+dryer/i.test(clean)) {
+    badge = "PATENT CLAIM";
+    badgeColor = "text-emerald-400 bg-emerald-500/10 border-emerald-500/30";
+  } else if (/^Section:/i.test(clean) || /^Chapter/i.test(clean)) {
+    badge = "DOSSIER SECTION";
+    badgeColor = "text-amber-bright bg-amber/15 border-amber/40";
+  } else if (/^Formula|^Equation/i.test(clean) || (clean.includes("=") && clean.includes("kg"))) {
+    badge = "EQUATION / DERIVATION";
+    badgeColor = "text-purple-400 bg-purple-500/10 border-purple-500/30";
+  }
+
+  return { clean, badge, badgeColor, highlightParam };
+}
+
 export function NarratorDeck() {
   const {
     isPlaying,
@@ -535,12 +578,38 @@ export function NarratorDeck() {
             )}
 
             {/* Active Spoken Phrase Spotlight */}
-            {activeSpokenPhrase && !hasActiveSelection && (
-              <div className="px-3 py-1.5 rounded-xl bg-bg-surface/70 border border-hairline/60 text-xs text-ink-secondary line-clamp-1 italic font-mono flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber shrink-0 animate-ping" />
-                <span className="truncate">"{activeSpokenPhrase}"</span>
-              </div>
-            )}
+            {activeSpokenPhrase && !hasActiveSelection && (() => {
+              const formatted = formatActivePhrase(activeSpokenPhrase);
+              if (!formatted) return null;
+              return (
+                <div className="px-3 py-2 rounded-xl bg-gradient-to-r from-bg-surface/90 via-bg-panel to-bg-surface/90 border border-hairline/70 shadow-sm text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2 transition-all">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="flex h-2 w-2 relative shrink-0">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-amber" />
+                    </span>
+                    <span className={`px-2 py-0.5 rounded-md text-[9px] font-mono font-bold uppercase tracking-wider border shrink-0 ${formatted.badgeColor}`}>
+                      {formatted.badge}
+                    </span>
+                    <span className="text-ink-primary font-medium truncate text-[11px] sm:text-xs">
+                      {formatted.highlightParam ? (
+                        <>
+                          <span className="text-amber font-bold">{formatted.highlightParam}</span>
+                          <span className="text-ink-secondary">
+                            {formatted.clean.replace(new RegExp(`^(?:Next,\\s+looking\\s+at\\s+|For\\s+|Finally,\\s+for\\s+)?${formatted.highlightParam}:?`, "i"), "")}
+                          </span>
+                        </>
+                      ) : (
+                        formatted.clean
+                      )}
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-mono text-ink-muted shrink-0 hidden md:inline">
+                    Live Cadence
+                  </span>
+                </div>
+              );
+            })()}
 
             {/* Progress Bar & Live Ticking Timer */}
             <div className="flex items-center gap-3 px-2">
