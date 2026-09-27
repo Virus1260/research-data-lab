@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight, ChevronsLeftRight } from 'lucide-react';
 import { useNarrator } from '@/components/narrator/NarratorContext';
 
@@ -16,12 +17,14 @@ interface StickyTableScrollbarProps {
  * at any vertical scroll position without having to scroll all the way to the table bottom.
  * 
  * Automatically shifts upward if the audio narrator player console is open to prevent overlapping.
+ * Uses createPortal to document.body so parent backdrop-filter or overflow-hidden never trap or clip it.
  */
 export const StickyTableScrollbar: React.FC<StickyTableScrollbarProps> = ({
   tableContainerRef,
   className = '',
 }) => {
   const scrollbarRef = useRef<HTMLDivElement>(null);
+  const [isMounted, setIsMounted] = useState(false);
   const [scrollWidth, setScrollWidth] = useState(0);
   const [clientWidth, setClientWidth] = useState(0);
   const [isNeeded, setIsNeeded] = useState(false);
@@ -34,6 +37,10 @@ export const StickyTableScrollbar: React.FC<StickyTableScrollbarProps> = ({
 
   const { currentTrack, isMinimized } = useNarrator();
   const isAudioDeckOpen = Boolean(currentTrack && !isMinimized);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const updateMeasurements = useCallback(() => {
     const el = tableContainerRef.current;
@@ -55,9 +62,13 @@ export const StickyTableScrollbar: React.FC<StickyTableScrollbarProps> = ({
     const rect = el.getBoundingClientRect();
     const isVisibleInViewport = rect.top < window.innerHeight && rect.bottom > 80;
 
+    const safeLeft = Math.max(0, rect.left);
+    const availableWidth = typeof window !== 'undefined' ? window.innerWidth - safeLeft : rect.width;
+    const safeWidth = Math.min(rect.width, Math.max(0, availableWidth));
+
     setBounds({
-      left: Math.max(0, rect.left),
-      width: rect.width,
+      left: safeLeft,
+      width: safeWidth,
       visible: isVisibleInViewport,
     });
   }, [tableContainerRef]);
@@ -67,6 +78,9 @@ export const StickyTableScrollbar: React.FC<StickyTableScrollbarProps> = ({
     if (!el) return;
 
     updateMeasurements();
+    const rafId = requestAnimationFrame(() => {
+      updateMeasurements();
+    });
 
     const handleTableScroll = () => {
       if (scrollbarRef.current && el) {
@@ -92,6 +106,7 @@ export const StickyTableScrollbar: React.FC<StickyTableScrollbarProps> = ({
     ro.observe(el);
 
     return () => {
+      cancelAnimationFrame(rafId);
       el.removeEventListener('scroll', handleTableScroll);
       window.removeEventListener('scroll', handleWindowScroll);
       window.removeEventListener('resize', updateMeasurements);
@@ -121,9 +136,11 @@ export const StickyTableScrollbar: React.FC<StickyTableScrollbarProps> = ({
     });
   };
 
-  if (!isNeeded || !bounds.visible || bounds.width <= 0) return null;
+  if (!isMounted || !isNeeded || !bounds.visible || bounds.width <= 0 || typeof document === 'undefined') {
+    return null;
+  }
 
-  return (
+  const scrollbarElement = (
     <div
       className={`no-print transition-all duration-300 ${className}`}
       style={{
@@ -198,4 +215,6 @@ export const StickyTableScrollbar: React.FC<StickyTableScrollbarProps> = ({
       </div>
     </div>
   );
+
+  return createPortal(scrollbarElement, document.body);
 };

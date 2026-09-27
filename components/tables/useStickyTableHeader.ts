@@ -4,6 +4,7 @@ import { useEffect, RefObject } from 'react';
 
 export interface UseStickyTableHeaderOptions {
   topOffset?: number;
+  enabled?: boolean;
 }
 
 /**
@@ -20,9 +21,11 @@ export function useStickyTableHeader(
   theadRef: RefObject<HTMLElement | null>,
   options: UseStickyTableHeaderOptions = {}
 ) {
-  const { topOffset = 56 } = options;
+  const { topOffset = 56, enabled = true } = options;
 
   useEffect(() => {
+    if (!enabled) return;
+
     const tableContainer = tableContainerRef.current;
     const thead = theadRef.current;
     if (!tableContainer || !thead || typeof document === 'undefined') return;
@@ -51,6 +54,7 @@ export function useStickyTableHeader(
 
     // 2. Create the inner table containing the cloned header
     const fixedTable = document.createElement('table');
+    fixedTable.className = table.className;
     fixedTable.style.tableLayout = 'fixed';
     fixedTable.style.width = `${table.offsetWidth}px`;
     fixedTable.style.minWidth = '100%';
@@ -75,6 +79,7 @@ export function useStickyTableHeader(
         if (fTh) {
           const rect = rTh.getBoundingClientRect();
           const w = rect.width;
+          fTh.className = rTh.className;
           fTh.style.width = `${w}px`;
           fTh.style.minWidth = `${w}px`;
           fTh.style.maxWidth = `${w}px`;
@@ -84,7 +89,9 @@ export function useStickyTableHeader(
         }
       });
 
-      fixedTable.style.width = `${table.offsetWidth}px`;
+      const effectiveWidth = Math.max(table.offsetWidth, table.scrollWidth);
+      fixedTable.style.width = `${effectiveWidth}px`;
+      fixedTable.style.minWidth = `${effectiveWidth}px`;
       headerContainer.style.height = `${thead.offsetHeight || 44}px`;
     };
 
@@ -102,15 +109,18 @@ export function useStickyTableHeader(
 
     const updateVisibility = () => {
       const tableRect = tableContainer.getBoundingClientRect();
+      const theadRect = thead.getBoundingClientRect();
       const theadHeight = thead.offsetHeight || 44;
 
       // Table is in view and user has scrolled past the original table header
-      const isPastTop = tableRect.top <= topOffset;
+      const isPastTop = theadRect.top <= topOffset;
       const isBeforeBottom = tableRect.bottom > (topOffset + theadHeight + 12);
 
       if (isPastTop && isBeforeBottom) {
         if (!isCurrentlyVisible) {
+          syncColumnWidths();
           headerContainer.style.display = 'block';
+          thead.style.visibility = 'hidden';
           isCurrentlyVisible = true;
         }
         headerContainer.style.left = `${tableRect.left}px`;
@@ -120,6 +130,7 @@ export function useStickyTableHeader(
       } else {
         if (isCurrentlyVisible) {
           headerContainer.style.display = 'none';
+          thead.style.visibility = '';
           isCurrentlyVisible = false;
         }
       }
@@ -154,9 +165,10 @@ export function useStickyTableHeader(
       window.removeEventListener('scroll', onWindowScroll);
       window.removeEventListener('resize', onResize);
       resizeObserver.disconnect();
+      thead.style.visibility = '';
       if (headerContainer.parentNode) {
         headerContainer.parentNode.removeChild(headerContainer);
       }
     };
-  }, [tableContainerRef, theadRef, topOffset]);
+  }, [tableContainerRef, theadRef, topOffset, enabled]);
 }

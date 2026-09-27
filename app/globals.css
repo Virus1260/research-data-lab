@@ -210,6 +210,11 @@ button, a, input, select, textarea {
 ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--ink-dim); }
 
+.custom-sticky-scrollbar::-webkit-scrollbar { height: 6px; }
+.custom-sticky-scrollbar::-webkit-scrollbar-track { background: var(--bg-surface); border-radius: 9999px; }
+.custom-sticky-scrollbar::-webkit-scrollbar-thumb { background: var(--amber); border-radius: 9999px; }
+.custom-sticky-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--amber-bright); }
+
 .lab-grid-bg {
   background-image:
     radial-gradient(ellipse at 50% -10%, var(--cryo-subtle) 0%, transparent 52%),

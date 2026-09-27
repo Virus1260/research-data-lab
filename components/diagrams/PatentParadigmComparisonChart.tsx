@@ -28,14 +28,8 @@ export function PatentParadigmComparisonChart() {
   const [activeTab, setActiveTab] = useState<TabMode>("comparison");
   const [activeStage, setActiveStage] = useState<StageMode>("elutriation");
 
-  const tableContainerRef = useRef<HTMLDivElement>(null);
-  const theadRef = useRef<HTMLTableSectionElement>(null);
-
-  // Freezes table header at top 56px below navbar
-  useStickyTableHeader(tableContainerRef, theadRef, { topOffset: 56 });
-
   return (
-    <div className="my-8 not-prose rounded-3xl border border-hairline bg-bg-panel shadow-2xl overflow-hidden backdrop-blur-sm">
+    <div className="my-8 not-prose rounded-3xl border border-hairline bg-bg-panel shadow-2xl overflow-hidden">
       {/* Header bar */}
       <div className="p-5 sm:p-6 border-b border-hairline bg-bg-surface flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -374,76 +368,120 @@ export function PatentParadigmComparisonChart() {
       )}
 
       {/* Tab 3: Detailed Engineering Matrix */}
-      {activeTab === "matrix" && (
-        <div className="relative p-5 sm:p-6">
-          <div
-            ref={tableContainerRef}
-            className="overflow-x-auto rounded-2xl border border-hairline shadow-md bg-bg-panel transition-all"
-            style={{
-              scrollbarWidth: "thin",
-              scrollbarColor: "var(--amber) transparent",
-            }}
-          >
-            <table className="w-full text-left font-mono text-xs border-collapse">
-              <thead ref={theadRef}>
-                <tr className="border-b border-hairline bg-bg-surface">
-                  <th className="py-3 px-4 text-ink-primary font-bold uppercase tracking-wider whitespace-nowrap bg-bg-surface">
-                    Engineering Parameter
-                  </th>
-                  <th className="py-3 px-4 text-red-400 font-bold uppercase tracking-wider whitespace-nowrap bg-bg-surface">
-                    Classic AFD (EP 1 601 919 B1)
-                  </th>
-                  <th className="py-3 px-4 text-emerald-400 font-bold uppercase tracking-wider whitespace-nowrap bg-bg-surface">
-                    Dynamic Collector (NL 2026893 B1)
-                  </th>
-                  <th className="py-3 px-4 text-amber font-bold uppercase tracking-wider whitespace-nowrap bg-bg-surface">
-                    Bioprocess & Clinical Advantage
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-hairline">
-                <tr className="hover:bg-bg-hover transition-colors">
-                  <td className="py-3 px-4 text-ink-primary font-bold whitespace-nowrap">Product Residence Location</td>
-                  <td className="py-3 px-4 text-ink-secondary">100% inside agitated cone throughout cycle</td>
-                  <td className="py-3 px-4 text-emerald-400 font-semibold">Continuous aerodynamic separation into collector (40/140)</td>
-                  <td className="py-3 px-4 text-ink-secondary">Protects finished dry powder from repeated mechanical collisions</td>
-                </tr>
-                <tr className="hover:bg-bg-hover transition-colors">
-                  <td className="py-3 px-4 text-ink-primary font-bold whitespace-nowrap">Agitator Contact & Shear Stress</td>
-                  <td className="py-3 px-4 text-red-400">Continuous 12 - 24 h contact with orbiting screw</td>
-                  <td className="py-3 px-4 text-emerald-400 font-semibold">Dry fines exit bed; zero screw shear on dry fraction</td>
-                  <td className="py-3 px-4 text-ink-secondary">+2 to 4 log CFU survival for probiotics; intact microspheres</td>
-                </tr>
-                <tr className="hover:bg-bg-hover transition-colors">
-                  <td className="py-3 px-4 text-ink-primary font-bold whitespace-nowrap">Heat Transfer Area Utilization</td>
-                  <td className="py-3 px-4 text-red-400">Bed drops below 50% height; upper jacket starved</td>
-                  <td className="py-3 px-4 text-emerald-400 font-semibold">Dual-heated surfaces (cone jacket + collector jacket 70)</td>
-                  <td className="py-3 px-4 text-ink-secondary">Prevents sublimation rate collapse during final drying plateau</td>
-                </tr>
-                <tr className="hover:bg-bg-hover transition-colors">
-                  <td className="py-3 px-4 text-ink-primary font-bold whitespace-nowrap">Vapor Pathway & Dust Routing</td>
-                  <td className="py-3 px-4 text-ink-secondary">Internal dome filter bags or static trap</td>
-                  <td className="py-3 px-4 text-emerald-400 font-semibold">External heated filter candle (40/140) in vapor line</td>
-                  <td className="py-3 px-4 text-ink-secondary">Eliminates cake splash contamination and dome powder holdup</td>
-                </tr>
-                <tr className="hover:bg-bg-hover transition-colors">
-                  <td className="py-3 px-4 text-ink-primary font-bold whitespace-nowrap">Process Valve Control</td>
-                  <td className="py-3 px-4 text-ink-secondary">Single main vacuum isolation valve</td>
-                  <td className="py-3 px-4 text-emerald-400 font-semibold">Dual-mode bypass valve (30 / 214) for stage isolation</td>
-                  <td className="py-3 px-4 text-ink-secondary">Prevents liquid aerosol clogging of filter candle during freezing</td>
-                </tr>
-                <tr className="hover:bg-bg-hover transition-colors">
-                  <td className="py-3 px-4 text-ink-primary font-bold whitespace-nowrap">Final Batch Homogeneity</td>
-                  <td className="py-3 px-4 text-ink-secondary">Batch discharged directly from cone bottom</td>
-                  <td className="py-3 px-4 text-emerald-400 font-semibold">Optional reverse-pulse blowback returns fines to vessel</td>
-                  <td className="py-3 px-4 text-ink-secondary">Unified particle size distribution and 100% yield recovery</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <StickyTableScrollbar tableContainerRef={tableContainerRef} />
-        </div>
-      )}
+      {activeTab === "matrix" && <EngineeringMatrixTab />}
+    </div>
+  );
+}
+
+function EngineeringMatrixTab() {
+  const tableContainerRef = useRef<HTMLDivElement>(null);
+  const theadRef = useRef<HTMLTableSectionElement>(null);
+
+  // Freezes table header at top 56px below navbar
+  useStickyTableHeader(tableContainerRef, theadRef, { topOffset: 56 });
+
+  return (
+    <div className="relative p-5 sm:p-6">
+      <div
+        ref={tableContainerRef}
+        className="overflow-x-auto rounded-2xl border border-hairline shadow-md bg-bg-panel transition-all"
+        style={{
+          scrollbarWidth: "thin",
+          scrollbarColor: "var(--amber) transparent",
+        }}
+      >
+        <table className="w-full min-w-[1100px] border-collapse text-left font-mono text-xs">
+          <thead ref={theadRef}>
+            <tr className="border-b border-hairline bg-bg-surface">
+              <th className="px-4 py-3 min-w-[220px] text-xs font-mono font-bold uppercase tracking-wider text-ink-primary whitespace-nowrap bg-bg-surface">
+                Architectural Feature
+              </th>
+              <th className="px-4 py-3 min-w-[280px] text-xs font-mono font-bold uppercase tracking-wider text-ink-primary whitespace-nowrap bg-bg-surface">
+                Classic Active Freeze Dryer (EP 1 601 919 B1)
+              </th>
+              <th className="px-4 py-3 min-w-[320px] text-xs font-mono font-bold uppercase tracking-wider text-ink-primary whitespace-nowrap bg-bg-surface">
+                Dynamic Elutriation Collector (NL 2026893 B1)
+              </th>
+              <th className="px-4 py-3 min-w-[320px] text-xs font-mono font-bold uppercase tracking-wider text-ink-primary whitespace-nowrap bg-bg-surface">
+                Bioprocess & Clinical Impact
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-hairline">
+            <tr className="hover:bg-bg-hover transition-colors even:bg-bg-surface/30">
+              <td className="px-4 py-3 min-w-[220px] font-bold text-ink-primary align-top">
+                Product Residence Chamber
+              </td>
+              <td className="px-4 py-3 min-w-[280px] text-ink-secondary leading-relaxed align-top">
+                100% of product remains trapped inside the agitated cone throughout entire 12 - 24 h cycle
+              </td>
+              <td className="px-4 py-3 min-w-[320px] text-ink-secondary leading-relaxed align-top">
+                Continuous aerodynamic elutriation carries dry fines into external collection filter candle (40/140)
+              </td>
+              <td className="px-4 py-3 min-w-[320px] text-ink-secondary leading-relaxed align-top">
+                Eliminates prolonged mechanical exposure for dry finished product
+              </td>
+            </tr>
+            <tr className="hover:bg-bg-hover transition-colors even:bg-bg-surface/30">
+              <td className="px-4 py-3 min-w-[220px] font-bold text-ink-primary align-top">
+                Agitator Mechanical Shear
+              </td>
+              <td className="px-4 py-3 min-w-[280px] text-ink-secondary leading-relaxed align-top">
+                Constant contact with orbiting helical screw causes shear-heating and particle attrition
+              </td>
+              <td className="px-4 py-3 min-w-[320px] text-ink-secondary leading-relaxed align-top">
+                Fines gently collect on heated filter surface (70) completely shielded from rotating screw
+              </td>
+              <td className="px-4 py-3 min-w-[320px] text-ink-secondary leading-relaxed align-top">
+                Prevents cell wall rupture in live probiotics (+2 to 4 log CFU survival) and preserves PLGA microsphere surface morphology
+              </td>
+            </tr>
+            <tr className="hover:bg-bg-hover transition-colors even:bg-bg-surface/30">
+              <td className="px-4 py-3 min-w-[220px] font-bold text-ink-primary align-top">
+                Heat-Transfer Surface Area
+              </td>
+              <td className="px-4 py-3 min-w-[280px] text-ink-secondary leading-relaxed align-top">
+                Sublimation reduces cake volume; bed falls below 50% cone height leaving upper jacket starved
+              </td>
+              <td className="px-4 py-3 min-w-[320px] text-ink-secondary leading-relaxed align-top">
+                Dual-zone heating: jacketed cone (2) plus independent heated jacket (7) on filter candle housing
+              </td>
+              <td className="px-4 py-3 min-w-[320px] text-ink-secondary leading-relaxed align-top">
+                Sustains high sublimation and desorption rates throughout the final cycle plateau
+              </td>
+            </tr>
+            <tr className="hover:bg-bg-hover transition-colors even:bg-bg-surface/30">
+              <td className="px-4 py-3 min-w-[220px] font-bold text-ink-primary align-top">
+                Vapor Routing & Process Valves
+              </td>
+              <td className="px-4 py-3 min-w-[280px] text-ink-secondary leading-relaxed align-top">
+                Fixed internal dome filtration or unseparated vapor exhaust
+              </td>
+              <td className="px-4 py-3 min-w-[320px] text-ink-secondary leading-relaxed align-top">
+                Dual-mode bypass isolation valve (30 / 214) isolates filter candle during freezing, routes vapor during drying
+              </td>
+              <td className="px-4 py-3 min-w-[320px] text-ink-secondary leading-relaxed align-top">
+                Prevents cake splashing and moisture blinding during freezing; enables high-speed elutriation in sublimation
+              </td>
+            </tr>
+            <tr className="hover:bg-bg-hover transition-colors even:bg-bg-surface/30">
+              <td className="px-4 py-3 min-w-[220px] font-bold text-ink-primary align-top">
+                Batch Homogenization
+              </td>
+              <td className="px-4 py-3 min-w-[280px] text-ink-secondary leading-relaxed align-top">
+                Standard bottom discharge of agitated bed
+              </td>
+              <td className="px-4 py-3 min-w-[320px] text-ink-secondary leading-relaxed align-top">
+                Optional reverse-pulse N₂ blowback returns collected fines to conical vessel for unified batch blending
+              </td>
+              <td className="px-4 py-3 min-w-[320px] text-ink-secondary leading-relaxed align-top">
+                Guarantees batch-wide uniformity and particle size distribution consistency without manual handling
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <StickyTableScrollbar tableContainerRef={tableContainerRef} />
     </div>
   );
 }
