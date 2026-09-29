@@ -31,6 +31,7 @@ import { Isa88HierarchyChart } from "@/components/diagrams/Isa88HierarchyChart";
 import { EngineeringDiagramsGallery } from "@/components/diagrams/EngineeringDiagramsGallery";
 import { PatentParadigmComparisonChart } from "@/components/diagrams/PatentParadigmComparisonChart";
 import { StickyMarkdownTable } from "@/components/tables/StickyMarkdownTable";
+import { YouTubeEmbed } from "@/components/media/YouTubeEmbed";
 
 import {
   SublimationHeatDutyWorkbench,
@@ -1132,10 +1133,77 @@ export function ExhibitReader({
         }
       }
 
+      // YouTube Embed Directives: ::youtube[url]{title="..." ...} or <YouTubeEmbed url="..." ... />
+      const youtubeDirectiveMatch = line.trim().match(/^::youtube\[([^\]]+)\](?:\{([^}]+)\})?$/i);
+      const youtubeTagMatch = line.trim().match(/^<YouTubeEmbed\s+([^>]+)\/?>$/i);
+
+      if (youtubeDirectiveMatch) {
+        const [, url, attrsStr] = youtubeDirectiveMatch;
+        const attrs: Record<string, string> = {};
+        if (attrsStr) {
+          const attrPairs = attrsStr.match(/(\w+)=["']([^"']*)["']/g);
+          if (attrPairs) {
+            attrPairs.forEach((pair) => {
+              const [k, ...vParts] = pair.split("=");
+              attrs[k.trim()] = vParts.join("=").replace(/^["']|["']$/g, "");
+            });
+          }
+        }
+        elements.push(
+          <YouTubeEmbed
+            key={key++}
+            url={url}
+            title={attrs.title || "Hosokawa Technical Video"}
+            channel={attrs.channel}
+            duration={attrs.duration}
+            caption={attrs.caption}
+            chapterContext={attrs.context}
+          />
+        );
+        i++;
+        continue;
+      }
+
+      if (youtubeTagMatch) {
+        const [, attrsStr] = youtubeTagMatch;
+        const attrs: Record<string, string> = {};
+        const attrPairs = attrsStr.match(/(\w+)=["']([^"']*)["']/g);
+        if (attrPairs) {
+          attrPairs.forEach((pair) => {
+            const [k, ...vParts] = pair.split("=");
+            attrs[k.trim()] = vParts.join("=").replace(/^["']|["']$/g, "");
+          });
+        }
+        elements.push(
+          <YouTubeEmbed
+            key={key++}
+            url={attrs.url || ""}
+            title={attrs.title || "Hosokawa Technical Video"}
+            channel={attrs.channel}
+            duration={attrs.duration}
+            caption={attrs.caption}
+            chapterContext={attrs.context}
+          />
+        );
+        i++;
+        continue;
+      }
+
       // Embedded Image Block: ![alt](url)
       const imageBlockMatch = line.trim().match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
       if (imageBlockMatch) {
         const [, altText, srcUrl] = imageBlockMatch;
+        if (srcUrl.includes("youtube.com") || srcUrl.includes("youtu.be")) {
+          elements.push(
+            <YouTubeEmbed
+              key={key++}
+              url={srcUrl}
+              title={altText.replace(/^youtube:\s*/i, "") || "Hosokawa Technical Video"}
+            />
+          );
+          i++;
+          continue;
+        }
         elements.push(
           <figure
             key={key++}

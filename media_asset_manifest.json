@@ -1,0 +1,562 @@
+{
+  "photos": {
+    "02_3386_lightbox.jpg": "vrieco_nauta_jacket_heating_cooling_circulation.jpg",
+    "03_3390_lightbox.jpg": "vrieco_nauta_vacuum_dryer_condenser_draintank_schematic.jpg",
+    "4.-Vacuum-drying-installation1-4.webp": "industrial_nauta_vacuum_drying_installation_skid.webp",
+    "st914JahWlgv1fR8GD2d.png": "conical_screw_dryer_kinematics_shiv_shakkti_infographic.png"
+  },
+  "captures": [
+    {
+      "original": "Screenshot 2026-09-27 214500.png",
+      "filename": "nauta_conical_vessel_geometry_formulas.png",
+      "path": "/photos/webinar_captures/nauta_conical_vessel_geometry_formulas.png",
+      "title": "Conical Vessel Volume & Aspect Ratio Formulas (V = \u03c0r\u00b2h/3)",
+      "chapters": [
+        "05",
+        "24"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 214615.png",
+      "filename": "nauta_controlled_randomization_mixing_principle.png",
+      "path": "/photos/webinar_captures/nauta_controlled_randomization_mixing_principle.png",
+      "title": "Hosokawa Controlled Randomization Kinematic Profile",
+      "chapters": [
+        "04",
+        "05"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 214631.png",
+      "filename": "nauta_auger_orbit_arm_tip_speed_kinematics.png",
+      "path": "/photos/webinar_captures/nauta_auger_orbit_arm_tip_speed_kinematics.png",
+      "title": "Teamwork: Auger + Orbital Arm Combined Tip Speed (1.0-1.2 m/s)",
+      "chapters": [
+        "05",
+        "24"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 214655.png",
+      "filename": "nauta_auger_orbital_arm_work_ratio_10_to_1.png",
+      "path": "/photos/webinar_captures/nauta_auger_orbital_arm_work_ratio_10_to_1.png",
+      "title": "Auger vs Orbital Arm 10:1 Power Dissipation Ratio",
+      "chapters": [
+        "05",
+        "24"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 214758.png",
+      "filename": "nauta_filling_ratio_working_volume_table.png",
+      "path": "/photos/webinar_captures/nauta_filling_ratio_working_volume_table.png",
+      "title": "Nauta Mixer Capacity & Working Volume Range (10% to 100%)",
+      "chapters": [
+        "05",
+        "21"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 220159.png",
+      "filename": "nauta_conical_vessel_aspect_ratio_scaling.png",
+      "path": "/photos/webinar_captures/nauta_conical_vessel_aspect_ratio_scaling.png",
+      "title": "Conical Vessel Geometric Scaling and Capacity Law",
+      "chapters": [
+        "05",
+        "10"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 220253.png",
+      "filename": "nauta_top_cover_dished_head_nozzle_layout.png",
+      "path": "/photos/webinar_captures/nauta_top_cover_dished_head_nozzle_layout.png",
+      "title": "Mixer Top Cover Dished Head & Flanged Nozzle Positions",
+      "chapters": [
+        "05",
+        "24"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 220407.png",
+      "filename": "nauta_mfc44_drive_unit_gearbox_schematic.png",
+      "path": "/photos/webinar_captures/nauta_mfc44_drive_unit_gearbox_schematic.png",
+      "title": "Vrieco-Nauta MFC-44 & ON 300 Drive Gearbox Layout",
+      "chapters": [
+        "05",
+        "24"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 220548.png",
+      "filename": "nauta_orbital_arm_internal_gear_belt_mechanism.png",
+      "path": "/photos/webinar_captures/nauta_orbital_arm_internal_gear_belt_mechanism.png",
+      "title": "Orbital Arm Drive Transmission: Gear vs Belt Train",
+      "chapters": [
+        "05",
+        "24"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 220726.png",
+      "filename": "nauta_orbital_arm_sealing_mechanisms_lip_mechanical.png",
+      "path": "/photos/webinar_captures/nauta_orbital_arm_sealing_mechanisms_lip_mechanical.png",
+      "title": "Orbital Arm Dual Sealing Assemblies: Rotary Mechanical & Lip Seals",
+      "chapters": [
+        "05",
+        "07",
+        "24"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 221224.png",
+      "filename": "nauta_mixing_screw_auger_flight_design.png",
+      "path": "/photos/webinar_captures/nauta_mixing_screw_auger_flight_design.png",
+      "title": "Auger Flight Geometry, Core Shaft, & Screw Lead Angles",
+      "chapters": [
+        "05",
+        "24"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 221512.png",
+      "filename": "nauta_supported_vs_cantilevered_screw_pintle_bearing.png",
+      "path": "/photos/webinar_captures/nauta_supported_vs_cantilevered_screw_pintle_bearing.png",
+      "title": "Supported Screw Pintle Bearing vs Cantilevered Hygienic Design",
+      "chapters": [
+        "05",
+        "10"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 221651.png",
+      "filename": "nauta_bottom_discharge_valve_zero_dead_space.png",
+      "path": "/photos/webinar_captures/nauta_bottom_discharge_valve_zero_dead_space.png",
+      "title": "Zero Dead Space Pneumatic Bottom Discharge Valve Operation",
+      "chapters": [
+        "05",
+        "07",
+        "24"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 221751.png",
+      "filename": "nauta_preventative_maintenance_lubrication_points.png",
+      "path": "/photos/webinar_captures/nauta_preventative_maintenance_lubrication_points.png",
+      "title": "Preventative Maintenance Checklist: Lubricants, Bearings & Clearances",
+      "chapters": [
+        "22",
+        "24"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 221909.png",
+      "filename": "nauta_vacuum_dryer_conversion_design_changes.png",
+      "path": "/photos/webinar_captures/nauta_vacuum_dryer_conversion_design_changes.png",
+      "title": "Adapting Nauta Conical Mixer for Vacuum Drying Applications",
+      "chapters": [
+        "03",
+        "04"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 222025.png",
+      "filename": "nauta_vacuum_drying_system_pid_flowsheet.png",
+      "path": "/photos/webinar_captures/nauta_vacuum_drying_system_pid_flowsheet.png",
+      "title": "Complete Vacuum Drying Process Flowsheet (Dryer, Condenser, Pump, Receiver)",
+      "chapters": [
+        "06",
+        "08"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 223355.png",
+      "filename": "nauta_cip_manual_9_1_fixed_wip_cip_dual_nozzle_drawing.png",
+      "path": "/photos/webinar_captures/nauta_cip_manual_9_1_fixed_wip_cip_dual_nozzle_drawing.png",
+      "title": "Hosokawa Drawing 8390096_1: Fixed WIP/CIP Dual Spray Lance System",
+      "chapters": [
+        "07",
+        "24"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 223411.png",
+      "filename": "nauta_cip_manual_9_1_wip_cip_spray_pattern_coverage.png",
+      "path": "/photos/webinar_captures/nauta_cip_manual_9_1_wip_cip_spray_pattern_coverage.png",
+      "title": "Spray Pattern Trajectory & Shadow-Free Cone Coverage (8390096_1)",
+      "chapters": [
+        "07",
+        "24"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 223513.png",
+      "filename": "nauta_cip_manual_9_4_cover_cleaning_nozzle_arrangement.png",
+      "path": "/photos/webinar_captures/nauta_cip_manual_9_4_cover_cleaning_nozzle_arrangement.png",
+      "title": "Hosokawa Drawing 8390105_1: Top Cover Cleaning Nozzle Arrangement",
+      "chapters": [
+        "07",
+        "24"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 223547.png",
+      "filename": "nauta_cip_manual_9_4_cover_spray_head_elevation.png",
+      "path": "/photos/webinar_captures/nauta_cip_manual_9_4_cover_spray_head_elevation.png",
+      "title": "Top Cover Cleaning Spray Head Elevation & Shaft Clearance (8390105_1)",
+      "chapters": [
+        "07",
+        "24"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 223601.png",
+      "filename": "nauta_cip_manual_9_4_cover_lance_flange_connection.png",
+      "path": "/photos/webinar_captures/nauta_cip_manual_9_4_cover_lance_flange_connection.png",
+      "title": "Sanitary Tri-Clamp Mounting Detail for Cover Spray Lances (8390105_1)",
+      "chapters": [
+        "07",
+        "24"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 223713.png",
+      "filename": "nauta_cip_manual_9_5_vessel_wall_cleaning_nozzles.png",
+      "path": "/photos/webinar_captures/nauta_cip_manual_9_5_vessel_wall_cleaning_nozzles.png",
+      "title": "Hosokawa Drawing 8390106_1: Vessel Wall Wash Cleaning Nozzle Array",
+      "chapters": [
+        "07",
+        "24"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 223731.png",
+      "filename": "nauta_cip_manual_9_5_wall_spray_lance_trajectory.png",
+      "path": "/photos/webinar_captures/nauta_cip_manual_9_5_wall_spray_lance_trajectory.png",
+      "title": "Wall Spray Lance Impingement Trajectory & Fluid Impact Angle (8390106_1)",
+      "chapters": [
+        "07",
+        "24"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 223751.png",
+      "filename": "nauta_cip_manual_9_5_wall_nozzle_dimension_schedule.png",
+      "path": "/photos/webinar_captures/nauta_cip_manual_9_5_wall_nozzle_dimension_schedule.png",
+      "title": "Nozzle Elevation & Flow Rate Schedule for Conical Wall Washing (8390106_1)",
+      "chapters": [
+        "07",
+        "24"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 224950.png",
+      "filename": "ribocone_double_ribbon_agitator_geometry.png",
+      "path": "/photos/webinar_captures/ribocone_double_ribbon_agitator_geometry.png",
+      "title": "Ribocone Conical Double Helical Ribbon Agitator",
+      "chapters": [
+        "03",
+        "05"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 225001.png",
+      "filename": "ribocone_single_ribbon_agitator_geometry.png",
+      "path": "/photos/webinar_captures/ribocone_single_ribbon_agitator_geometry.png",
+      "title": "Ribocone Single Ribbon Agitator Configuration",
+      "chapters": [
+        "03",
+        "05"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 225022.png",
+      "filename": "ribocone_ribbon_conical_flow_animation_frame1.png",
+      "path": "/photos/webinar_captures/ribocone_ribbon_conical_flow_animation_frame1.png",
+      "title": "Ribocone Axial and Radial Conical Flow Field (Phase 1)",
+      "chapters": [
+        "03",
+        "05"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 225107.png",
+      "filename": "ribocone_ribbon_conical_flow_animation_frame2.png",
+      "path": "/photos/webinar_captures/ribocone_ribbon_conical_flow_animation_frame2.png",
+      "title": "Ribocone Upward Boundary Layer vs Downward Core Recirculation",
+      "chapters": [
+        "03",
+        "05"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 225220.png",
+      "filename": "ribocone_vacuum_dryer_system_flow_sheet.png",
+      "path": "/photos/webinar_captures/ribocone_vacuum_dryer_system_flow_sheet.png",
+      "title": "Ribocone Vacuum Dryer Flowsheet with Dust Filter & Condenser Loop",
+      "chapters": [
+        "03",
+        "06"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 225304.png",
+      "filename": "ribocone_condenser_vacuum_pump_circuit.png",
+      "path": "/photos/webinar_captures/ribocone_condenser_vacuum_pump_circuit.png",
+      "title": "Ribocone Condenser, Cooling Circuit & Vacuum Pump Hookup",
+      "chapters": [
+        "03",
+        "06"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 230539.png",
+      "filename": "nauta_low_shear_batch_mixer_orbital_drive_subassembly.png",
+      "path": "/photos/webinar_captures/nauta_low_shear_batch_mixer_orbital_drive_subassembly.png",
+      "title": "Nauta Mixer Drive Assembly & 1 RPM Orbit Arm Subassembly",
+      "chapters": [
+        "04",
+        "05"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 230559.png",
+      "filename": "ehedg_hygienic_design_criteria_nauta_mixer.png",
+      "path": "/photos/webinar_captures/ehedg_hygienic_design_criteria_nauta_mixer.png",
+      "title": "EHEDG Hygienic Engineering Principles Applied to Conical Screw Mixers",
+      "chapters": [
+        "07",
+        "14"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 230620.png",
+      "filename": "toftejorg_sanimidget_cip_spray_heads_6bar.png",
+      "path": "/photos/webinar_captures/toftejorg_sanimidget_cip_spray_heads_6bar.png",
+      "title": "Toftejorg Sanimidget Rotary Spray Heads & 6 Bar Washing Circuit",
+      "chapters": [
+        "07",
+        "14"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 231057.png",
+      "filename": "batch_mixer_technology_selection_shear_matrix.png",
+      "path": "/photos/webinar_captures/batch_mixer_technology_selection_shear_matrix.png",
+      "title": "Batch Mixing Technology Selection Matrix (Impact vs High Shear vs Nauta Conical)",
+      "chapters": [
+        "03",
+        "04"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 231915.png",
+      "filename": "water_phase_diagram_triple_point_sublimation.png",
+      "path": "/photos/webinar_captures/water_phase_diagram_triple_point_sublimation.png",
+      "title": "Water Phase Diagram: Sublimation, Vaporization, & Triple Point (0.006 atm, 0.01\u00b0C)",
+      "chapters": [
+        "01",
+        "02"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 231932.png",
+      "filename": "thermodynamics_phase_diagram_temperature_scales.png",
+      "path": "/photos/webinar_captures/thermodynamics_phase_diagram_temperature_scales.png",
+      "title": "Phase Diagram Mapping across Absolute Temperature Scales (0 K - 373 K)",
+      "chapters": [
+        "02"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 232110.png",
+      "filename": "thermodynamics_pressure_temperature_equilibrium_states.png",
+      "path": "/photos/webinar_captures/thermodynamics_pressure_temperature_equilibrium_states.png",
+      "title": "Thermodynamic State Boundary Trajectories in Pressure-Temperature Space",
+      "chapters": [
+        "02"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 232233.png",
+      "filename": "vacuum_evaporation_liquid_to_vapor_transition.png",
+      "path": "/photos/webinar_captures/vacuum_evaporation_liquid_to_vapor_transition.png",
+      "title": "Liquid-to-Vapor Phase Transition Under Vacuum Conditions",
+      "chapters": [
+        "02",
+        "21"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 232329.png",
+      "filename": "freeze_drying_sublimation_pathway_solid_to_vapor.png",
+      "path": "/photos/webinar_captures/freeze_drying_sublimation_pathway_solid_to_vapor.png",
+      "title": "AFD Sublimation Pathway: Solid Ice Directly to Water Vapor Below Triple Point",
+      "chapters": [
+        "01",
+        "02"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 232422.png",
+      "filename": "sensible_vs_latent_heat_addition_profile.png",
+      "path": "/photos/webinar_captures/sensible_vs_latent_heat_addition_profile.png",
+      "title": "Sensible Temperature Rise vs Latent Heat Absorption Profiles",
+      "chapters": [
+        "02"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 232453.png",
+      "filename": "water_specific_heat_capacity_vs_temperature.png",
+      "path": "/photos/webinar_captures/water_specific_heat_capacity_vs_temperature.png",
+      "title": "Specific Heat Capacity of Water from 20\u00b0C to 100\u00b0C",
+      "chapters": [
+        "02",
+        "09"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 232546.png",
+      "filename": "latent_heat_phase_change_energy_balance.png",
+      "path": "/photos/webinar_captures/latent_heat_phase_change_energy_balance.png",
+      "title": "Latent Heat of Vaporization & Enthalpy of Phase Transition (\u0394Hvap)",
+      "chapters": [
+        "02",
+        "09"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 232644.png",
+      "filename": "solvent_latent_heat_comparison_water_vs_ethanol.png",
+      "path": "/photos/webinar_captures/solvent_latent_heat_comparison_water_vs_ethanol.png",
+      "title": "Latent Heat Comparison: Water (2260 kJ/kg) vs Ethanol (846 kJ/kg)",
+      "chapters": [
+        "02",
+        "09"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 232849.png",
+      "filename": "moisture_mechanisms_surface_vs_bound_entrapped.png",
+      "path": "/photos/webinar_captures/moisture_mechanisms_surface_vs_bound_entrapped.png",
+      "title": "Moisture Binding Mechanisms: Surface Unbound vs Capillary Bound & Entrapped",
+      "chapters": [
+        "02",
+        "21"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 232953.png",
+      "filename": "drying_rate_curve_constant_vs_falling_rate_regimes.png",
+      "path": "/photos/webinar_captures/drying_rate_curve_constant_vs_falling_rate_regimes.png",
+      "title": "Drying Kinetics: Constant Rate Drying (Rc) vs Falling Rate Regimes",
+      "chapters": [
+        "02",
+        "21"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 233044.png",
+      "filename": "nauta_batch_drying_curve_temperature_condensate_vs_time.png",
+      "path": "/photos/webinar_captures/nauta_batch_drying_curve_temperature_condensate_vs_time.png",
+      "title": "Measured Batch Drying Curve: Jacket In/Out, Product Core Temp, & Condensate Rate",
+      "chapters": [
+        "02",
+        "08",
+        "21"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 233139.png",
+      "filename": "direct_convective_vs_indirect_conductive_drying.png",
+      "path": "/photos/webinar_captures/direct_convective_vs_indirect_conductive_drying.png",
+      "title": "Direct Convective Drying vs Indirect Conductive Agitated Vacuum Drying",
+      "chapters": [
+        "01",
+        "02",
+        "03"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 233424.png",
+      "filename": "vacuum_drying_benefits_low_temperature_boiling.png",
+      "path": "/photos/webinar_captures/vacuum_drying_benefits_low_temperature_boiling.png",
+      "title": "Process Advantages of Vacuum Drying: Boiling Point Depression & Thermal Preservation",
+      "chapters": [
+        "01",
+        "02"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 233451.png",
+      "filename": "solvent_vapor_pressure_vs_boiling_temperature_curves.png",
+      "path": "/photos/webinar_captures/solvent_vapor_pressure_vs_boiling_temperature_curves.png",
+      "title": "Antoine Vapor Pressure vs Saturation Boiling Curves for Solvents",
+      "chapters": [
+        "02",
+        "06"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 233634.png",
+      "filename": "flash_drying_convective_pneumatic_comparison.png",
+      "path": "/photos/webinar_captures/flash_drying_convective_pneumatic_comparison.png",
+      "title": "Continuous Flash Drying Process Mechanics (Pneumatic Hot Air Conveyance)",
+      "chapters": [
+        "01",
+        "03"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-27 235020.png",
+      "filename": "drymeister_flash_drying_milling_system_pid.png",
+      "path": "/photos/webinar_captures/drymeister_flash_drying_milling_system_pid.png",
+      "title": "Hosokawa Drymeister (DMR) Flash Dryer & Mill System P&ID Flowsheet",
+      "chapters": [
+        "03",
+        "10"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-28 000049.png",
+      "filename": "drying_technologies_comprehensive_comparison_matrix.png",
+      "path": "/photos/webinar_captures/drying_technologies_comprehensive_comparison_matrix.png",
+      "title": "Comprehensive Industrial Drying Technology Comparison Matrix",
+      "chapters": [
+        "01",
+        "03"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-28 000411.png",
+      "filename": "powder_discharge_flow_regimes_funnel_vs_mass_flow.png",
+      "path": "/photos/webinar_captures/powder_discharge_flow_regimes_funnel_vs_mass_flow.png",
+      "title": "Bulk Powder Discharge Mechanics: Funnel Flow Silo vs Mass Flow Conical Vessel",
+      "chapters": [
+        "05",
+        "21"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-28 001416.png",
+      "filename": "hosokawa_experttalk_mixing_shear_intensity_spectrum.png",
+      "path": "/photos/webinar_captures/hosokawa_experttalk_mixing_shear_intensity_spectrum.png",
+      "title": "Hosokawa Mixing Spectrum: Nauta (Low Shear) vs CPM (Medium) vs Vitomix",
+      "chapters": [
+        "04",
+        "14"
+      ]
+    },
+    {
+      "original": "Screenshot 2026-09-28 001454.png",
+      "filename": "hosokawa_experttalk_batch_vacuum_dryers_high_containment.png",
+      "path": "/photos/webinar_captures/hosokawa_experttalk_batch_vacuum_dryers_high_containment.png",
+      "title": "Batch Vacuum Dryers (Nauta & CPD) for High-Containment & Toxic API Processing",
+      "chapters": [
+        "03",
+        "10",
+        "14"
+      ]
+    }
+  ]
+}
