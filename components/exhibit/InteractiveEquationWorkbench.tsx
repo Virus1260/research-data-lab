@@ -2714,7 +2714,6 @@ export function UniversalInteractiveEquationCard({
 }: UniversalEquationCardProps) {
   const [copied, setCopied] = useState(false);
   const [showInspector, setShowInspector] = useState(false);
-  const [paramScale, setParamScale] = useState(1.0);
 
   const copyLatex = () => {
     navigator.clipboard.writeText(latexFormula);
@@ -2723,29 +2722,20 @@ export function UniversalInteractiveEquationCard({
   };
 
   return (
-    <div className="my-6 rounded-2xl p-4 sm:p-5 border-2 border-border-strong bg-bg-panel shadow-md overflow-hidden transition-all duration-300 hover:border-amber-500/60 hover:shadow-lg">
-      <div className="flex items-center justify-between pb-3 mb-3 border-b border-hairline">
+    <div className="my-5 rounded-2xl p-4 sm:p-5 border border-hairline bg-bg-panel shadow-sm overflow-hidden transition-all duration-200 hover:border-amber-500/40">
+      <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-hairline">
         <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-amber-600 dark:bg-amber-400 shadow-sm animate-pulse" />
-          <span className="text-[11px] font-mono uppercase tracking-widest text-amber-700 dark:text-amber-400 font-bold flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Interactive Governing Physics Law</span>
+          <span className="w-2 h-2 rounded-full bg-amber-500/80" />
+          <span className="text-[11px] font-mono uppercase tracking-wider text-ink-muted font-semibold flex items-center gap-1.5">
+            <Calculator className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+            <span>Governing Physical Law</span>
           </span>
         </div>
 
         <div className="flex items-center gap-1.5">
           <button
-            onClick={() => setParamScale(1.0)}
-            className="px-2 py-1 rounded-lg border border-hairline text-ink-muted hover:text-ink-primary hover:bg-bg-surface transition cursor-pointer text-xs font-mono flex items-center gap-1"
-            title="Reset Scale"
-          >
-            <RotateCcw className="w-3 h-3" />
-            <span className="hidden sm:inline">1.0x</span>
-          </button>
-
-          <button
             onClick={() => setShowInspector(!showInspector)}
-            className="px-2.5 py-1 rounded-lg border border-hairline text-ink-muted hover:text-amber-600 dark:hover:text-amber-400 hover:bg-bg-surface transition cursor-pointer text-xs font-mono flex items-center gap-1"
+            className="px-2.5 py-1 rounded-lg border border-hairline text-ink-muted hover:text-ink-primary hover:bg-bg-surface transition cursor-pointer text-xs font-mono flex items-center gap-1"
           >
             <Info className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Inspect</span>
@@ -2763,33 +2753,8 @@ export function UniversalInteractiveEquationCard({
       </div>
 
       {/* Main KaTeX Rendered Formula */}
-      <div className="py-4 text-center overflow-x-auto text-ink-primary font-medium">
+      <div className="py-3 text-center overflow-x-auto text-ink-primary font-medium">
         <KatexEquation expression={latexFormula} displayMode />
-      </div>
-
-      {/* Dynamic Scale Modulation Slider */}
-      <div className="pt-2 pb-1.5 px-3 rounded-xl bg-bg-surface border border-hairline flex flex-wrap items-center justify-between gap-3 text-xs">
-        <div className="flex items-center gap-2">
-          <Sliders className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-          <span className="text-ink-secondary font-medium">Parametric Load Multiplier:</span>
-          <span className="font-mono font-bold text-amber-700 dark:text-amber-400">{paramScale.toFixed(2)}x</span>
-        </div>
-        <div className="flex items-center gap-2 flex-1 max-w-xs">
-          <span className="text-[10px] font-mono text-ink-muted">0.25x</span>
-          <input
-            type="range"
-            min="0.25"
-            max="4.0"
-            step="0.05"
-            value={paramScale}
-            onChange={(e) => setParamScale(Number(e.target.value))}
-            className="w-full accent-amber-500 cursor-pointer"
-          />
-          <span className="text-[10px] font-mono text-ink-muted">4.0x</span>
-        </div>
-        <div className="text-[11px] font-mono text-ink-muted">
-          Scaled Output: <strong className="text-ink-primary">{(100 * paramScale).toFixed(0)}% Nominal</strong>
-        </div>
       </div>
 
       {/* Expandable Parameter & Source Inspector */}

@@ -355,5 +355,25 @@ const TECHNICAL_VIDEOS = [
     chapter: "Chapter 18: References & Master Catalog",
     chapterSlug: "18-references-and-source-list",
     caption: "Closed-loop inert nitrogen vacuum drying of toxic and explosive battery slurries with full containment."
+  },
+  {
+    id: "6MbMTYzVbCY",
+    url: "https://www.youtube.com/watch?v=6MbMTYzVbCY",
+    title: "Conical Paddle Dryer (CPD)",
+    channel: "Hosokawa Micron B.V.",
+    duration: "1:47",
+    chapter: "Chapter 03: AFD vs Generic Lyophilizers",
+    chapterSlug: "03-hosokawa-afd-vs-generic-lyophilizers",
+    caption: "Heavy-duty central paddle agitation for viscous pasty slurries, dense filter cakes, and toxic containment vacuum drying."
+  },
+  {
+    id: "ZYifIAtqusM",
+    url: "https://www.youtube.com/watch?v=ZYifIAtqusM",
+    title: "Silo Design: Mass Flow vs Funnel Flow - DEM Case Study",
+    channel: "EngineerDo",
+    duration: "1:15",
+    chapter: "Chapter 05: Vessel, Chamber, Agitator & Materials",
+    chapterSlug: "05-vessel-chamber-agitator-and-materials",
+    caption: "Discrete Element Method (DEM) simulation comparing funnel flow vs steep conical mass flow and rat-hole prevention."
   }
 ];

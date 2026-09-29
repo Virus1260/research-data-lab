@@ -79,5 +79,23 @@
     "channel": "Foeth",
     "duration": "27",
     "uploadDate": "20220915"
+  },
+  "Silo Design Mass Flow vs Funnel Flow - DEM Case Study.mp4": {
+    "id": "ZYifIAtqusM",
+    "url": "https://www.youtube.com/watch?v=ZYifIAtqusM",
+    "embedUrl": "https://www.youtube-nocookie.com/embed/ZYifIAtqusM",
+    "title": "Silo Design: Mass Flow vs Funnel Flow - DEM Case Study",
+    "channel": "EngineerDo",
+    "duration": "75",
+    "uploadDate": "20210215"
+  },
+  "Conical Paddle Dryer (CPD).mp4": {
+    "id": "6MbMTYzVbCY",
+    "url": "https://www.youtube.com/watch?v=6MbMTYzVbCY",
+    "embedUrl": "https://www.youtube-nocookie.com/embed/6MbMTYzVbCY",
+    "title": "Conical Paddle Dryer (CPD)",
+    "channel": "Hosokawa Micron B.V.",
+    "duration": "107",
+    "uploadDate": "20180410"
   }
 }

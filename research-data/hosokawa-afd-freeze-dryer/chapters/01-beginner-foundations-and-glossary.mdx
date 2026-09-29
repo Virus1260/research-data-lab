@@ -36,22 +36,6 @@ For pure water:
 
 If the chamber pressure rises above $6.11\text{ mbar}$, ice melts into liquid water ("melt-back"), causing catastrophic cake collapse, structural shrinkage, and chemical degradation. In practice, the Hosokawa AFD operates far below this threshold, maintaining an operational sublimation vacuum window of **$0.05\text{ to }1.5\text{ mbar}$** ($5\text{ to }150\text{ Pa}$).
 
-```
-   Pressure (mbar)
-      ^
-      |              Liquid
-  1013|                /
-      |               /
-      |   Solid      /
-  6.11|-------------* Triple Point (0.01 °C, 6.11 mbar)
-      |   (Ice)    / \
-      |           /   \  Vapor
-   1.0|   AFD    /     \
-   0.1|--Window-/       \
-      +-------------------------> Temperature (°C)
-                 -40    0  +20
-```
-
 ---
 
 ### Law 2: The Two Enthalpy Regimes — Sensible vs. Latent Heat
@@ -96,19 +80,6 @@ Material moisture exists in three distinct thermodynamic states, each exhibiting
 
 
 As documented in drying kinetics theory, the drying cycle displays two operational rate regimes:
-
-```
-  Drying Rate (kg/h·m²)
-     ^
-     |     Constant Rate Period       Falling Rate Period
-  Rc |------------------------\
-     |   (Surface Ice Sublimes)| \
-     |                         |  \  (Porous Layer Resistance Rp Dominates)
-     |                         |   \
-     |                         |    \
-     0+------------------------+-----+---------------------> Moisture Content (X)
-                               Xe    Xc
-```
 
 1. **Constant Rate Period ($X > X_c$):** The granule surface remains saturated with ice. The rate of sublimation ($R_c$) is governed strictly by heat flux from the jacket:
    $$R_c = \frac{U \cdot A \cdot (T_{\text{wall}} - T_{\text{bed}})}{\Delta H_{\text{sub}}}$$
