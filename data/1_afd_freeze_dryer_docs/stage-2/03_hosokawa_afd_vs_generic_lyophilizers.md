@@ -64,12 +64,12 @@ This is very likely the specific patent referenced in Hosokawa's own news releas
 
 Putting the two patents together, a faithful (non-Hosokawa-branded) equivalent machine is:
 
-1. A **jacketed, downward-conical vessel** (a Nauta-style conical mixer body), double-jacketed for both heating and cooling of the wall.
-2. An internal **orbiting-screw or ribbon/paddle agitator**, running with a small (single-digit mm) wall clearance, driven from the top through either a magnetically-coupled seal-less drive or a single rotary shaft seal, with bearings kept outside the cold zone.
-3. A **bottom discharge valve** (ball-segment type) for full product dump.
+1. A **jacketed, downward-conical vessel** (a Nauta-style conical mixer body), with a spiral-baffled or half-pipe jacket for both heating and cooling of the wall via a single TCU fluid (Syltherm XLT).
+2. An internal **cantilevered orbital screw agitator** (Hosokawa Nauta drive, US 6,095,677 A expired in 2018), running with 3–5 mm wall clearance. Eliminates bottom bearings/seals, minimizes shear on dry powder, and leaves the cone apex 100% free for discharge. (Ribbon/paddle agitators are technically in early claim language but fail in freeze drying due to severe powder shear, caking, and CIP shadowing).
+3. A **bottom discharge valve** (ball-segment type, e.g. ISEM DN150) for full product dump.
 4. A **vacuum line off the top of the vessel** leading to an external **material collector / filter housing**, itself equipped with a filter-blowback purge system and a heated collection hopper below it.
 5. A **valve + bypass loop** between vessel and collector, to let ice particles recirculate early in the cycle and only route dust to the filter once real drying/powder release has started.
-6. A **vacuum pump train** downstream of the collector (this package's file 06 covers pump selection).
+6. A **vacuum pump train** downstream of the collector and ice condenser (file 06 covers pump selection).
 7. Optional blow nozzles in the lid for end-of-cycle cleanup.
 8. A **TCU** circulating heat-transfer fluid through the vessel jacket for both the cooling (freezing) and heating (sublimation-driving) phases.
 9. **CIP spray devices** inside the vessel and lid (rotational spray nozzles, per the earlier patent's description) and, optionally, **SIP** (steam) capability for full sterilization.
@@ -106,9 +106,9 @@ But it should **not** be mistaken for AFD-specific engineering. Where this packa
 |---|---|---|
 | Vessel shape | Single downward-conical vessel | Rectangular chamber with flat shelf stack |
 | Product state during process | Continuously/intermittently agitated, becomes free powder | Static, forms a solid "cake" per vial |
-| Freezing method | In-vessel, agitated; jacket cooling and/or direct LN₂/dry-ice injection | On-shelf, static; shelf heat-transfer fluid cooling |
+| Freezing method | In-vessel, agitated; indirect jacket cooling (Syltherm XLT) | On-shelf, static; shelf heat-transfer fluid cooling |
 | Heat transfer for drying | Through jacket wall to continuously refreshed agitated bed | Through shelf to static vial bottoms |
 | Vapor path | Through an external material collector/filter (with recirculation valve) to vacuum pump | Through duct to a separate ice condenser, then vacuum pump |
 | End product | Loose, free-flowing powder, ready to discharge | Solid cake in each vial; needs no milling but is vial-bound |
 | Typical named "condenser" | Replaced/supplemented by dust filter + material collector (per 2020 patent); earlier patent still allows a classic condenser | Refrigerated ice-condenser coil bank |
-| Best public source | Hosokawa's own patents NL1022668C2, NL2026893B1 | Decades of pharma freeze-drying literature, textbooks, vendor manuals |
+| Best public source | Hosokawa's own patents US6095677A, NL1022668C2, NL2026893B1 | Decades of pharma freeze-drying literature, textbooks, vendor manuals |

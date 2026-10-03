@@ -34,6 +34,7 @@
 | 22 | `22_interlocks_cause_effect_matrix_and_io_list.md` | The full interlock Cause & Effect matrix (IEC 62881 format) and I/O list, explained |
 | 23 | `23_engineering_resolution_freezing_methods_and_thermal_duty.md` | Direct (LN₂/dry ice) vs. indirect (jacket) freezing — what's real, what's risky, and why; TCU/HTF architecture in depth; extended thermal-duty sizing |
 | 24 | `24_cad_solidworks_equipment_nozzle_schedule.md` (+ `pid_controls_data/cad_equipment_nozzle_schedule.json`) | Equipment/nozzle/valve schedule to seed your SolidWorks 3D model |
+| 25 | `25_process_flow_diagrams_bfd_pfd_and_detailed_pid.md` | **Process Engineering Master Package.** Full BFD, PFD with rigorous Mass & Energy Stream Balances, complete line/instrument/valve schedules, SIL cause-and-effect matrix, and definitive mixing system evaluation |
 
 `diagrams/` contains original schematic diagrams drawn from scratch for this package (phase diagram, machine cross-section, block diagram, refrigeration cycle, process-cycle time chart, the full P&ID as both a labeled PNG and a reusable dark-theme SVG, the control-system architecture diagram, and the ISA-88 batch-structure diagram) — none are reproductions of copyrighted manufacturer artwork.
 

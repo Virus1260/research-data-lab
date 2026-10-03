@@ -10,11 +10,15 @@ All sources below were accessed/verified in September 2026. Where a fact in this
 4. Hosokawa Micron B.V., "CIP/SIP Cleaning" technology page — https://hosokawa-micron-bv.com/technologies/cip-sip-cleaning
 5. Hosokawa Micron B.V., "New Patent for Active Freeze Dryer" (news article) — https://hosokawa-micron-bv.com/company/news-events/news/new-patent-for-active-freeze-dryer
 
-## B. Patents (the core AFD engineering-detail sources — file 03)
+## B. Patents (the core AFD engineering-detail sources — files 03, 25)
 
-6. **NL1022668C2 / EP1601919B1**, "Stirred freeze drying," Hosokawa Micron B.V. (inventor: Peter Gerardus Van Der Wel), filed 2003 — https://patents.google.com/patent/NL1022668C2/en
-7. **NL2026893B1 / WO2022103268A1**, "Freeze dryer and method for freeze drying," Hosokawa Micron B.V., filed 2020, granted 2022 — https://patents.google.com/patent/NL2026893B1/en
-8. WO2012018320A1 (IMA Life), "Bulk freeze drying using spray freezing and stirred drying" — competitor patent citing "the stirred freeze dryer marketed by Hosokawa Micron Powder Systems" as prior art, useful corroborating context — https://patents.google.com/patent/WO2012018320A1/en
+6. **NL1022668C2 / EP1601919B1**, "Stirred freeze drying," Hosokawa Micron B.V. (inventor: Peter Gerardus Van Der Wel), filed 2003, expired 2023/2024 — https://patents.google.com/patent/NL1022668C2/en
+7. **NL2026893B1 / WO2022103268A1**, "Freeze dryer and method for freeze drying," Hosokawa Micron B.V. (inventors: Peter Van Der Wel, Olukayode Imole), filed 2020/2021, active until 2040/2041 — https://patents.google.com/patent/NL2026893B1/en
+   - **EP4244560A1** (European Regional Phase) — https://patents.google.com/patent/EP4244560A1/en
+   - **US20230417486A1** (US National Phase) — https://patents.google.com/patent/US20230417486A1/en
+8. **US6095677A**, "Device for mixing materials," Hosokawa Micron B.V. (inventors: Jan Hendrik Jansen, Gerrit Hendrik Slot), filed 1998, granted 2000, expired 2018 (cantilevered planetary orbital arm drive, zero bottom bearing) — https://patents.google.com/patent/US6095677A/en
+9. **EP0111067B1 / US4588301A** & **EP0517178B1 / US5246290A**, Alfred Bolz (Bolz-Summix), conical screw mixer & conical vacuum dryer swivel arm drive mechanisms (expired) — https://patents.google.com/patent/EP0111067B1/en
+10. WO2012018320A1 (IMA Life), "Bulk freeze drying using spray freezing and stirred drying" — competitor patent citing Hosokawa stirred freeze dryer as prior art — https://patents.google.com/patent/WO2012018320A1/en
 
 ## C. Freeze-drying physics & process science
 
