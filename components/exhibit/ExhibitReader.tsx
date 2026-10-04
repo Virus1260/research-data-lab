@@ -1569,9 +1569,9 @@ export function ExhibitReader({
 
         {tocOpen && (
           <nav className="space-y-1">
-            {chapter.headings.map((h) => (
+            {chapter.headings.map((h, idx) => (
               <a
-                key={h.id}
+                key={`${h.id}-${idx}`}
                 href={`#${h.id}`}
                 className={`block text-xs leading-snug py-1.5 px-2 rounded-lg transition-all ${
                   activeSection === h.id
@@ -1649,9 +1649,9 @@ export function ExhibitReader({
             </button>
             {tocOpen && (
               <nav className="mt-2 p-3 rounded-xl bg-bg-panel border border-hairline space-y-1 animate-fade-in shadow-lg max-h-72 overflow-y-auto">
-                {chapter.headings.map((h) => (
+                {chapter.headings.map((h, idx) => (
                   <a
-                    key={h.id}
+                    key={`${h.id}-${idx}`}
                     href={`#${h.id}`}
                     onClick={() => setTocOpen(false)}
                     className={`block text-xs leading-snug py-2 px-3 rounded-lg transition-all ${

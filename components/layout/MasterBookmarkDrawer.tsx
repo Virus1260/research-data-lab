@@ -353,13 +353,13 @@ export function MasterBookmarkDrawer({
                         <Compass className="w-3 h-3 text-amber" />
                         <span>Key Subtopics & Deep Anchors</span>
                       </div>
-                      {chapter.headings.map((heading) => {
+                      {chapter.headings.map((heading, idx) => {
                         const headingId = `${chapter.slug}#${heading.id}`;
                         const isSubBookmarked = savedBookmarks.includes(headingId);
 
                         return (
                           <div
-                            key={heading.id}
+                            key={`${heading.id}-${idx}`}
                             className={`flex items-center justify-between gap-2 py-1.5 px-2.5 rounded-lg transition group text-xs ${
                               isCurrentChapter
                                 ? "hover:bg-amber-subtle/40 bg-bg-surface/50"

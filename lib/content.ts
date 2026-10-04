@@ -60,14 +60,21 @@ function parseMDXContent(rawContent: string): { frontmatter: Record<string, any>
   // Extract headings
   const headings: { level: number; text: string; id: string }[] = [];
   const headingRegex = /^(#{1,3})\s+(.+)$/gm;
+  const idCounts = new Map<string, number>();
   let match;
   while ((match = headingRegex.exec(body)) !== null) {
     const level = match[1].length;
     const text = match[2].trim();
-    const id = text
+    let baseId = text
       .toLowerCase()
       .replace(/[^\w\s-]/g, "")
       .replace(/\s+/g, "-");
+    if (!baseId) baseId = `heading-${headings.length + 1}`;
+
+    const count = idCounts.get(baseId) || 0;
+    const id = count === 0 ? baseId : `${baseId}-${count}`;
+    idCounts.set(baseId, count + 1);
+
     headings.push({ level, text, id });
   }
 

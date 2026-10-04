@@ -98,6 +98,7 @@ export const project: ProjectConfig = {
         "24-cad-solidworks-equipment-nozzle-schedule",
         "25-vessel-sizing-suite-tool-spec-and-prompt",
         "26-hosokawa-afd-patent-nl2026893b1-translation-and-engineering-analysis",
+        "27-canonical-bfd-and-unbundled-pfd-process-flowsheets",
       ],
     },
   ],
@@ -117,11 +118,14 @@ export const project: ProjectConfig = {
       "VacuumPumpdownSimulator",
     ],
     "25-vessel-sizing-suite-tool-spec-and-prompt": ["VesselSizingSuite"],
+    "27-canonical-bfd-and-unbundled-pfd-process-flowsheets": [
+      "VacuumVsFreezeDryerStudio"
+    ],
   },
   summary:
-    "A comprehensive 27-chapter engineering research dossier on Hosokawa's Active Freeze Dryer technology, reconstructed from patents, public literature, control architecture, heat/mass transfer physics, Cause & Effect interlocks, parametric vessel sizing suite, CAD equipment schedules, and Patent NL 2026893 B1 analysis.",
+    "A comprehensive 28-chapter engineering research dossier on Hosokawa's Active Freeze Dryer technology, reconstructed from patents, public literature, control architecture, heat/mass transfer physics, Cause & Effect interlocks, parametric vessel sizing suite, CAD equipment schedules, and Patent NL 2026893 B1 analysis.",
   stats: {
-    chaptersCount: 27,
+    chaptersCount: 28,
     subsystemsCount: 17,
     bomItemsCount: 75,
     referencesCount: 48,

@@ -11,6 +11,8 @@ import { VesselCrossSection3D } from "./VesselCrossSection3D";
 import { AfdComparisonFlip } from "./AfdComparisonFlip";
 import { RefrigerationCascadeDiagram } from "./RefrigerationCascadeDiagram";
 import { VesselSizingSuite } from "./VesselSizingSuite";
+import { CanonicalProcessFlowStudio } from "./CanonicalProcessFlowStudio";
+import { VacuumVsFreezeDryerStudio } from "./VacuumVsFreezeDryerStudio";
 import { LawEquationsPlayground } from "@/components/exhibit/LawEquationsPlayground";
 
 interface RegistryProps {
@@ -19,6 +21,10 @@ interface RegistryProps {
 
 export function SimulatorComponent({ name }: RegistryProps) {
   switch (name) {
+    case "VacuumVsFreezeDryerStudio":
+      return <VacuumVsFreezeDryerStudio />;
+    case "CanonicalProcessFlowStudio":
+      return <CanonicalProcessFlowStudio />;
     case "LawEquationsPlayground":
       return <LawEquationsPlayground />;
     case "PhaseDiagramExplorer":

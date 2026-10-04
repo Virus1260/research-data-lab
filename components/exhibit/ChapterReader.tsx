@@ -253,11 +253,11 @@ export function ChapterReader({
             </div>
 
             <nav className="space-y-1 text-xs">
-              {chapter.headings.map((h) => {
+              {chapter.headings.map((h, idx) => {
                 const isActive = activeHeadingId === h.id;
                 return (
                   <a
-                    key={h.id}
+                    key={`${h.id}-${idx}`}
                     href={`#${h.id}`}
                     className={`block py-1 px-2 rounded transition truncate ${
                       isActive
