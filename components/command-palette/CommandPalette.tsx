@@ -117,13 +117,6 @@ export function CommandPalette({ projectSlug = "hosokawa-afd-freeze-dryer" }: { 
 
     // Key Chapters
     {
-      id: "ch-01",
-      category: "Chapters",
-      title: "Ch 01: Beginner Foundations & Glossary",
-      subtitle: "Foundations Act • Sublimation vocabulary",
-      href: `/${projectSlug}/01-beginner-foundations-and-glossary`,
-    },
-    {
       id: "ch-02",
       category: "Chapters",
       title: "Ch 02: Physics & Thermodynamics",
@@ -159,6 +152,20 @@ export function CommandPalette({ projectSlug = "hosokawa-afd-freeze-dryer" }: { 
       href: `/${projectSlug}/06-refrigeration-vacuum-and-condenser-systems`,
     },
     {
+      id: "ch-07",
+      category: "Chapters",
+      title: "Ch 07: CIP, SIP, Sealing & Utilities",
+      subtitle: "Subsystems Act • Rotary spray & aseptic seals",
+      href: `/${projectSlug}/07-cip-sip-sealing-insulation-utilities`,
+    },
+    {
+      id: "ch-10",
+      category: "Chapters",
+      title: "Ch 10: Materials & Workshop Fabrication",
+      subtitle: "Build It Act • Machining tolerances & weld specs",
+      href: `/${projectSlug}/10-materials-fabrication-tolerances-workshop-vs-purchased`,
+    },
+    {
       id: "ch-11",
       category: "Chapters",
       title: "Ch 11: Design Calculations & Sizing Methodology",
@@ -173,18 +180,11 @@ export function CommandPalette({ projectSlug = "hosokawa-afd-freeze-dryer" }: { 
       href: `/${projectSlug}/12-bill-of-materials-and-system-breakdown`,
     },
     {
-      id: "ch-16",
+      id: "ch-21",
       category: "Chapters",
-      title: "Ch 16: Build Roadmap: Prototype to Pharma-Capable",
-      subtitle: "Build It Act • Staged engineering milestones",
-      href: `/${projectSlug}/16-build-roadmap-prototype-to-pharma-capable`,
-    },
-    {
-      id: "ch-18",
-      category: "Chapters",
-      title: "Ch 18: References & Source List",
-      subtitle: "Make It Real Act • 34 primary patents & standards",
-      href: `/${projectSlug}/18-references-and-source-list`,
+      title: "Ch 21: Batch Sequence & Operating Cycle",
+      subtitle: "Control & Qualify Act • Automated phase progression",
+      href: `/${projectSlug}/21-batch-sequence-and-operating-cycle`,
     },
   ];
 

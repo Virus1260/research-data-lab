@@ -69,7 +69,7 @@ export function InteractiveBOMTable({ projectSlug, items }: InteractiveBOMTableP
   const getChapterSlugFromRef = (refStr: string) => {
     const firstRef = refStr.split(",")[0].trim();
     const chapterMap: Record<string, string> = {
-      "01": "01-beginner-foundations-and-glossary",
+      "01": "02-physics-and-thermodynamics",
       "02": "02-physics-and-thermodynamics",
       "03": "03-hosokawa-afd-vs-generic-lyophilizers",
       "04": "04-system-architecture-and-subsystems",
@@ -82,11 +82,11 @@ export function InteractiveBOMTable({ projectSlug, items }: InteractiveBOMTableP
       "11": "11-design-calculations-and-sizing-methodology",
       "12": "12-bill-of-materials-and-system-breakdown",
       "13": "13-drawings-and-schematics-to-create",
-      "14": "14-validation-qualification-and-gmp-compliance",
+      "14": "15-commissioning-test-plan",
       "15": "15-commissioning-test-plan",
-      "16": "16-build-roadmap-prototype-to-pharma-capable",
+      "16": "10-materials-fabrication-tolerances-workshop-vs-purchased",
       "17": "17-maintenance-and-troubleshooting",
-      "18": "18-references-and-source-list",
+      "18": "12-bill-of-materials-and-system-breakdown",
     };
     return chapterMap[firstRef] || "12-bill-of-materials-and-system-breakdown";
   };

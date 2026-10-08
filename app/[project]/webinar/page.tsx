@@ -272,8 +272,8 @@ const TECHNICAL_VIDEOS = [
     title: "Mixing Powder 101: Basic Principles of Mixing",
     channel: "HosokawaMicron",
     duration: "45:24",
-    chapter: "Chapter 01: Foundations & Glossary",
-    chapterSlug: "01-beginner-foundations-and-glossary",
+    chapter: "Chapter 02: Physics & Thermodynamics",
+    chapterSlug: "02-physics-and-thermodynamics",
     caption: "Bulk solid convective transport, shear forces, diffusive micro-mixing, and segregation prevention in conical blenders."
   },
   {
@@ -342,8 +342,8 @@ const TECHNICAL_VIDEOS = [
     title: "Mixing of Dry Powder Cell Culture Media",
     channel: "Hosokawa Micron B.V.",
     duration: "1:50",
-    chapter: "Chapter 14: Validation & GMP Compliance",
-    chapterSlug: "14-validation-qualification-and-gmp-compliance",
+    chapter: "Chapter 07: CIP, SIP, Sealing & Utilities",
+    chapterSlug: "07-cip-sip-sealing-insulation-utilities",
     caption: "Aseptic pharmaceutical processing of temperature-sensitive, shear-fragile cell culture media powders."
   },
   {
@@ -352,8 +352,8 @@ const TECHNICAL_VIDEOS = [
     title: "ExpertTalk | Battery Production & High Containment",
     channel: "Hosokawa Micron B.V.",
     duration: "9:11",
-    chapter: "Chapter 18: References & Master Catalog",
-    chapterSlug: "18-references-and-source-list",
+    chapter: "Chapter 10: Materials & Workshop Fabrication",
+    chapterSlug: "10-materials-fabrication-tolerances-workshop-vs-purchased",
     caption: "Closed-loop inert nitrogen vacuum drying of toxic and explosive battery slurries with full containment."
   },
   {

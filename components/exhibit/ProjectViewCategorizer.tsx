@@ -104,19 +104,14 @@ const BUILDER_CATEGORIES: CategoryDefinition[] = [
     badge: "REFERENCE & GOVERNANCE",
     badgeColor: "bg-neutral-500/20 text-neutral-400 border-neutral-500/40",
     description:
-      "Sublimation physics, formulation science, competitive benchmarks vs shelf dryers and Lyo Beads, FDA cGMP validation (IQ/OQ/PQ), and literature citations.",
+      "Sublimation physics, formulation science, competitive benchmarks vs shelf dryers and Lyo Beads, and post-build commissioning & maintenance.",
     slugs: [
-      "01-beginner-foundations-and-glossary",
       "02-physics-and-thermodynamics",
       "03-hosokawa-afd-vs-generic-lyophilizers",
       "04-system-architecture-and-subsystems",
       "09-safety-and-hazard-analysis",
-      "14-validation-qualification-and-gmp-compliance",
       "15-commissioning-test-plan",
-      "16-build-roadmap-prototype-to-pharma-capable",
       "17-maintenance-and-troubleshooting",
-      "18-references-and-source-list",
-      "26-hosokawa-afd-patent-nl2026893b1-translation-and-engineering-analysis",
     ],
     isBuildEssential: false,
   },
@@ -304,7 +299,7 @@ export function ProjectViewCategorizer({
                 16 Build Blueprints
               </span>
               <span className="px-2.5 py-1 rounded-md bg-bg-inset border border-hairline text-ink-dim">
-                12 Reference
+                6 Operations &amp; Reference
               </span>
             </div>
           </div>

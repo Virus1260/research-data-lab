@@ -22,92 +22,12 @@ export interface ChapterTopic {
 
 export const STATIC_CHAPTER_TOPICS: ChapterTopic[] = [
   {
-    "slug": "00-readme",
-    "chapterNumber": "00",
-    "title": "Hosokawa AFD Pharma Freeze Dryer: Deep Technical Study & Workshop Build Package",
-    "act": "Overview",
-    "actId": "act-0",
-    "readTime": "6 min read",
-    "headings": [
-      {
-        "level": 1,
-        "text": "Hosokawa AFD Pharma Freeze Dryer: Deep Technical Study & Workshop Build Package",
-        "id": "hosokawa-afd-pharma-freeze-dryer-deep-technical-study-workshop-build-package"
-      },
-      {
-        "level": 2,
-        "text": "How this package is organized",
-        "id": "how-this-package-is-organized"
-      },
-      {
-        "level": 2,
-        "text": "Critical framing: read this before anything else",
-        "id": "critical-framing-read-this-before-anything-else"
-      },
-      {
-        "level": 2,
-        "text": "What is new in this extended edition (P&ID, controls, CAD prep, vessel sizing)",
-        "id": "what-is-new-in-this-extended-edition-pid-controls-cad-prep-vessel-sizing"
-      },
-      {
-        "level": 2,
-        "text": "Scope honesty",
-        "id": "scope-honesty"
-      },
-      {
-        "level": 2,
-        "text": "Key published design constant: 50% working-volume ratio",
-        "id": "key-published-design-constant-50-working-volume-ratio"
-      }
-    ]
-  },
-  {
-    "slug": "01-beginner-foundations-and-glossary",
-    "chapterNumber": "01",
-    "title": "Beginner Foundations & Glossary",
-    "act": "Foundations",
-    "actId": "act-1",
-    "readTime": "6 min read",
-    "headings": [
-      {
-        "level": 1,
-        "text": "01 — Beginner Foundations & Glossary",
-        "id": "01-beginner-foundations-glossary"
-      },
-      {
-        "level": 2,
-        "text": "What freeze-drying actually is",
-        "id": "what-freeze-drying-actually-is"
-      },
-      {
-        "level": 2,
-        "text": "Why pharma cares specifically",
-        "id": "why-pharma-cares-specifically"
-      },
-      {
-        "level": 2,
-        "text": "The three-stage process, in slightly more depth",
-        "id": "the-three-stage-process-in-slightly-more-depth"
-      },
-      {
-        "level": 2,
-        "text": "Terms you need before the rest of this package makes sense",
-        "id": "terms-you-need-before-the-rest-of-this-package-makes-sense"
-      },
-      {
-        "level": 2,
-        "text": "Reading order recommendation",
-        "id": "reading-order-recommendation"
-      }
-    ]
-  },
-  {
     "slug": "02-physics-and-thermodynamics",
     "chapterNumber": "02",
     "title": "Physics & Thermodynamics of Freeze-Drying",
     "act": "Foundations",
     "actId": "act-1",
-    "readTime": "8 min read",
+    "readTime": "9 min read",
     "headings": [
       {
         "level": 1,
@@ -116,38 +36,78 @@ export const STATIC_CHAPTER_TOPICS: ChapterTopic[] = [
       },
       {
         "level": 2,
-        "text": "1. The water phase diagram — why vacuum, not just cold",
-        "id": "1-the-water-phase-diagram-why-vacuum-not-just-cold"
+        "text": "1. Water Phase Diagram & The Triple Point Boundary",
+        "id": "1-water-phase-diagram-the-triple-point-boundary"
+      },
+      {
+        "level": 3,
+        "text": "Why Vacuum is Mandatory for Sublimation",
+        "id": "why-vacuum-is-mandatory-for-sublimation"
       },
       {
         "level": 2,
-        "text": "2. Vapor pressure of ice vs. temperature (why \"how cold\" sets \"how low a vacuum you need\")",
-        "id": "2-vapor-pressure-of-ice-vs-temperature-why-how-cold-sets-how-low-a-vacuum-you-need"
+        "text": "2. Sensible vs. Latent Heat in Drying Systems",
+        "id": "2-sensible-vs-latent-heat-in-drying-systems"
+      },
+      {
+        "level": 3,
+        "text": "A. Sensible Heat Energy ($Q_{sens}$)",
+        "id": "a-sensible-heat-energy-q_sens"
+      },
+      {
+        "level": 3,
+        "text": "B. Latent Heat of Phase Transitions ($\\Delta H$)",
+        "id": "b-latent-heat-of-phase-transitions-delta-h"
       },
       {
         "level": 2,
-        "text": "3. Heat and mass transfer during primary drying — the Pikal model",
-        "id": "3-heat-and-mass-transfer-during-primary-drying-the-pikal-model"
+        "text": "3. Vapor Pressure of Ice & Sublimation Mass Transfer Kinetics",
+        "id": "3-vapor-pressure-of-ice-sublimation-mass-transfer-kinetics"
+      },
+      {
+        "level": 3,
+        "text": "A. The Primary Drying Mass Flow Equation",
+        "id": "a-the-primary-drying-mass-flow-equation"
+      },
+      {
+        "level": 3,
+        "text": "B. Cake Resistance ($R_p$) Dynamics & The Static Freeze-Drying Bottleneck",
+        "id": "b-cake-resistance-r_p-dynamics-the-static-freeze-drying-bottleneck"
+      },
+      {
+        "level": 3,
+        "text": "C. Pore Flow Regimes & The Knudsen Number ($Kn$)",
+        "id": "c-pore-flow-regimes-the-knudsen-number-kn"
+      },
+      {
+        "level": 3,
+        "text": "D. Vapor Duct Sonic Choking ($Ma = 1.0$)",
+        "id": "d-vapor-duct-sonic-choking-ma-10"
       },
       {
         "level": 2,
-        "text": "4. Secondary drying / desorption",
-        "id": "4-secondary-drying-desorption"
+        "text": "4. Moisture Binding Mechanisms & Drying Rate Curves",
+        "id": "4-moisture-binding-mechanisms-drying-rate-curves"
+      },
+      {
+        "level": 3,
+        "text": "Two Primary Types of Moisture",
+        "id": "two-primary-types-of-moisture"
+      },
+      {
+        "level": 3,
+        "text": "Constant Rate vs. Falling Rate Periods",
+        "id": "constant-rate-vs-falling-rate-periods"
       },
       {
         "level": 2,
-        "text": "5. How agitation changes the heat-transfer picture (the AFD-relevant physics)",
-        "id": "5-how-agitation-changes-the-heat-transfer-picture-the-afd-relevant-physics"
+        "text": "5. The Agitated Convective Advantage in the AFD",
+        "id": "5-the-agitated-convective-advantage-in-the-afd"
       },
       {
         "level": 2,
-        "text": "6. Freezing rate and ice crystal structure",
-        "id": "6-freezing-rate-and-ice-crystal-structure"
-      },
-      {
-        "level": 2,
-        "text": "Sources for this file",
-        "id": "sources-for-this-file"
+        "text": "6. Vacuum Boiling Point Depression for Solvent Systems",
+        "id": "6-vacuum-boiling-point-depression-for-solvent-systems"
       }
     ]
   },
@@ -191,53 +151,73 @@ export const STATIC_CHAPTER_TOPICS: ChapterTopic[] = [
       },
       {
         "level": 2,
-        "text": "3. The Nauta mixer connection: your best real-world reference platform",
-        "id": "3-the-nauta-mixer-connection-your-best-real-world-reference-platform"
+        "text": "3. The Nauta Mixer Connection: Proven Mechanical Kinematics",
+        "id": "3-the-nauta-mixer-connection-proven-mechanical-kinematics"
       },
       {
         "level": 2,
-        "text": "4. Generic pharma freeze-drying literature that does not directly describe the AFD",
-        "id": "4-generic-pharma-freeze-drying-literature-that-does-not-directly-describe-the-afd"
+        "text": "4. Generic Pharma Freeze-Drying Literature vs. The Real AFD",
+        "id": "4-generic-pharma-freeze-drying-literature-vs-the-real-afd"
+      },
+      {
+        "level": 3,
+        "text": "3b. Alternative Agitated Conical Architectures: Ribocone (Helical Ribbon) vs. Nauta (Screw)",
+        "id": "3b-alternative-agitated-conical-architectures-ribocone-helical-ribbon-vs-nauta-screw"
+      },
+      {
+        "level": 3,
+        "text": "3c. Conical Paddle Dryer (CPD) for High-Viscosity Slurries & Filter Cakes",
+        "id": "3c-conical-paddle-dryer-cpd-for-high-viscosity-slurries-filter-cakes"
       },
       {
         "level": 2,
-        "text": "5. Quick-reference: AFD-family vs. classic shelf/tray dryer",
-        "id": "5-quick-reference-afd-family-vs-classic-shelftray-dryer"
+        "text": "5. Comprehensive Engineering Comparison: Hosokawa AFD vs. Classic Shelf Lyophilizer",
+        "id": "5-comprehensive-engineering-comparison-hosokawa-afd-vs-classic-shelf-lyophilizer"
+      },
+      {
+        "level": 2,
+        "text": "6. Three-Way Technology Comparison: Hosokawa AFD vs. Lyo Beads (Cryopelletization) vs. Shelf Lyophilizers",
+        "id": "6-three-way-technology-comparison-hosokawa-afd-vs-lyo-beads-cryopelletization-vs-shelf-lyophilizers"
+      },
+      {
+        "level": 3,
+        "text": "The Mechanism of Lyo Beads",
+        "id": "the-mechanism-of-lyo-beads"
+      },
+      {
+        "level": 3,
+        "text": "The Tradeoffs: Why Hosokawa AFD is Superior for Bulk Active Production",
+        "id": "the-tradeoffs-why-hosokawa-afd-is-superior-for-bulk-active-production"
       }
     ]
   },
   {
     "slug": "04-system-architecture-and-subsystems",
     "chapterNumber": "04",
-    "title": "System Architecture & Subsystem Breakdown",
+    "title": "System Architecture & Subsystem Engineering Breakdown",
     "act": "The Machine",
     "actId": "act-2",
-    "readTime": "4 min read",
+    "readTime": "6 min read",
     "headings": [
       {
         "level": 1,
-        "text": "04 — System Architecture & Subsystem Breakdown",
-        "id": "04-system-architecture-subsystem-breakdown"
+        "text": "04 — System Architecture & Subsystem Engineering Breakdown",
+        "id": "04-system-architecture-subsystem-engineering-breakdown"
       },
       {
         "level": 2,
-        "text": "Top-level subsystem map",
-        "id": "top-level-subsystem-map"
+        "text": "1. Top-Level Subsystem Architecture",
+        "id": "1-top-level-subsystem-architecture"
       },
       {
         "level": 2,
-        "text": "Subsystem list, with what each one does and where it's covered in this package",
-        "id": "subsystem-list-with-what-each-one-does-and-where-its-covered-in-this-package"
+        "text": "2. Definitive 17-Subsystem Engineering Specification",
+        "id": "2-definitive-17-subsystem-engineering-specification"
       },
       {
         "level": 2,
-        "text": "How the process cycle exercises each subsystem",
-        "id": "how-the-process-cycle-exercises-each-subsystem"
-      },
-      {
-        "level": 2,
-        "text": "Why this maps well to a workshop build",
-        "id": "why-this-maps-well-to-a-workshop-build"
+        "text": "3. How the Process Cycle Exercises the Subsystems",
+        "id": "3-how-the-process-cycle-exercises-the-subsystems"
       }
     ]
   },
@@ -311,8 +291,28 @@ export const STATIC_CHAPTER_TOPICS: ChapterTopic[] = [
       },
       {
         "level": 2,
-        "text": "3. Agitator",
-        "id": "3-agitator"
+        "text": "3. Agitator Kinematics & Mixing Dynamics",
+        "id": "3-agitator-kinematics-mixing-dynamics"
+      },
+      {
+        "level": 3,
+        "text": "Three-Action Triad Kinematics",
+        "id": "three-action-triad-kinematics"
+      },
+      {
+        "level": 3,
+        "text": "Agitator Comparison: Screw vs. Ribocone Ribbons",
+        "id": "agitator-comparison-screw-vs-ribocone-ribbons"
+      },
+      {
+        "level": 3,
+        "text": "Sizing Kinematics: The 10:1 Power Ratio",
+        "id": "sizing-kinematics-the-101-power-ratio"
+      },
+      {
+        "level": 3,
+        "text": "Cantilevered Suspension vs. Bottom Bearing",
+        "id": "cantilevered-suspension-vs-bottom-bearing"
       },
       {
         "level": 3,
@@ -385,9 +385,24 @@ export const STATIC_CHAPTER_TOPICS: ChapterTopic[] = [
         "id": "3c-achievable-vacuum-level"
       },
       {
+        "level": 3,
+        "text": "3d. Vacuum Leak Rate Specification & Qualification (ISO 13408-3)",
+        "id": "3d-vacuum-leak-rate-specification-qualification-iso-13408-3"
+      },
+      {
         "level": 2,
-        "text": "4. Condenser vs. material collector — don't conflate these",
-        "id": "4-condenser-vs-material-collector-dont-conflate-these"
+        "text": "4. Condenser vs. Heated Vapor Filter Dome (Material Collector)",
+        "id": "4-condenser-vs-heated-vapor-filter-dome-material-collector"
+      },
+      {
+        "level": 3,
+        "text": "A. The Heated Vapor Filter Dome",
+        "id": "a-the-heated-vapor-filter-dome"
+      },
+      {
+        "level": 3,
+        "text": "B. Cryogenic Cold Trap Condenser vs. Liquid Condenser",
+        "id": "b-cryogenic-cold-trap-condenser-vs-liquid-condenser"
       },
       {
         "level": 2,
@@ -402,37 +417,52 @@ export const STATIC_CHAPTER_TOPICS: ChapterTopic[] = [
     "title": "CIP/SIP, Sealing, Insulation & Utilities",
     "act": "The Machine",
     "actId": "act-2",
-    "readTime": "5 min read",
+    "readTime": "7 min read",
     "headings": [
       {
         "level": 1,
-        "text": "07 — CIP/SIP, Sealing, Insulation & Utilities",
-        "id": "07-cipsip-sealing-insulation-utilities"
+        "text": "07 — Clean-In-Place (CIP), SIP, Sealing & Utilities",
+        "id": "07-clean-in-place-cip-sip-sealing-utilities"
       },
       {
         "level": 2,
-        "text": "1. Clean-In-Place (CIP)",
-        "id": "1-clean-in-place-cip"
+        "text": "1. Clean-In-Place (CIP) Architecture & Spray Nozzle Geometry",
+        "id": "1-clean-in-place-cip-architecture-spray-nozzle-geometry"
+      },
+      {
+        "level": 3,
+        "text": "A. Cover Spray Nozzles (Drawing 9-4, Doc 8390105_1)",
+        "id": "a-cover-spray-nozzles-drawing-9-4-doc-8390105_1"
+      },
+      {
+        "level": 3,
+        "text": "B. Vessel Wall Spray Nozzles (Drawing 9-5, Doc 8390106_1)",
+        "id": "b-vessel-wall-spray-nozzles-drawing-9-5-doc-8390106_1"
+      },
+      {
+        "level": 3,
+        "text": "C. Dual WIP/CIP Distribution Manifold (Drawing 9-1, Doc 8390096_1)",
+        "id": "c-dual-wipcip-distribution-manifold-drawing-9-1-doc-8390096_1"
       },
       {
         "level": 2,
-        "text": "2. Sterilize-In-Place (SIP)",
-        "id": "2-sterilize-in-place-sip"
+        "text": "2. Sterilize-In-Place (SIP) System",
+        "id": "2-sterilize-in-place-sip-system"
       },
       {
         "level": 2,
-        "text": "3. Sealing",
-        "id": "3-sealing"
+        "text": "3. Dynamic Sealing & Sanitary Materials",
+        "id": "3-dynamic-sealing-sanitary-materials"
       },
       {
         "level": 2,
-        "text": "4. Insulation",
-        "id": "4-insulation"
+        "text": "4. Vessel Insulation & Cladding",
+        "id": "4-vessel-insulation-cladding"
       },
       {
         "level": 2,
-        "text": "5. Utility Management Skid",
-        "id": "5-utility-management-skid"
+        "text": "5. Utility Management Skid (UMS) Interface Matrix",
+        "id": "5-utility-management-skid-ums-interface-matrix"
       }
     ]
   },
@@ -451,13 +481,13 @@ export const STATIC_CHAPTER_TOPICS: ChapterTopic[] = [
       },
       {
         "level": 2,
-        "text": "1. Instrumentation",
-        "id": "1-instrumentation"
+        "text": "1. Process Instrumentation Architecture",
+        "id": "1-process-instrumentation-architecture"
       },
       {
         "level": 2,
-        "text": "2. Valves",
-        "id": "2-valves"
+        "text": "2. Sanitary Process & Vacuum Valve Selection",
+        "id": "2-sanitary-process-vacuum-valve-selection"
       },
       {
         "level": 2,
@@ -672,41 +702,6 @@ export const STATIC_CHAPTER_TOPICS: ChapterTopic[] = [
     ]
   },
   {
-    "slug": "14-validation-qualification-and-gmp-compliance",
-    "chapterNumber": "14",
-    "title": "Validation, Qualification & GMP Compliance",
-    "act": "Make It Real",
-    "actId": "act-4",
-    "readTime": "5 min read",
-    "headings": [
-      {
-        "level": 1,
-        "text": "14 — Validation, Qualification & GMP Compliance",
-        "id": "14-validation-qualification-gmp-compliance"
-      },
-      {
-        "level": 2,
-        "text": "1. The regulatory framework, at a glance",
-        "id": "1-the-regulatory-framework-at-a-glance"
-      },
-      {
-        "level": 2,
-        "text": "2. The qualification lifecycle: DQ → IQ → OQ → PQ",
-        "id": "2-the-qualification-lifecycle-dq-iq-oq-pq"
-      },
-      {
-        "level": 2,
-        "text": "3. What this means concretely for a freeze dryer specifically",
-        "id": "3-what-this-means-concretely-for-a-freeze-dryer-specifically"
-      },
-      {
-        "level": 2,
-        "text": "4. Where this package's own claims stop",
-        "id": "4-where-this-packages-own-claims-stop"
-      }
-    ]
-  },
-  {
     "slug": "15-commissioning-test-plan",
     "chapterNumber": "15",
     "title": "Commissioning Test Plan (FAT/SAT-Style, for Your Own Build)",
@@ -767,51 +762,6 @@ export const STATIC_CHAPTER_TOPICS: ChapterTopic[] = [
     ]
   },
   {
-    "slug": "16-build-roadmap-prototype-to-pharma-capable",
-    "chapterNumber": "16",
-    "title": "Build Roadmap: Prototype → Pharma-Capable System",
-    "act": "Build It",
-    "actId": "act-3",
-    "readTime": "4 min read",
-    "headings": [
-      {
-        "level": 1,
-        "text": "16 — Build Roadmap: Prototype → Pharma-Capable System",
-        "id": "16-build-roadmap-prototype-pharma-capable-system"
-      },
-      {
-        "level": 2,
-        "text": "Stage 0 — Study & design (this package's files 01–13)",
-        "id": "stage-0-study-design-this-packages-files-0113"
-      },
-      {
-        "level": 2,
-        "text": "Stage 1 — Non-vacuum mechanical mockup",
-        "id": "stage-1-non-vacuum-mechanical-mockup"
-      },
-      {
-        "level": 2,
-        "text": "Stage 2 — Bench-scale cold/vacuum prototype (small batch, no CIP/SIP, atmospheric-adjacent instrumentation)",
-        "id": "stage-2-bench-scale-coldvacuum-prototype-small-batch-no-cipsip-atmospheric-adjacent-instrumentation"
-      },
-      {
-        "level": 2,
-        "text": "Stage 3 — Pilot-scale system with full subsystem set",
-        "id": "stage-3-pilot-scale-system-with-full-subsystem-set"
-      },
-      {
-        "level": 2,
-        "text": "Stage 4 — GMP-capable system (only if the goal is genuinely regulated manufacturing)",
-        "id": "stage-4-gmp-capable-system-only-if-the-goal-is-genuinely-regulated-manufacturing"
-      },
-      {
-        "level": 2,
-        "text": "Suggested overall sequencing logic",
-        "id": "suggested-overall-sequencing-logic"
-      }
-    ]
-  },
-  {
     "slug": "17-maintenance-and-troubleshooting",
     "chapterNumber": "17",
     "title": "Maintenance & Troubleshooting",
@@ -842,91 +792,6 @@ export const STATIC_CHAPTER_TOPICS: ChapterTopic[] = [
     ]
   },
   {
-    "slug": "18-references-and-source-list",
-    "chapterNumber": "18",
-    "title": "References & Source List",
-    "act": "Make It Real",
-    "actId": "act-4",
-    "readTime": "7 min read",
-    "headings": [
-      {
-        "level": 1,
-        "text": "18: References & Source List",
-        "id": "18-references-source-list"
-      },
-      {
-        "level": 2,
-        "text": "A. Hosokawa primary sources (AFD-specific)",
-        "id": "a-hosokawa-primary-sources-afd-specific"
-      },
-      {
-        "level": 2,
-        "text": "B. Patents (core AFD engineering-detail sources)",
-        "id": "b-patents-core-afd-engineering-detail-sources"
-      },
-      {
-        "level": 2,
-        "text": "C. Freeze-drying physics & process science",
-        "id": "c-freeze-drying-physics-process-science"
-      },
-      {
-        "level": 2,
-        "text": "D. Refrigeration & vacuum systems",
-        "id": "d-refrigeration-vacuum-systems"
-      },
-      {
-        "level": 2,
-        "text": "E. Sanitary design, materials & standards",
-        "id": "e-sanitary-design-materials-standards"
-      },
-      {
-        "level": 2,
-        "text": "F. Pressure/vacuum vessel design",
-        "id": "f-pressurevacuum-vessel-design"
-      },
-      {
-        "level": 2,
-        "text": "G. Agitator drives & seals",
-        "id": "g-agitator-drives-seals"
-      },
-      {
-        "level": 2,
-        "text": "H. Control systems, validation & GMP compliance",
-        "id": "h-control-systems-validation-gmp-compliance"
-      },
-      {
-        "level": 2,
-        "text": "I. Safety: combustible dust / ATEX / NFPA",
-        "id": "i-safety-combustible-dust-atex-nfpa"
-      },
-      {
-        "level": 2,
-        "text": "J. Fundamental physical/thermodynamic data",
-        "id": "j-fundamental-physicalthermodynamic-data"
-      },
-      {
-        "level": 2,
-        "text": "K. Added for the P&ID / controls / CAD extension (files 19-24)",
-        "id": "k-added-for-the-pid-controls-cad-extension-files-19-24"
-      },
-      {
-        "level": 2,
-        "text": "L. Added for vessel and head sizing extension (files 05, 11, 25)",
-        "id": "l-added-for-vessel-and-head-sizing-extension-files-05-11-25"
-      },
-      {
-        "level": 2,
-        "text": "How this package used these sources",
-        "id": "how-this-package-used-these-sources"
-      },
-      {
-        "level": 2,
-        "text": "What this package could not find publicly",
-        "id": "what-this-package-could-not-find-publicly"
-      }
-    ]
-  },
-  {
     "slug": "19-piping-and-instrumentation-diagram",
     "chapterNumber": "19",
     "title": "P&ID: How to Read It, and the Full Diagram for This Machine",
@@ -951,23 +816,18 @@ export const STATIC_CHAPTER_TOPICS: ChapterTopic[] = [
       },
       {
         "level": 2,
-        "text": "3. Walking the diagram, subsystem by subsystem",
+        "text": "3. Walking the Diagram: Subsystem by Subsystem",
         "id": "3-walking-the-diagram-subsystem-by-subsystem"
       },
       {
         "level": 2,
-        "text": "4. Why some tags repeat the same letter twice on purpose",
-        "id": "4-why-some-tags-repeat-the-same-letter-twice-on-purpose"
+        "text": "4. Why Instrumentation Tags Share Loop Identifiers",
+        "id": "4-why-instrumentation-tags-share-loop-identifiers"
       },
       {
         "level": 2,
-        "text": "5. The structured data behind this diagram",
-        "id": "5-the-structured-data-behind-this-diagram"
-      },
-      {
-        "level": 2,
-        "text": "6. What's illustrative vs. what's fixed",
-        "id": "6-whats-illustrative-vs-whats-fixed"
+        "text": "5. Architectural Data Model & Integration",
+        "id": "5-architectural-data-model-integration"
       }
     ]
   },
@@ -1041,8 +901,18 @@ export const STATIC_CHAPTER_TOPICS: ChapterTopic[] = [
       },
       {
         "level": 2,
-        "text": "4. A genuinely useful transition condition: ending Primary Drying automatically",
-        "id": "4-a-genuinely-useful-transition-condition-ending-primary-drying-automatically"
+        "text": "4. Quantitative Automated Transition Logic: Ending Primary Drying",
+        "id": "4-quantitative-automated-transition-logic-ending-primary-drying"
+      },
+      {
+        "level": 3,
+        "text": "Gate 1: Comparative Pressure Divergence (`PIT-101A` vs `PIT-101B`)",
+        "id": "gate-1-comparative-pressure-divergence-pit-101a-vs-pit-101b"
+      },
+      {
+        "level": 3,
+        "text": "Gate 2: Automated Pressure Rise Test (PRT) / Manometric Temperature Measurement (MTM)",
+        "id": "gate-2-automated-pressure-rise-test-prt-manometric-temperature-measurement-mtm"
       },
       {
         "level": 2,
@@ -1297,247 +1167,147 @@ export const STATIC_CHAPTER_TOPICS: ChapterTopic[] = [
     ]
   },
   {
-    "slug": "26-hosokawa-afd-patent-nl2026893b1-translation-and-engineering-analysis",
-    "chapterNumber": "26",
-    "title": "Hosokawa AFD Patent NL 2026893 B1: Translation, Claims Analysis & Engineering Evaluation",
+    "slug": "27-canonical-bfd-and-unbundled-pfd-process-flowsheets",
+    "chapterNumber": "27",
+    "title": "Vacuum Dryer vs. Active Freeze Dryer: Thermodynamic & Process Comparison",
     "act": "Automation, P&ID & CAD",
     "actId": "act-5",
-    "readTime": "25 min read",
+    "readTime": "18 min read",
     "headings": [
       {
         "level": 1,
-        "text": "26: Hosokawa AFD Patent NL 2026893 B1: Translation, Claims Analysis & Engineering Evaluation",
-        "id": "26-hosokawa-afd-patent-nl-2026893-b1-translation-claims-analysis-engineering-evaluation"
+        "text": "27 — Vacuum Dryer vs. Active Freeze Dryer: Thermodynamic & Process Comparison",
+        "id": "27-vacuum-dryer-vs-active-freeze-dryer-thermodynamic-process-comparison"
       },
       {
         "level": 2,
-        "text": "Executive Summary & Patent Dossier",
-        "id": "executive-summary-patent-dossier"
-      },
-      {
-        "level": 3,
-        "text": "Official Patent Bibliographic Data",
-        "id": "official-patent-bibliographic-data"
+        "text": "Process Flow Divergence Overview",
+        "id": "process-flow-divergence-overview"
       },
       {
         "level": 2,
-        "text": "1. Paradigm Shift: EP 1 601 919 B1 vs. NL 2026893 B1",
-        "id": "1-paradigm-shift-ep-1-601-919-b1-vs-nl-2026893-b1"
+        "text": "Step 1: Preparing and Loading the Material",
+        "id": "step-1-preparing-and-loading-the-material"
       },
       {
         "level": 3,
-        "text": "The Two Fundamental Engineering Bottlenecks Solved",
-        "id": "the-two-fundamental-engineering-bottlenecks-solved"
+        "text": "Step 1 — Vacuum Dryer: Liquid Slurry Ambient Loading",
+        "id": "step-1-vacuum-dryer-liquid-slurry-ambient-loading"
+      },
+      {
+        "level": 3,
+        "text": "Step 1 — Freeze Dryer: In-Situ Dynamic Cryogenic Freezing",
+        "id": "step-1-freeze-dryer-in-situ-dynamic-cryogenic-freezing"
       },
       {
         "level": 2,
-        "text": "2. Statement-by-Statement Dutch to English Translation of Claims (Conclusies 1 to 27)",
-        "id": "2-statement-by-statement-dutch-to-english-translation-of-claims-conclusies-1-to-27"
+        "text": "Step 2: Establishing the System Vacuum",
+        "id": "step-2-establishing-the-system-vacuum"
       },
       {
         "level": 3,
-        "text": "Claim 1: Primary Apparatus Claim (The Fundamental Invention)",
-        "id": "claim-1-primary-apparatus-claim-the-fundamental-invention"
+        "text": "Step 2 — Vacuum Dryer: Moderate Evaporation Vacuum (20–100 mbar)",
+        "id": "step-2-vacuum-dryer-moderate-evaporation-vacuum-20100-mbar"
       },
       {
         "level": 3,
-        "text": "Claim 2: Side-by-Side Skid Architecture",
-        "id": "claim-2-side-by-side-skid-architecture"
-      },
-      {
-        "level": 3,
-        "text": "Claim 3: Collector Housing Partitioning & Flow Path",
-        "id": "claim-3-collector-housing-partitioning-flow-path"
-      },
-      {
-        "level": 3,
-        "text": "Claim 4: Collecting Filter Screen Candle",
-        "id": "claim-4-collecting-filter-screen-candle"
-      },
-      {
-        "level": 3,
-        "text": "Claim 5: Collector Material Discharge Port",
-        "id": "claim-5-collector-material-discharge-port"
-      },
-      {
-        "level": 3,
-        "text": "Claim 6: Bottom Apex Collector Outlet",
-        "id": "claim-6-bottom-apex-collector-outlet"
-      },
-      {
-        "level": 3,
-        "text": "Claim 7: Heated Double-Walled Collector Jacket",
-        "id": "claim-7-heated-double-walled-collector-jacket"
-      },
-      {
-        "level": 3,
-        "text": "Claim 8: Dedicated Powder Receiver Vessel",
-        "id": "claim-8-dedicated-powder-receiver-vessel"
-      },
-      {
-        "level": 3,
-        "text": "Claim 9: Receiver Body with Internal Volume",
-        "id": "claim-9-receiver-body-with-internal-volume"
-      },
-      {
-        "level": 3,
-        "text": "Claim 10: Receiver Mated to Collector Drain",
-        "id": "claim-10-receiver-mated-to-collector-drain"
-      },
-      {
-        "level": 3,
-        "text": "Claim 11: Heated Receiver Jacket for Moisture Stripping",
-        "id": "claim-11-heated-receiver-jacket-for-moisture-stripping"
-      },
-      {
-        "level": 3,
-        "text": "Claim 12: Elevated / Top-Mounted Collector Position",
-        "id": "claim-12-elevated-top-mounted-collector-position"
-      },
-      {
-        "level": 3,
-        "text": "Claim 13: Inter-Stage Vacuum Isolation Valve",
-        "id": "claim-13-inter-stage-vacuum-isolation-valve"
-      },
-      {
-        "level": 3,
-        "text": "Claim 14: Non-Return Isolation of Collected Cake",
-        "id": "claim-14-non-return-isolation-of-collected-cake"
-      },
-      {
-        "level": 3,
-        "text": "Claim 15: Fine Dust Entrainment Bypass Conduit",
-        "id": "claim-15-fine-dust-entrainment-bypass-conduit"
-      },
-      {
-        "level": 3,
-        "text": "Claim 16: Reverse Pulse Gas Purge Lance",
-        "id": "claim-16-reverse-pulse-gas-purge-lance"
-      },
-      {
-        "level": 3,
-        "text": "Claim 17: Conical Chamber with Cantilevered Screw Agitator",
-        "id": "claim-17-conical-chamber-with-cantilevered-screw-agitator"
-      },
-      {
-        "level": 3,
-        "text": "Claim 18: Vessel Cover with Fluidization Gas Nozzles",
-        "id": "claim-18-vessel-cover-with-fluidization-gas-nozzles"
-      },
-      {
-        "level": 3,
-        "text": "Claim 19: Normally Closed Bottom Product Discharge Valve",
-        "id": "claim-19-normally-closed-bottom-product-discharge-valve"
-      },
-      {
-        "level": 3,
-        "text": "Claim 20: Completely Enclosed Containment Standard",
-        "id": "claim-20-completely-enclosed-containment-standard"
-      },
-      {
-        "level": 3,
-        "text": "Claim 21: Sub-Assembly Protection for Collector Unit",
-        "id": "claim-21-sub-assembly-protection-for-collector-unit"
-      },
-      {
-        "level": 3,
-        "text": "Claim 22: Primary Method Claim for Dynamic Elutriation Freeze Drying",
-        "id": "claim-22-primary-method-claim-for-dynamic-elutriation-freeze-drying"
-      },
-      {
-        "level": 3,
-        "text": "Claim 23: Pre-Evacuation In-Situ Freezing Step",
-        "id": "claim-23-pre-evacuation-in-situ-freezing-step"
-      },
-      {
-        "level": 3,
-        "text": "Claim 24: Terminal Intermittent Gas Bleed / Venting",
-        "id": "claim-24-terminal-intermittent-gas-bleed-venting"
-      },
-      {
-        "level": 3,
-        "text": "Claim 25: Periodic Collector Blowback Pulse",
-        "id": "claim-25-periodic-collector-blowback-pulse"
-      },
-      {
-        "level": 3,
-        "text": "Claim 26: Powder Re-Introduction & Final Post-Mixing",
-        "id": "claim-26-powder-re-introduction-final-post-mixing"
-      },
-      {
-        "level": 3,
-        "text": "Claim 27: Dynamic Valve Control Across Cycle Phases",
-        "id": "claim-27-dynamic-valve-control-across-cycle-phases"
+        "text": "Step 2 — Freeze Dryer: Deep Sublimation Vacuum (< 6.11 mbar)",
+        "id": "step-2-freeze-dryer-deep-sublimation-vacuum-611-mbar"
       },
       {
         "level": 2,
-        "text": "3. Engineering Numerals & Physical Subsystems Key",
-        "id": "3-engineering-numerals-physical-subsystems-key"
+        "text": "Step 3: Applying Heat Energy",
+        "id": "step-3-applying-heat-energy"
       },
       {
         "level": 3,
-        "text": "Subsystem 1: Conical Vacuum Vessel & Orbital Agitator Core (Embodiment 1)",
-        "id": "subsystem-1-conical-vacuum-vessel-orbital-agitator-core-embodiment-1"
+        "text": "Step 3 — Vacuum Dryer: Conductive Heat Evaporation & Liquid Boiling",
+        "id": "step-3-vacuum-dryer-conductive-heat-evaporation-liquid-boiling"
       },
       {
         "level": 3,
-        "text": "Subsystem 2: Top Lid Assembly, Viewports & Utility Flanges",
-        "id": "subsystem-2-top-lid-assembly-viewports-utility-flanges"
-      },
-      {
-        "level": 3,
-        "text": "Subsystem 3: Dynamic Material Collector Column & Heated Shell",
-        "id": "subsystem-3-dynamic-material-collector-column-heated-shell"
-      },
-      {
-        "level": 3,
-        "text": "Subsystem 4: Micronic Filter Candle, Support Basket & Clamping Ring",
-        "id": "subsystem-4-micronic-filter-candle-support-basket-clamping-ring"
-      },
-      {
-        "level": 3,
-        "text": "Subsystem 5: Powder Discharge Funnel, Collection Canister & Secondary Desorption",
-        "id": "subsystem-5-powder-discharge-funnel-collection-canister-secondary-desorption"
-      },
-      {
-        "level": 3,
-        "text": "Subsystem 6: Reverse-Pulse Blowback System & Headspace Gas Sweeping",
-        "id": "subsystem-6-reverse-pulse-blowback-system-headspace-gas-sweeping"
-      },
-      {
-        "level": 3,
-        "text": "Subsystem 7: Top-Mounted Direct Collector Embodiment (100 Series)",
-        "id": "subsystem-7-top-mounted-direct-collector-embodiment-100-series"
-      },
-      {
-        "level": 3,
-        "text": "Subsystem 8: Fines Bypass Loop, Isolation Valves & Instrumentation",
-        "id": "subsystem-8-fines-bypass-loop-isolation-valves-instrumentation"
+        "text": "Step 3 — Freeze Dryer: Controlled Sublimation Energy & Latent Heat Sink",
+        "id": "step-3-freeze-dryer-controlled-sublimation-energy-latent-heat-sink"
       },
       {
         "level": 2,
-        "text": "4. Operational Cycle & SCADA State Machine Integration",
-        "id": "4-operational-cycle-scada-state-machine-integration"
+        "text": "Step 4: Vapor Traveling to the Condenser",
+        "id": "step-4-vapor-traveling-to-the-condenser"
       },
       {
         "level": 3,
-        "text": "Dynamic Process Timing & Valve States (FIG 5 Engineering Analysis)",
-        "id": "dynamic-process-timing-valve-states-fig-5-engineering-analysis"
-      },
-      {
-        "level": 2,
-        "text": "5. CAD Integration: Vectorized Drawings & SolidWorks Modeling Guide",
-        "id": "5-cad-integration-vectorized-drawings-solidworks-modeling-guide"
+        "text": "Step 4 — Vacuum Dryer: Compact Low-Velocity Vapor Flow (DN50-80)",
+        "id": "step-4-vacuum-dryer-compact-low-velocity-vapor-flow-dn50-80"
       },
       {
         "level": 3,
-        "text": "SolidWorks / Inventor Modeling Instructions",
-        "id": "solidworks-inventor-modeling-instructions"
+        "text": "Step 4 — Freeze Dryer: Massive >220× Volumetric Expansion & Wide Ducts (DN200-300)",
+        "id": "step-4-freeze-dryer-massive-220-volumetric-expansion-wide-ducts-dn200-300"
       },
       {
         "level": 2,
-        "text": "6. Synthesis: Why NL 2026893 B1 Must Govern Future AFD Workshop Builds",
-        "id": "6-synthesis-why-nl-2026893-b1-must-govern-future-afd-workshop-builds"
+        "text": "Step 5: How the Condenser Traps the Vapor",
+        "id": "step-5-how-the-condenser-traps-the-vapor"
+      },
+      {
+        "level": 3,
+        "text": "Step 5 — Vacuum Dryer: TEMA Shell & Tube Liquefaction Condenser",
+        "id": "step-5-vacuum-dryer-tema-shell-tube-liquefaction-condenser"
+      },
+      {
+        "level": 3,
+        "text": "Step 5 — Freeze Dryer: Cryogenic Cold Trap Desublimation & Solid Ice Cake",
+        "id": "step-5-freeze-dryer-cryogenic-cold-trap-desublimation-solid-ice-cake"
+      },
+      {
+        "level": 2,
+        "text": "Step 6: Discharging the Final Product",
+        "id": "step-6-discharging-the-final-product"
+      },
+      {
+        "level": 3,
+        "text": "Step 6 — Vacuum Dryer: Dense Agglomerate Cake Discharge",
+        "id": "step-6-vacuum-dryer-dense-agglomerate-cake-discharge"
+      },
+      {
+        "level": 3,
+        "text": "Step 6 — Freeze Dryer: Porous Free-Flowing Micro-Granular Powder Discharge",
+        "id": "step-6-freeze-dryer-porous-free-flowing-micro-granular-powder-discharge"
+      },
+      {
+        "level": 2,
+        "text": "Step 7: Post-Batch Cleanup (The Turnaround)",
+        "id": "step-7-post-batch-cleanup-the-turnaround"
+      },
+      {
+        "level": 3,
+        "text": "Step 7 — Vacuum Dryer: Continuous Solvent Drain & Zero Downtime",
+        "id": "step-7-vacuum-dryer-continuous-solvent-drain-zero-downtime"
+      },
+      {
+        "level": 3,
+        "text": "Step 7 — Freeze Dryer: Mandatory Ice Trap Thermal Defrost Cycle",
+        "id": "step-7-freeze-dryer-mandatory-ice-trap-thermal-defrost-cycle"
+      },
+      {
+        "level": 2,
+        "text": "Direct Technical Summary",
+        "id": "direct-technical-summary"
+      },
+      {
+        "level": 2,
+        "text": "Project Engineering Consultation & Decision Framework",
+        "id": "project-engineering-consultation-decision-framework"
+      },
+      {
+        "level": 3,
+        "text": "1. System Layout Decision: Greenfield vs. Retrofit",
+        "id": "1-system-layout-decision-greenfield-vs-retrofit"
+      },
+      {
+        "level": 3,
+        "text": "2. Solvent Selection Engineering Guide",
+        "id": "2-solvent-selection-engineering-guide"
       }
     ]
   }

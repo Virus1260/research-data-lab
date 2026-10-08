@@ -36,19 +36,18 @@ export const project: ProjectConfig = {
   acts: [
     {
       id: "act-1",
-      name: "Foundations",
+      name: "Foundations & Physics",
       roman: "I",
-      description: "Build the physics vocabulary and thermodynamics from first principles.",
+      description: "Sublimation kinetics, Clausius-Clapeyron curves, and dynamic boundary layer renewal physics.",
       chapters: [
-        "01-beginner-foundations-and-glossary",
         "02-physics-and-thermodynamics",
       ],
     },
     {
       id: "act-2",
-      name: "The Machine",
+      name: "The Machine Architecture",
       roman: "II",
-      description: "The AFD-specific architecture, mechanical layout, and subsystems.",
+      description: "AFD-specific mechanics, conical vessel layout, cold trap refrigeration, and utility skids.",
       chapters: [
         "03-hosokawa-afd-vs-generic-lyophilizers",
         "04-system-architecture-and-subsystems",
@@ -60,28 +59,25 @@ export const project: ProjectConfig = {
     },
     {
       id: "act-3",
-      name: "Build It",
+      name: "Workshop Fabrication & Sizing",
       roman: "III",
-      description: "Safety hazards, materials fabrication, sizing math, BOM, drawings, and roadmap.",
+      description: "Machining tolerances, motor torque sizing, 316L metallurgy, itemized BOM, and shop drawings.",
       chapters: [
         "09-safety-and-hazard-analysis",
         "10-materials-fabrication-tolerances-workshop-vs-purchased",
         "11-design-calculations-and-sizing-methodology",
         "12-bill-of-materials-and-system-breakdown",
         "13-drawings-and-schematics-to-create",
-        "16-build-roadmap-prototype-to-pharma-capable",
       ],
     },
     {
       id: "act-4",
-      name: "Make It Real",
+      name: "Commissioning & Maintenance",
       roman: "IV",
-      description: "Validation protocols, commissioning tests, maintenance regimens, and primary sources.",
+      description: "Leak-rate hold test protocols (ISO 13408-3), thermal mapping, and routine servicing procedures.",
       chapters: [
-        "14-validation-qualification-and-gmp-compliance",
         "15-commissioning-test-plan",
         "17-maintenance-and-troubleshooting",
-        "18-references-and-source-list",
       ],
     },
     {
@@ -97,7 +93,6 @@ export const project: ProjectConfig = {
         "23-engineering-resolution-freezing-methods-and-thermal-duty",
         "24-cad-solidworks-equipment-nozzle-schedule",
         "25-vessel-sizing-suite-tool-spec-and-prompt",
-        "26-hosokawa-afd-patent-nl2026893b1-translation-and-engineering-analysis",
         "27-canonical-bfd-and-unbundled-pfd-process-flowsheets",
       ],
     },
@@ -123,9 +118,9 @@ export const project: ProjectConfig = {
     ],
   },
   summary:
-    "A comprehensive 28-chapter engineering research dossier on Hosokawa's Active Freeze Dryer technology, reconstructed from patents, public literature, control architecture, heat/mass transfer physics, Cause & Effect interlocks, parametric vessel sizing suite, CAD equipment schedules, and Patent NL 2026893 B1 analysis.",
+    "A lean, build-focused 22-chapter engineering execution dossier on Hosokawa's Active Freeze Dryer technology, containing exact mechanical dimensions, ISA-5.1 P&ID, Cause & Effect interlocks, parametric vessel sizing, SolidWorks nozzle schedules, and CAD flowsheets.",
   stats: {
-    chaptersCount: 28,
+    chaptersCount: 22,
     subsystemsCount: 17,
     bomItemsCount: 75,
     referencesCount: 48,
