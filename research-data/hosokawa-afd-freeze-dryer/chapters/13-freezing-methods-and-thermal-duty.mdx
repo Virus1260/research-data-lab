@@ -1,14 +1,14 @@
 ---
-title: "Engineering Resolution: How the Freezing Stage Actually Works"
-chapterNumber: "23"
-slug: "23-engineering-resolution-freezing-methods-and-thermal-duty"
-act: "Automation, P&ID & CAD"
-actId: "act-5"
+title: "Freezing Methods, Cryogenic LN2 & Thermal Heat Duty"
+chapterNumber: "13"
+slug: "13-freezing-methods-and-thermal-duty"
+act: "Process Skids, Vacuum & Utilities"
+actId: "act-3"
 readTime: "9 min read"
 simulators: []
 ---
 
-# 23 — Engineering Resolution: How the Freezing Stage Actually Works
+# 13 — Freezing Methods, Cryogenic LN2 & Thermal Heat Duty
 
 This file answers three questions that trip up almost everyone new to this equipment: *can you just dump dry ice or liquid nitrogen straight into the product?*, *how does the jacket actually get cold and then hot again?*, and *how do you size the thermal duty for the freezing stage?* These are good questions to have gotten stuck on — they're exactly where the real engineering judgment in this machine lives.
 
@@ -48,9 +48,7 @@ This is the mechanism worth being able to explain in one breath, because it's th
 
 File 11 §3 already walks through the sensible-heat-plus-latent-heat-of-fusion calculation for a representative 10 kg batch. The same method extends directly to any other batch size or target freeze time — the governing equation doesn't change:
 
-```
-Q_total = m × cp_liquid × ΔT_cool-to-freeze-point  +  m_water × ΔH_fusion  +  m × cp_solid × ΔT_further-cooling
-```
+$$Q_{\text{total}} = m \cdot c_{p,\text{liquid}} \cdot \Delta T_{\text{cool-to-freeze}} + m_{\text{water}} \cdot \Delta H_{\text{fusion}} + m \cdot c_{p,\text{solid}} \cdot \Delta T_{\text{further-cooling}}$$
 
 Two refinements worth adding once you're sizing a real design rather than a first-pass estimate: (1) add the **vessel wall's own heat capacity** (mass of the wetted metal × its specific heat × the same temperature swing) to the total — for a thick-walled jacketed cone this is not always negligible next to the product load, especially on a small-batch machine where the metal-to-product mass ratio is much less favorable than on a large one; and (2) add an **ambient heat infiltration allowance** (heat leaking in through imperfect insulation and any non-insulated fittings) as a continuous parasitic load on top of the batch's own cooling duty — commonly estimated as a percentage margin (10–20% is a reasonable planning allowance before you have measured data) rather than calculated in detail until you have a real prototype to test against, consistent with file 11's general guidance to prefer measured values over assumed ones wherever you can get them.
 

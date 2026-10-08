@@ -69,26 +69,30 @@ export function InteractiveBOMTable({ projectSlug, items }: InteractiveBOMTableP
   const getChapterSlugFromRef = (refStr: string) => {
     const firstRef = refStr.split(",")[0].trim();
     const chapterMap: Record<string, string> = {
-      "01": "02-physics-and-thermodynamics",
-      "02": "02-physics-and-thermodynamics",
-      "03": "03-hosokawa-afd-vs-generic-lyophilizers",
+      "01": "01-physics-and-thermodynamics",
+      "02": "02-hosokawa-afd-vs-generic-lyophilizers",
+      "03": "03-process-flowsheets-bfd-and-pfd",
       "04": "04-system-architecture-and-subsystems",
       "05": "05-vessel-chamber-agitator-and-materials",
-      "06": "06-refrigeration-vacuum-and-condenser-systems",
-      "07": "07-cip-sip-sealing-insulation-utilities",
-      "08": "08-instrumentation-controls-electrical-structural",
-      "09": "09-safety-and-hazard-analysis",
-      "10": "10-materials-fabrication-tolerances-workshop-vs-purchased",
-      "11": "11-design-calculations-and-sizing-methodology",
-      "12": "12-bill-of-materials-and-system-breakdown",
-      "13": "13-drawings-and-schematics-to-create",
-      "14": "15-commissioning-test-plan",
-      "15": "15-commissioning-test-plan",
-      "16": "10-materials-fabrication-tolerances-workshop-vs-purchased",
-      "17": "17-maintenance-and-troubleshooting",
-      "18": "12-bill-of-materials-and-system-breakdown",
+      "06": "06-materials-fabrication-tolerances-and-welding",
+      "07": "07-design-calculations-and-sizing-methodology",
+      "08": "08-vessel-sizing-suite-and-parametric-tool",
+      "09": "09-cad-solidworks-assembly-and-nozzle-schedule",
+      "10": "10-drawings-and-schematics-to-create",
+      "11": "11-bill-of-materials-and-system-breakdown",
+      "12": "12-refrigeration-vacuum-and-condenser-systems",
+      "13": "13-freezing-methods-and-thermal-duty",
+      "14": "14-cip-sip-sealing-insulation-and-utilities",
+      "15": "15-piping-and-instrumentation-diagram",
+      "16": "16-instrumentation-and-electrical-hardware",
+      "17": "17-control-system-architecture",
+      "18": "18-batch-sequence-and-operating-cycle",
+      "19": "19-interlocks-cause-effect-matrix-and-io-list",
+      "20": "20-safety-and-hazard-analysis",
+      "21": "21-commissioning-and-qualification-test-plan",
+      "22": "22-maintenance-and-troubleshooting",
     };
-    return chapterMap[firstRef] || "12-bill-of-materials-and-system-breakdown";
+    return chapterMap[firstRef] || "11-bill-of-materials-and-system-breakdown";
   };
 
   return (

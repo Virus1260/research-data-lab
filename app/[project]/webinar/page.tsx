@@ -272,8 +272,8 @@ const TECHNICAL_VIDEOS = [
     title: "Mixing Powder 101: Basic Principles of Mixing",
     channel: "HosokawaMicron",
     duration: "45:24",
-    chapter: "Chapter 02: Physics & Thermodynamics",
-    chapterSlug: "02-physics-and-thermodynamics",
+    chapter: "Chapter 01: Physics & Thermodynamics",
+    chapterSlug: "01-physics-and-thermodynamics",
     caption: "Bulk solid convective transport, shear forces, diffusive micro-mixing, and segregation prevention in conical blenders."
   },
   {
@@ -282,8 +282,8 @@ const TECHNICAL_VIDEOS = [
     title: "Basics of Material Drying Webinar",
     channel: "HosokawaMicron",
     duration: "44:28",
-    chapter: "Chapter 02: Physics & Thermodynamics",
-    chapterSlug: "02-physics-and-thermodynamics",
+    chapter: "Chapter 01: Physics & Thermodynamics",
+    chapterSlug: "01-physics-and-thermodynamics",
     caption: "Thermodynamic laws of solvent removal, sensible vs latent heat, drying rate kinetics, and phase boundary constraints."
   },
   {
@@ -292,8 +292,8 @@ const TECHNICAL_VIDEOS = [
     title: "RIBOCONE Conical Ribbon Mixer Dryer",
     channel: "Foeth / Hosokawa",
     duration: "0:27",
-    chapter: "Chapter 03: AFD vs Generic Lyophilizers",
-    chapterSlug: "03-hosokawa-afd-vs-generic-lyophilizers",
+    chapter: "Chapter 02: AFD vs Generic Lyophilizers",
+    chapterSlug: "02-hosokawa-afd-vs-generic-lyophilizers",
     caption: "Double helical ribbon sweep kinematics vs orbiting screw agitated conical vacuum drying comparison."
   },
   {
@@ -322,8 +322,8 @@ const TECHNICAL_VIDEOS = [
     title: "Nauta® Mixer CIP Cleaning Process",
     channel: "Hosokawa Micron B.V.",
     duration: "1:45",
-    chapter: "Chapter 07: CIP, SIP, Sealing & Utilities",
-    chapterSlug: "07-cip-sip-sealing-insulation-utilities",
+    chapter: "Chapter 14: CIP, SIP, Sealing & Utilities",
+    chapterSlug: "14-cip-sip-sealing-insulation-and-utilities",
     caption: "Automated rotary spray balls providing complete riboflavin-validated wash coverage over cover, arm, walls, and valve."
   },
   {
@@ -332,8 +332,8 @@ const TECHNICAL_VIDEOS = [
     title: "Nauta Conical Vacuum Dryers | Shiv Shakkti",
     channel: "Shiv Shakkti Process Eq.",
     duration: "1:15",
-    chapter: "Chapter 10: Materials & Workshop Fabrication",
-    chapterSlug: "10-materials-fabrication-tolerances-workshop-vs-purchased",
+    chapter: "Chapter 06: Materials & Workshop Fabrication",
+    chapterSlug: "06-materials-fabrication-tolerances-and-welding",
     caption: "ASME pressure vessel cone rolling, jacket welding, mirror internal surface finishing, and drive skid fitment."
   },
   {
@@ -342,8 +342,8 @@ const TECHNICAL_VIDEOS = [
     title: "Mixing of Dry Powder Cell Culture Media",
     channel: "Hosokawa Micron B.V.",
     duration: "1:50",
-    chapter: "Chapter 07: CIP, SIP, Sealing & Utilities",
-    chapterSlug: "07-cip-sip-sealing-insulation-utilities",
+    chapter: "Chapter 14: CIP, SIP, Sealing & Utilities",
+    chapterSlug: "14-cip-sip-sealing-insulation-and-utilities",
     caption: "Aseptic pharmaceutical processing of temperature-sensitive, shear-fragile cell culture media powders."
   },
   {
@@ -352,8 +352,8 @@ const TECHNICAL_VIDEOS = [
     title: "ExpertTalk | Battery Production & High Containment",
     channel: "Hosokawa Micron B.V.",
     duration: "9:11",
-    chapter: "Chapter 10: Materials & Workshop Fabrication",
-    chapterSlug: "10-materials-fabrication-tolerances-workshop-vs-purchased",
+    chapter: "Chapter 06: Materials & Workshop Fabrication",
+    chapterSlug: "06-materials-fabrication-tolerances-and-welding",
     caption: "Closed-loop inert nitrogen vacuum drying of toxic and explosive battery slurries with full containment."
   },
   {
@@ -362,8 +362,8 @@ const TECHNICAL_VIDEOS = [
     title: "Conical Paddle Dryer (CPD)",
     channel: "Hosokawa Micron B.V.",
     duration: "1:47",
-    chapter: "Chapter 03: AFD vs Generic Lyophilizers",
-    chapterSlug: "03-hosokawa-afd-vs-generic-lyophilizers",
+    chapter: "Chapter 02: AFD vs Generic Lyophilizers",
+    chapterSlug: "02-hosokawa-afd-vs-generic-lyophilizers",
     caption: "Heavy-duty central paddle agitation for viscous pasty slurries, dense filter cakes, and toxic containment vacuum drying."
   },
   {

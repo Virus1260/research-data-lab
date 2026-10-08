@@ -1,14 +1,14 @@
 ---
-title: "Refrigeration, Vacuum & Condenser/Material Collector Systems"
-chapterNumber: "06"
-slug: "06-refrigeration-vacuum-and-condenser-systems"
-act: "The Machine"
-actId: "act-2"
+title: "Refrigeration, Cold-Trap Condenser & Vacuum Skids"
+chapterNumber: "12"
+slug: "12-refrigeration-vacuum-and-condenser-systems"
+act: "Process Skids, Vacuum & Utilities"
+actId: "act-3"
 readTime: "7 min read"
 simulators: ['VacuumPumpdownSimulator', 'ComparativePressureDetector', 'RefrigerationCascadeDiagram']
 ---
 
-# 06 — Refrigeration, Vacuum & Condenser/Material Collector Systems
+# 12 — Refrigeration, Cold-Trap Condenser & Vacuum Skids
 
 ## 1. The Temperature Control Unit (TCU)
 
@@ -79,13 +79,10 @@ In an agitated vacuum freeze dryer, the vapor extraction path must handle both h
 ### B. Cryogenic Cold Trap Condenser vs. Liquid Condenser
 A critical engineering distinction separates thermal vacuum drying from vacuum freeze drying:
 
-```
-  THERMAL VACUUM DRYER (e.g. Nauta Liquid Evaporator)
-  Chamber Pressure: 20 – 100 mbar  ──► Vapor  ──►  Shell & Tube Condenser (+15°C to -10°C)  ──►  Liquid Solvent Receiver
-  
-  VACUUM FREEZE DRYER (Hosokawa AFD)
-  Chamber Pressure: 0.05 – 0.5 mbar ──► Sublimed Vapor ──► Cryogenic Cold Trap (-55°C to -85°C) ──► Solid Ice Frost on Coils
-```
+| Operating System | Chamber Pressure Range | Vapor Stream Characteristics | Condenser Configuration & Temperature | Effluent / Phase Collected |
+|---|---|---|---|---|
+| **Thermal Vacuum Dryer** *(e.g. Nauta Evaporator)* | $20\text{ to }100\text{ mbar abs}$ | Dense vapor flow through compact DN50–DN80 piping | Shell & Tube Condenser cooled by chilled water ($+15^\circ\text{C}$ to $-10^\circ\text{C}$) | Continuous liquid solvent drain to receiver drum |
+| **Vacuum Freeze Dryer** *(Hosokawa AFD)* | $0.05\text{ to }0.5\text{ mbar abs}$ | Low-density sublimed vapor through oversized DN200–DN300 duct | Cryogenic Cold Trap coils ($-55^\circ\text{C}$ to $-85^\circ\text{C}$) | Solid ice frost layer frozen directly on coils (zero batch drain) |
 
 - **Why Liquid Condensation is Thermodynamically Impossible**: Under active freeze-drying conditions ($P_{ch} \approx 0.1\text{ mbar}$), water vapor cannot exist in the liquid state. The condenser does **not** produce liquid drainage during the drying cycle; incoming water vapor desublimates directly as **solid ice frost** onto cryogenic cooling coils maintained at **$-55 ^\circ\text{C}$ to $-85 ^\circ\text{C}$**.
 - **Condenser Ice Frost Thermal Resistance Model**: As primary drying proceeds, ice accumulates on the coil surfaces. Frost has an effective thermal conductivity of $k_{ice} \approx 2.2\text{ W/m}\cdot\text{K}$. As the ice layer thickness ($\delta_{ice}$) grows, the temperature of the ice outer surface ($T_{ice,surf}$) rises above the refrigerant coil temperature ($T_{coil}$):

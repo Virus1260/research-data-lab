@@ -1,14 +1,14 @@
 ---
-title: "What Is Actually Hosokawa/AFD-Specific vs. Generic Pharma Freeze-Drying"
-chapterNumber: "03"
-slug: "03-hosokawa-afd-vs-generic-lyophilizers"
-act: "The Machine"
-actId: "act-2"
+title: "Hosokawa AFD vs Generic Lyophilizers & Competitors"
+chapterNumber: "02"
+slug: "02-hosokawa-afd-vs-generic-lyophilizers"
+act: "Foundations & Flowsheets"
+actId: "act-1"
 readTime: "12 min read"
 simulators: ['AfdComparisonFlip']
 ---
 
-# 03: What Is Actually Hosokawa/AFD-Specific vs. Generic Pharma Freeze-Drying
+# 02 — Hosokawa AFD vs Generic Lyophilizers & Competitors
 
 This is the chapter to read most carefully. Getting this distinction right determines whether the rest of your build effort is well-aimed.
 
@@ -197,15 +197,12 @@ Do not mistake static shelf literature for AFD mechanical engineering. Where thi
 
 In recent years, the pharmaceutical and point-of-care diagnostics industries developed **Lyophilized Beads (Lyo Beads)** as an alternative to static vial cakes. Understanding where Lyo Beads fit relative to both classic shelf dryers and the Hosokawa AFD clarifies the technological landscape:
 
-```
-                            FREEZE-DRYING ARCHITECTURE EVOLUTION
-                            
-      [Conventional Static Shelf]           [Lyo Beads / Cryopelletization]           [Hosokawa Active Freeze Dryer]
-      • Vials on chilled shelves            • Droplet prilling in Liquid N2           • Dynamic agitated conical screw
-      • Static cake resistance Rp           • Spherical beads on trays                • Dynamic boundary layer renewal
-      • 24 – 72 hour cycles                 • 12 – 24 hour cycles                     • 2 – 6 hour cycles (10x faster)
-      • High cleanroom / ALUS CAPEX         • Multi-skid handling & LN2 bath          • Single closed containment vessel
-```
+| Architecture Tier | Conventional Static Shelf | Lyo Beads / Cryopelletization | Hosokawa Active Freeze Dryer |
+|---|---|---|---|
+| **Freezing & Bed State** | Static vials placed on chilled hollow shelves | Droplet prilling into open Liquid $\text{N}_2$ bath; spherical beads | In-situ dynamic cryogenic freezing in conical vessel with orbiting screw |
+| **Mass Transfer Barrier** | Thickening static dried cake layer ($R_p$ limits vapor escape) | Spherical shell diffusion resistance across frozen bead matrix | Continuous boundary layer renewal; dried layer sheared ($R_p \to 0$) |
+| **Primary Drying Cycle** | $24\text{ to }72\text{ hours}$ (slow conductive heat transfer) | $12\text{ to }24\text{ hours}$ (moderate sublimation rate) | **$2\text{ to }6\text{ hours}$ ($10\times$ acceleration)** |
+| **Facility & Containment** | Cleanroom isolators, robotic ALUS loaders, high CAPEX | Multi-skid handling: prilling nozzle, $\text{LN}_2$ bath, sieves, trays | Single hermetically sealed containment vessel; liquid API in $\to$ sterile powder out |
 
 ### The Mechanism of Lyo Beads
 Lyo Beads are formed by dispensing precise micro-droplets ($\sim 5 - 50\ \mu\text{L}$, $1 - 3\text{ mm}$ diameter) of liquid formulation from piezo or solenoid nozzles directly into a cryogenic bath of liquid nitrogen ($-196^\circ\text{C}$). The droplets flash-freeze into solid spheres, which are harvested from the $LN_2$ bath with cryogenic sieves, transferred onto metal freeze-drying trays, and dried in a conventional shelf lyophilizer.

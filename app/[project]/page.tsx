@@ -65,10 +65,10 @@ export default async function LabPage({ params }: { params: Promise<{ project: s
 
           <div className="flex flex-wrap items-center gap-3.5 pt-2">
             <Link
-              href={`/${project.slug}/03-hosokawa-afd-vs-generic-lyophilizers`}
+              href={`/${project.slug}/02-hosokawa-afd-vs-generic-lyophilizers`}
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber hover:bg-amber-bright text-[#0e0a02] font-black text-xs uppercase tracking-wider transition shadow-lg shadow-amber/30 hover:scale-105 active:scale-95 border border-amber/40"
             >
-              <span>Explore Chapter 03 (Hero Finding)</span>
+              <span>Explore Chapter 02 (Hero Finding)</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
 
@@ -79,11 +79,11 @@ export default async function LabPage({ params }: { params: Promise<{ project: s
             />
 
             <Link
-              href={`/${project.slug}/27-canonical-bfd-and-unbundled-pfd-process-flowsheets`}
+              href={`/${project.slug}/03-process-flowsheets-bfd-and-pfd`}
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber/15 border border-amber/40 text-amber hover:bg-amber/25 font-mono text-xs transition shadow-sm"
             >
               <Cpu className="w-3.5 h-3.5 text-amber" />
-              <span>Ch. 27: CAD Flowsheets (DWG/BFD/PFD)</span>
+              <span>Ch. 03: CAD Flowsheets (DWG/BFD/PFD)</span>
             </Link>
 
             <Link
@@ -158,20 +158,20 @@ export default async function LabPage({ params }: { params: Promise<{ project: s
             {/* Quick Feature Jump Boxes */}
             <div className="space-y-2.5 pt-2 border-t border-hairline">
               <Link
-                href={`/${project.slug}/03-hosokawa-afd-vs-generic-lyophilizers`}
+                href={`/${project.slug}/02-hosokawa-afd-vs-generic-lyophilizers`}
                 className="p-3 rounded-xl bg-bg-inset border border-hairline hover:border-amber/30 transition flex items-center justify-between group"
               >
                 <div>
                   <div className="text-xs font-bold text-ink-primary group-hover:text-amber-bright transition">
                     Listen to Lab Assistant
                   </div>
-                  <div className="text-[10px] text-ink-dim font-mono">Ch. 03 Pre-generated Narration</div>
+                  <div className="text-[10px] text-ink-dim font-mono">Ch. 02 Pre-generated Narration</div>
                 </div>
                 <ChevronRight className="w-4 h-4 text-ink-dim group-hover:text-amber transition" />
               </Link>
 
               <Link
-                href={`/${project.slug}/02-physics-and-thermodynamics`}
+                href={`/${project.slug}/01-physics-and-thermodynamics`}
                 className="p-3 rounded-xl bg-bg-inset border border-hairline hover:border-cryo/30 transition flex items-center justify-between group"
               >
                 <div>
