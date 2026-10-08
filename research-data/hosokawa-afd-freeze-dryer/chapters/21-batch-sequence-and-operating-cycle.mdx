@@ -43,9 +43,29 @@ Every phase, regardless of what it does physically, follows the same simple stat
 
 Take "Hold vacuum setpoint" as a concrete example: it goes **RUNNING** when the primary-drying operation starts it; it stays RUNNING as long as `PIC-101` is successfully holding pressure near setpoint; it goes to **COMPLETE** when the recipe's time or convergence condition (§4 below) is satisfied; and if `PDT-102` trips high or the SIS fires (file 22), it goes to **ABORTING** and then **ABORTED**, handing control to whatever safe-state logic that fault requires. Every phase in the table above can be described this same way — once you've written the state pattern for one phase, you already understand the shape of all of them.
 
-## 4. A genuinely useful transition condition: ending Primary Drying automatically
+## 4. Quantitative Automated Transition Logic: Ending Primary Drying
 
-Most phase transitions are simple (a timer expires, an operator confirms something). One transition on this machine is worth calling out because it's a real, elegant piece of process logic: the **Primary Drying → Secondary Drying** transition can be driven automatically by watching the gap between `PIT-101A` (true pressure) and `PIT-101B` (Pirani, reads high while water vapor dominates) close to a small, near-zero value (file 06 §3b, file 19 §3) — rather than by guessing a fixed drying time and hoping it's long enough. This is a good first target for your own control logic once you have a working prototype, because it's directly observable and testable against real data (file 15's commissioning plan asks you to log exactly this).
+Most phase transitions in a batch recipe rely on fixed timers or operator manual prompts. However, guessing a fixed primary drying duration carries severe risks:
+- **Ending too early**: Unsublimated ice remains in the core. When the jacket heats up for Secondary Drying, the ice melts into liquid water (**eutectic meltback**), causing irreversible cake collapse, degradation of active APIs, and batch rejection.
+- **Running too long**: Wastes tens of machine hours and energy, and exposes sensitive biologics to unnecessary thermal/vacuum stress.
+
+The Hosokawa AFD BPCS automates this transition through two complementary, non-invasive Process Analytical Technology (PAT) gates:
+
+### Gate 1: Comparative Pressure Divergence (`PIT-101A` vs `PIT-101B`)
+As derived in Chapter 06 §3b, the Pirani gauge (`PIT-101B`) measures gas thermal conductivity (which is $\sim 1.6\times$ higher for pure water vapor than dry nitrogen), while the Capacitance Manometer (`PIT-101A`) measures true physical force via diaphragm deflection.
+- **Active Sublimation State**: Water vapor dominates the vessel head. The ratio $P_{Pirani} / P_{CM}$ remains between **$1.55$ and $1.70$**.
+- **Depletion State**: As frozen ice sublimates to completion, water vapor evolution ceases. The chamber atmosphere shifts to background dry nitrogen ingress. The Pirani reading drops rapidly toward the true absolute pressure.
+- **Automated SCADA Trigger**:
+  $$\text{Condition}: \quad \Delta P = P_{Pirani} - P_{CM} < 0.010\text{ mbar} \quad \text{AND} \quad \frac{P_{Pirani}}{P_{CM}} \le 1.05 \quad \text{for } \ge 15\text{ consecutive minutes}$$
+  When this condition is met, primary drying is mathematically verified as complete.
+
+### Gate 2: Automated Pressure Rise Test (PRT) / Manometric Temperature Measurement (MTM)
+To provide secondary verification per cGMP protocols, the PLC performs an automated Pressure Rise Test:
+1. The vapor isolation valve (`XV-104`) between the vessel and the condenser closes briefly for $\Delta t = 15\text{ seconds}$.
+2. If ice is still sublimating, the pressure rises sharply:
+   $$\left.\frac{dP}{dt}\right|_{t=0} = \frac{\dot{m}_{sub} \cdot R \cdot T}{M_{H2O} \cdot V_{vessel}}$$
+3. If $dP/dt < 0.002\text{ mbar/s}$ (attributable solely to the baseline leak rate $Q_{leak} \le 0.010\text{ mbar}\cdot\text{L/s}$), the PLC confirms that sublimation has zero remaining mass flux.
+4. The valve reopens, and the recipe automatically advances to the **Secondary Drying (Desorption)** phase, ramping the jacket temperature from $0^\circ\text{C}$ to $+30^\circ\text{C}$ with zero risk of meltback.
 
 ## 5. The full batch as one state diagram
 

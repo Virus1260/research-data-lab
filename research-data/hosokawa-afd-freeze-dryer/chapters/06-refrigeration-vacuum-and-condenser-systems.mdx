@@ -40,13 +40,30 @@ A typical pharma freeze-dryer vacuum train is **oil-free / dry**, both to avoid 
 
 ### 3b. Pressure instrumentation — and why you need two kinds of gauge
 This is one of the more subtle, easy-to-get-wrong parts of the system, and it's worth understanding in some depth because it directly enables in-process end-of-drying detection:
-- **Pirani gauge**: measures pressure indirectly via the thermal conductivity of the gas present. Its reading is **gas-composition dependent** — water vapor conducts heat differently than nitrogen/air (about 1.6× the thermal conductivity), so a Pirani gauge reads noticeably (~50-60%) higher than true pressure while the chamber atmosphere is mostly water vapor (i.e., during active primary drying).
-- **Capacitance manometer**: measures true absolute pressure via a mechanical diaphragm deflection, and is **not affected by gas composition**.
-- **Comparative pressure measurement**: running both gauges on the same chamber and watching the *gap* between their readings converge to a small, near-zero difference is a well-established, widely used method (documented by both Millrock Technology and in the peer-reviewed pharma freeze-drying literature) to detect the **end of primary drying** — when the gap closes, the chamber atmosphere has stopped being dominated by water vapor, meaning sublimation is essentially complete. Best practice (per Patel et al., "Determination of End Point of Primary Drying in Freeze-Drying Process Control," *AAPS PharmSciTech* 11(1), 2010, and reaffirmed in a 2022 industry scale-up best-practices paper in the same journal) is to run both gauge types on **both** the vessel and the condenser/collector side.
-- Control loops should regulate chamber pressure using the **capacitance manometer** (true pressure), using the Pirani purely as a secondary/diagnostic signal.
+- **Pirani gauge (`PIT-101B`)**: Measures pressure indirectly via the thermal conductivity of the gas present. Its reading is **strongly gas-composition dependent** — water vapor has a thermal conductivity approximately **1.6× higher than dry nitrogen**. Consequently, while the chamber atmosphere is saturated with sublimed water vapor (active primary drying), the Pirani reads significantly higher than true pressure:
+  $$\text{Ratio} = \frac{P_{Pirani}}{P_{Capacitance\,Manometer}} \approx 1.55 - 1.70$$
+- **Capacitance manometer (`PIT-101A`, e.g., MKS Baratron)**: Measures true absolute pressure via mechanical deflection of an Inconel diaphragm, completely independent of gas species or composition.
+- **Comparative pressure measurement & Automated Phase Advance**: Running both gauges on the vessel chamber and watching the ratio converge toward unity ($1.0$) is the industry gold standard for detecting the **end of primary drying**:
+  $$\lim_{t \to t_{end}} \left(\frac{P_{Pirani}}{P_{CM}}\right) = 1.00 \pm 0.05 \quad \iff \quad \Delta P = P_{Pirani} - P_{CM} < 0.010\text{ mbar}$$
+  When the gap closes below $0.010\text{ mbar}$ for $\ge 15$ continuous minutes, sublimed water vapor evolution has ceased, and the PLC automatically triggers the recipe advance into Secondary Drying (desorption).
+- Control loops (`PIC-101`) must always regulate chamber pressure using the **capacitance manometer** (true physical pressure), with the Pirani gauge serving as a diagnostic and phase-advance sensor.
 
 ### 3c. Achievable vacuum level
 Per file 02/03, the process needs roughly **5 mbar down to 0.01 mbar** (Hosokawa's 2003 patent range) or the narrower **0.1–3 mbar** figure given in the 2020 patent for approaching the sublimation onset — comfortably within the range of a well-selected dry screw + Roots combination, and well short of the deep high-vacuum range (10⁻³ mbar and below) that would require diffusion or turbomolecular pumping. This is a "rough/medium vacuum" system, not a high-vacuum one — an important, cost-relevant distinction when selecting pumps.
+
+### 3d. Vacuum Leak Rate Specification & Qualification (ISO 13408-3)
+Aseptic pharmaceutical lyophilization mandates rigorous chamber leak-tightness verification to prevent microbial ingress and ensure process repeatability. Per **ISO 13408-3** (*Aseptic processing of health care products — Part 3: Lyophilization*), the maximum permissible gas ingress rate for an isolated, clean, empty freeze-drying vessel is:
+
+$$Q_{leak} = \frac{V_{system} \cdot \Delta P}{\Delta t} \le 0.010\text{ mbar}\cdot\text{L/s} \quad (10\ \mu\text{bar}\cdot\text{L/s})$$
+
+Where:
+- $V_{system}$ = Total internal volume of the conical vessel, dome, and isolated vacuum lines ($\text{L}$).
+- $\Delta P$ = Pressure rise observed over the hold test ($\text{mbar}$).
+- $\Delta t$ = Test duration, typically standard 30-minute ($1,800\text{ s}$) hold after initial pump-down below $0.02\text{ mbar}$.
+
+In the AFD recipe sequence (Chapter 21), an automated 10-minute leak-check phase runs before every product charging operation. If $Q_{leak} > 0.015\text{ mbar}\cdot\text{L/s}$, the batch sequence interlocks and prevents product loading.
+
+---
 
 ## 4. Condenser vs. Heated Vapor Filter Dome (Material Collector)
 
@@ -59,13 +76,25 @@ In an agitated vacuum freeze dryer, the vapor extraction path must handle both h
 - **Filter Media**: Sintered stainless steel porous mesh or PTFE membrane cartridges rated for sub-micron powder retention ($0.2 - 1.0\ \mu\text{m}$).
 - **Automatic Reverse-Pulse Nitrogen Blowback**: Periodic pressurized nitrogen pulses (4–6 bar g, 50–100 ms duration) backflush each filter element sequentially. Dislodged dry powder drops straight back into the agitated conical bed, ensuring 100% batch yield without manual recovery.
 
-### B. Solvent Condenser & Vacuum Train
+### B. Cryogenic Cold Trap Condenser vs. Liquid Condenser
+A critical engineering distinction separates thermal vacuum drying from vacuum freeze drying:
 
-![Complete Vacuum Drying Process Flowsheet (Dryer, Condenser, Pump, Receiver)](/photos/webinar_captures/nauta_vacuum_drying_system_pid_flowsheet.png)
+```
+  THERMAL VACUUM DRYER (e.g. Nauta Liquid Evaporator)
+  Chamber Pressure: 20 – 100 mbar  ──► Vapor  ──►  Shell & Tube Condenser (+15°C to -10°C)  ──►  Liquid Solvent Receiver
+  
+  VACUUM FREEZE DRYER (Hosokawa AFD)
+  Chamber Pressure: 0.05 – 0.5 mbar ──► Sublimed Vapor ──► Cryogenic Cold Trap (-55°C to -85°C) ──► Solid Ice Frost on Coils
+```
 
-- **Vertical Shell-and-Tube Surface Condenser**: Positioned downstream of the heated filter dome. Cold thermal fluid (−40 °C to −60 °C) circulates through the tubes, freezing or condensing water vapor out of the vapor stream.
-- **Solvent Receiver Tank**: Collects condensed solvents or melted defrost condensate ahead of the vacuum pumps.
-- **Dry Vacuum Pump Protection**: Because the surface condenser freezes/condenses >98% of the vapor load, the dry screw vacuum pump operates clean and dry, preventing moisture saturation and mechanical seizure.
+- **Why Liquid Condensation is Thermodynamically Impossible**: Under active freeze-drying conditions ($P_{ch} \approx 0.1\text{ mbar}$), water vapor cannot exist in the liquid state. The condenser does **not** produce liquid drainage during the drying cycle; incoming water vapor desublimates directly as **solid ice frost** onto cryogenic cooling coils maintained at **$-55 ^\circ\text{C}$ to $-85 ^\circ\text{C}$**.
+- **Condenser Ice Frost Thermal Resistance Model**: As primary drying proceeds, ice accumulates on the coil surfaces. Frost has an effective thermal conductivity of $k_{ice} \approx 2.2\text{ W/m}\cdot\text{K}$. As the ice layer thickness ($\delta_{ice}$) grows, the temperature of the ice outer surface ($T_{ice,surf}$) rises above the refrigerant coil temperature ($T_{coil}$):
+  $$\Delta T_{ice} = T_{ice,surf} - T_{coil} = \frac{\dot{q}_{sub} \cdot \delta_{ice}}{k_{ice} \cdot A_{cond}}$$
+  Where $\dot{q}_{sub} = \dot{m}_{sub} \cdot \Delta H_{sub}$. If $\delta_{ice}$ exceeds **$12 - 15\text{ mm}$**, the surface temperature of the ice cake can rise above $-35^\circ\text{C}$, elevating the saturation vapor pressure at the condenser and choking the sublimation driving force ($\Delta P = P_{ch} - P_{ice,cond}$).
+- **Coil Geometry**: Condenser cooling coils must be engineered with a generous **inter-tube spacing of at least 35–45 mm** to allow up to $12\text{ mm}$ of ice frost growth without bridging between adjacent tubes.
+- **Defrosting Phase**: Once the batch finishes and the chamber is isolated, the condenser is brought to atmospheric pressure and defrosted via circulating hot water, steam injection, or reverse hot-gas refrigerant bypass. Only during this post-cycle phase does water drain into a condensate receiver.
+
+---
 
 ## 5. Valve requirements on the vacuum path
 
